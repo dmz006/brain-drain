@@ -15,8 +15,11 @@ Two printed parts plus a door blank, sized from the real board:
 
 ```
 make            # board.scad + stl/tray.stl, lid.stl, door.stl  (needs openscad)
-make preview.png
+make preview    # stl/tray-iso.png, stl/lid-inside.png via tools/stl_preview.py (no display needed)
 ```
+
+Verified 2026-09-23 with OpenSCAD 2021.01: all three parts export without
+warnings; tray 186.8 × 116.8 × 40 mm, lid 6.4 mm including its skirt.
 
 Print PETG or ASA, 0.2 mm layers. The tray prints as modelled; the lid prints
 upside down. Outer size is about 190 × 120 × 44 mm.

@@ -22,3 +22,4 @@ software/.venv/
 # vendor datasheets: local reference only, not redistributed
 hardware/*.kicad_pcb-bak
 hardware/drc.json
+enclosure/stl/*.png
