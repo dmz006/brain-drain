@@ -4,7 +4,12 @@ KiCad 9 project, **generated** from `tools/design.py`. See `../docs/ARCHITECTURE
 for the design, `../docs/BOM.md` for parts and `../docs/USAGE.md` for the
 regenerate / route commands.
 
-![board](renders/board-top.png)
+![board](renders/board-3d-iso.png)
+
+150 × 98 mm (C21). Rear edge: four SATA 22-pin receptacles (the drive cables). Left
+wall: DIN 12 V, RJ45, USB-C. Front wall: microSD, M.2 SSD slot. Top view with the
+copper and silkscreen: [`renders/board-top.png`](renders/board-top.png); bottom side
+(CR2032 holder, buzzer): [`renders/board-3d-bottom.png`](renders/board-3d-bottom.png).
 
 ## Layout
 
@@ -22,7 +27,8 @@ hardware/
   renders/                             schematic PDF + PNGs, board PDF/PNG, 3D render
   bom/brain-drain-bom.csv              canonical BOM (docs/BOM.md is the readable copy)
   tools/                               design.py (netlist), symgen.py, fpgen.py, gen_sch.py,
-                                       gen_pcb.py, gen_connections.py, route.py, kilib.py, kifp.py, sexp.py
+                                       gen_pcb.py (placement, C21 outline), check_place.py, gen_connections.py,
+                                       route.py, render_board.sh, kilib.py, kifp.py, sexp.py
 ```
 
 ## Board rules

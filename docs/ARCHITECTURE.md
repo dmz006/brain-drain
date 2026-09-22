@@ -42,8 +42,9 @@ all three workstreams; change it before changing the hardware.
 ```
 
 Everything except the drives lives on one 4-layer carrier board inside a printed
-enclosure. Drives sit outside on a mat or rack and connect with 0.5 m
-22-pin SATA (7 data + 15 power) extension cables.
+box about 157 × 105 × 39 mm (C21). The box, its 12 V brick and four cables travel
+in a backpack; drives lie loose on the bench and connect with 0.5 m 22-pin SATA
+(7 data + 15 power) extension cables. There is no rack, dock or chassis.
 
 ## 3. Workstream 1 — Carrier board (KiCad)
 
@@ -128,7 +129,7 @@ pins; no SPI ROM.
 ### 3.4 Drive connectors and pigtails
 
 * Board side: 4× **SATA 22-pin (7+15) right-angle receptacle**, backplane style,
-  along the rear edge on ~28 mm pitch.
+  along the rear edge on 28.9 mm pitch (pad span 27.94 mm plus clearance).
 * Pigtail: off-the-shelf **22-pin male-to-female SATA extension, 0.5 m**. No
   custom cable. The drive end plugs straight onto the drive.
 * Pin 11 of the 15-pin power segment (staggered-spin-up / activity) is left
@@ -235,10 +236,15 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
 
 ### 3.10 PCB
 
-* **Size:** 180 × 110 mm (decision C19): DIN, RJ45 and the four SATA receptacles in
-  one row on the rear edge (the USB-C rpiboot port moved to the left wall next to
-  the microSD: the magjack is 23 mm deep and the rear edge is full), CM5 centred,
-  M.2 along the front.
+* **Size:** 150 × 98 mm (decision C21, supersedes C19's 180 × 110). Rear edge:
+  the four SATA receptacles only. Left wall: DIN 12 V, RJ45, USB-C rpiboot. Front
+  wall: microSD and the M.2 SSD slot (the socket sits at the rear of the right
+  column, the 2280 module runs forward). Rows from the rear: receptacles, bridges,
+  bay switches; then the CM5 in landscape (x 24–79, y 33–73), the two hubs and the
+  buck column to its right, the panel parts (DIP, OLED header, fan header, bulk caps)
+  along the front. The CR2032 holder and the buzzer are on the bottom side under the
+  CM5, inside the 6 mm standoff height. Placement is generated (`gen_pcb.py`) and
+  checked for outline and courtyard clashes (`check_place.py`).
 * **Stack:** 4-layer, 1.6 mm, ENIG. Sig / GND / PWR / Sig. Target the JLCPCB
   JLC04161H-7628 stackup so controlled impedance is free: 90 Ω differential for
   USB 3 SS and SATA pairs, 85 Ω for the PCIe Gen3 pair to the M.2 slot. Length-match
@@ -418,16 +424,20 @@ schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
 * **Tool:** OpenSCAD, everything driven from `enclosure/params.scad`. Connector
   positions are generated from the KiCad PCB by a small script
   (`enclosure/tools/kicad_to_scad.py`) so the shell tracks the board.
-* **Form:** two-part shell, bottom tray + top lid, board on M2.5 heat-set
-  inserts. Rear wall: 4× SATA 22-pin windows, DC input, RJ45, USB-C, UART slot.
-  Top: OLED window with a recess for the module, 8-way DIP slot, 6× LED
-  holes. No button: the DIP switch is the only control. Sides: vents. Fan grille over the CM5 cooler.
+* **Form (C21):** a closed box about 157 × 105 × 39 mm, bottom tray + top lid,
+  board on M2.5 heat-set inserts. Rear wall: 4× SATA 22-pin windows (the drive
+  cables). Left wall: DC input, RJ45, USB-C. Front wall: microSD slot and the M.2
+  SSD slot with a hinged door. Lid: OLED window with a recess for the module (on
+  a 4-wire lead, over the M.2 column), 8-way DIP slot, 8× LED holes, fan grille
+  over the CM5 cooler, corner screws. Right wall: vents. Floor: buzzer holes,
+  feet pockets. No button: the DIP switch is the only control. Nothing carries
+  the drives; they lie on the bench.
 * **Print:** PETG or ASA, 0.2 mm layers, no supports required by design
   (chamfered overhangs, lid printed upside down).
-* **Refinements (`enclosure/refinements.scad`):** hinged M.2 door with a
-  filament-pin hinge and tray-side knuckles, an OLED bezel that clamps the module
-  under the lid window, rubber-feet pockets, and a four-slot drive rack with a
-  2.5" groove and pigtail notches. Renders in `enclosure/renders/`.
+* **Refinements (`enclosure/refinements.scad`):** hinged M.2 slot door with a
+  filament-pin hinge and tray-side knuckles on the front wall, an OLED bezel that
+  clamps the module under the lid window, rubber-feet pockets. Renders of the
+  parts and of the unit on the bench with four loose drives in `enclosure/renders/`.
 
 ## 6. Cross-cutting
 

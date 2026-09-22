@@ -27,19 +27,38 @@ def load(path):
 def rot(view):
     def rx(a): a = np.radians(a); return np.array([[1, 0, 0], [0, np.cos(a), -np.sin(a)], [0, np.sin(a), np.cos(a)]])
     def rz(a): a = np.radians(a); return np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
+    # camera at +z' looking down -z'; image x = x', image up = y'. rx(-60) tips the scene so world +z
+    # is up in the image and the viewer is above the -y side (where the cables and drives are).
     return {
         "top": np.eye(3),
         "bottom": np.diag([1, -1, -1.0]),
-        "iso": rx(60) @ rz(-30),
-        "iso2": rx(60) @ rz(35),
-        "front": rx(90),                # looking at the +y (front, vents) face
-        "rear": rx(90) @ rz(180),       # looking at the -y (rear, cables) face
-        "left": rx(90) @ rz(90),
+        "iso": rx(-60) @ rz(-30),         # from above the rear-left: cable wall and left wall
+        "iso2": rx(-60) @ rz(150),        # from above the front-right: display face and M.2 slot
+        "front": rx(-90) @ rz(180),       # looking at the +y (front, display) face
+        "rear": rx(-90),                  # looking at the -y (rear, cables) face
+        "left": rx(-90) @ rz(-90),
     }[view]
+
+
+def subdivide(tris, max_edge=12.0, rounds=4):
+    """Split large triangles so the painter's depth sort (per-triangle centroid) has fewer
+    big faces that draw over nearby small parts (cables next to the tray, lid over walls)."""
+    for _ in range(rounds):
+        e = np.max(np.linalg.norm(tris - np.roll(tris, -1, axis=1), axis=2), axis=1)
+        big = e > max_edge
+        if not big.any():
+            break
+        t = tris[big]
+        m01, m12, m20 = (t[:, 0] + t[:, 1]) / 2, (t[:, 1] + t[:, 2]) / 2, (t[:, 2] + t[:, 0]) / 2
+        quads = [np.stack([t[:, 0], m01, m20], 1), np.stack([m01, t[:, 1], m12], 1),
+                 np.stack([m20, m12, t[:, 2]], 1), np.stack([m01, m12, m20], 1)]
+        tris = np.concatenate([tris[~big]] + quads)
+    return tris
 
 
 def render(parts, out, view="iso", width=1600):
     R = rot(view)
+    parts = [(subdivide(p), c) for p, c in parts]
     tris = np.concatenate([p for p, _ in parts]); cols = np.concatenate([np.repeat([c], len(p), axis=0) for p, c in parts])
     p = tris @ R.T
     n = np.cross(p[:, 1] - p[:, 0], p[:, 2] - p[:, 0])

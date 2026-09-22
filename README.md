@@ -10,13 +10,19 @@ board, a Python service, and a 3D-printed enclosure.
 > **Status: design phase, nothing fabricated yet.** Schematic, board, software
 > and enclosure all exist as a first version; the first bench test with a real
 > drive is scheduled for 2026-09-26. See [docs/STATUS.md](docs/STATUS.md).
+> The board and enclosure were re-laid out on 2026-09-23 as a portable "brain
+> box" (decision C21): the unit, its power brick and four cables go in a
+> backpack, and drives lie loose on the bench while they are wiped.
 
-<p align="center"><img src="enclosure/renders/assembled-iso.png" alt="assembled unit with four drives on the rack" width="720"></p>
+<p align="center"><img src="enclosure/renders/assembled-iso.png" alt="the brain box on the bench with four loose drives on 22-pin cables" width="720"></p>
+<p align="center"><img src="enclosure/renders/assembled-iso-left.png" alt="front of the unit: OLED window, DIP slot, LEDs, M.2 slot" width="720"></p>
 
 ## What it does
 
-* Four SATA bays over USB 3 bridges, external drives on 22-pin pigtails, plus
-  an M.2 NVMe slot behind a door. Each bay is independent.
+* Four SATA bays over USB 3 bridges. Drives are not docked: each bay is a
+  0.5 m 22-pin SATA cable (data + power) that plugs straight onto a bare 3.5"
+  or 2.5" drive lying on the bench. Plus an M.2 NVMe slot in the front wall.
+  Each bay is independent.
 * Set the policy on an 8-way DIP switch. Plug a drive in: it is identified,
   wiped, verified and reported. Unplug it: the job aborts. That is the whole UI.
 * Methods follow NIST 800-88 Rev. 2: single-pass overwrite with full
@@ -39,9 +45,9 @@ board, a Python service, and a 3D-printed enclosure.
 
 | Directory | Workstream | State |
 |---|---|---|
-| [`hardware/`](hardware/README.md) | KiCad 9 carrier board: CM5, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, M.2 | schematic 0 ERC errors; board placed, DRC-clean, 71 signal nets autorouted, high-speed pairs by hand next; SATA footprint pending a drawing |
+| [`hardware/`](hardware/README.md) | KiCad 9 carrier board, 150 × 98 mm: CM5, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, M.2 | schematic 0 ERC errors; v1 outline placed and DRC-clean, routing to be rerun on it; SATA footprint pending a drawing |
 | [`software/`](software/README.md) | `braindrain` Python service, simulator, bench tool, Pi deployment | 61 tests, ready for the first bench |
-| [`enclosure/`](enclosure/README.md) | OpenSCAD tray, lid, hinged door, OLED bezel, drive rack | STLs export, not printed |
+| [`enclosure/`](enclosure/README.md) | OpenSCAD "brain box": tray, lid, hinged M.2 slot door, OLED bezel; about 157 × 105 × 39 mm | STLs export, renders, not printed |
 | [`docs/`](docs/README.md) | architecture, BOM, decisions, status, usage, diagrams | |
 
 ## Quick start
@@ -55,8 +61,8 @@ braindrain sim-plug 1 --size 1G --prefill # terminal 2: a drive appears in bay 1
 # regenerate the hardware from its source
 cd hardware && python3 tools/symgen.py && python3 tools/gen_sch.py && python3 tools/gen_pcb.py
 
-# export the enclosure
-cd enclosure && make && make preview
+# export the enclosure and its renders
+cd enclosure && make && make renders
 ```
 
 More in [docs/USAGE.md](docs/USAGE.md).

@@ -1,6 +1,6 @@
 """Generate the documentation diagrams as SVG (+PNG via cairosvg when available):
    docs/img/system-block.svg   architecture block diagram
-   docs/img/rear-panel.svg     rear connector panel elevation, from enclosure/board.scad
+   docs/img/{rear,left,front}-panel.svg   wall elevations with the cutouts, from enclosure/board.scad
    docs/img/bay-flow.svg       per-bay state machine
 Run from the repo root:  software/.venv/bin/python docs/tools/diagrams.py
 """
@@ -71,7 +71,7 @@ def system_block():
         hub_y = 125 if i < 2 else 375
         b += box(800, y, 130, 60, f"ASM1153E #{i + 1}", "USB to SATA", "#eef7e8")
         b += arrow(730, hub_y, 800, y + 30)
-        b += box(980, y, 120, 60, f"SATA bay {i + 1}", "22-pin pigtail", "#f4f4f4")
+        b += box(980, y, 120, 60, f"SATA bay {i + 1}", "22-pin cable to a bare drive", "#f4f4f4")
         b += arrow(930, y + 30, 980, y + 30, "6 Gb/s")
     # bay switches under the bays column
     b += box(760, 490, 340, 60, "4x bay power switch", "P-FET 12 V + 5 V per bay, soft-start, PTC fuses, BAY_EN GPIO", "#fdf2e9")
@@ -83,27 +83,54 @@ def system_block():
     svg(1120, 580, b, "system-block.svg")
 
 
-def rear_panel():
+PANELS = {
+    # kind: (title, axis, mirrored, names)
+    "rear": ("Rear wall (drive cables), viewed from outside", "x", False,
+             {"J10": "SATA 1", "J11": "SATA 2", "J12": "SATA 3", "J13": "SATA 4"}),
+    "left": ("Left wall (power, network, rpiboot), viewed from outside; rear edge at the right", "y", True,
+             {"J21": "DIN 12 V", "J4": "RJ45", "J5": "USB-C"}),
+    "front": ("Front wall (microSD, M.2 SSD slot), viewed from outside; left edge at the right", "x", True,
+              {"J3": "microSD", "J50": "M.2 slot"}),
+}
+
+
+def panel(kind):
+    """Elevation of one enclosure wall from enclosure/board.scad (cutouts before print clearance)."""
     txt = (ROOT / "enclosure" / "board.scad").read_text()
     bw = float(re.search(r"board_w = ([\d.]+)", txt).group(1))
-    feats = re.findall(r'\["(\w+)", "rear", ([\d.]+), ([\d.]+), (\d+), ([\d.]+), ([\d.]+), ([\d.]+)\]', txt)
+    bh = float(re.search(r"board_h = ([\d.]+)", txt).group(1))
+    title, axis, mirrored, names = PANELS[kind]
+    kinds = (kind, "m2") if kind == "front" else (kind,)
+    feats = []
+    for k in kinds:
+        feats += re.findall(r'\["(\w+)", "%s", ([\d.-]+), ([\d.-]+), (-?\d+), ([\d.]+), ([\d.]+), ([\d.]+)\]' % k, txt)
+    length = bw if axis == "x" else bh
     S = 6.0  # px per mm
-    W = int(bw * S + 120); H = 360
-    b = f"<text x='{W / 2}' y='28' text-anchor='middle' {FONT} font-size='18' font-weight='700' fill='#1f2d3d'>Rear panel (cable side), viewed from outside; dimensions in mm from the board's left edge</text>"
+    W = int(length * S + 120); H = 360
+    b = f"<text x='{W / 2}' y='28' text-anchor='middle' {FONT} font-size='18' font-weight='700' fill='#1f2d3d'>{title}; dimensions in mm along the board edge</text>"
     y0 = 240  # board top surface line
-    b += f"<rect x='60' y='{y0 - 40 * S / 2 - 10}' width='{bw * S}' height='{40 * S / 2 + 40}' fill='#f2efe6' stroke='#7f8c8d'/>"
-    b += f"<line x1='60' y1='{y0}' x2='{60 + bw * S}' y2='{y0}' stroke='#7f8c8d' stroke-dasharray='6 4'/>"
-    b += f"<text x='{60 + bw * S + 6}' y='{y0 + 4}' {FONT} font-size='11' fill='#7f8c8d'>board top</text>"
-    names = {"J21": "DIN 12 V", "J4": "RJ45", "J5": "USB-C", "J10": "SATA 1", "J11": "SATA 2", "J12": "SATA 3", "J13": "SATA 4"}
+    b += f"<rect x='60' y='{y0 - 40 * S / 2 - 10}' width='{length * S}' height='{40 * S / 2 + 40}' fill='#f2efe6' stroke='#7f8c8d'/>"
+    b += f"<line x1='60' y1='{y0}' x2='{60 + length * S}' y2='{y0}' stroke='#7f8c8d' stroke-dasharray='6 4'/>"
+    b += f"<text x='{60 + length * S + 6}' y='{y0 + 4}' {FONT} font-size='11' fill='#7f8c8d'>board top</text>"
     for ref, x, y, rot, w, h, z in feats:
-        x, w, h, z = float(x), float(w), float(h), float(z)
-        px = 60 + (x - w / 2) * S; py = y0 - (z + h) * S
+        u = float(x) if axis == "x" else float(y)
+        w, h, z = float(w), float(h), float(z)
+        if ref == "J50":   # the M.2 slot is the door opening, not the socket
+            w, h, z = 26.0, 8.0, 0.5
+        if mirrored:
+            u = length - u
+        px = 60 + (u - w / 2) * S; py = y0 - (z + h) * S
         b += f"<rect x='{px}' y='{py}' width='{w * S}' height='{h * S}' fill='#2c3e50' opacity='0.85' rx='3'/>"
-        b += f"<text x='{60 + x * S}' y='{py - 8}' text-anchor='middle' {FONT} font-size='12' font-weight='700' fill='#1f2d3d'>{names.get(ref, ref)}</text>"
-        b += f"<text x='{60 + x * S}' y='{y0 + 22}' text-anchor='middle' {FONT} font-size='11' fill='#34495e'>x={x:.0f}</text>"
-        b += f"<text x='{60 + x * S}' y='{y0 + 36}' text-anchor='middle' {FONT} font-size='10' fill='#7f8c8d'>{w:.0f}x{h:.0f}</text>"
-    b += f"<text x='60' y='{H - 20}' {FONT} font-size='12' fill='#34495e'>Cutout sizes are connector faces before the 0.6 mm print clearance. Board width {bw:.0f} mm; SATA receptacles on 30 mm pitch.</text>"
-    svg(W, H, b, "rear-panel.svg")
+        b += f"<text x='{60 + u * S}' y='{py - 8}' text-anchor='middle' {FONT} font-size='12' font-weight='700' fill='#1f2d3d'>{names.get(ref, ref)}</text>"
+        b += f"<text x='{60 + u * S}' y='{y0 + 22}' text-anchor='middle' {FONT} font-size='11' fill='#34495e'>{'x' if axis == 'x' else 'y'}={float(x) if axis == 'x' else float(y):.0f}</text>"
+        b += f"<text x='{60 + u * S}' y='{y0 + 36}' text-anchor='middle' {FONT} font-size='10' fill='#7f8c8d'>{w:.0f}x{h:.0f}</text>"
+    b += f"<text x='60' y='{H - 20}' {FONT} font-size='12' fill='#34495e'>Cutout sizes are connector faces before the 0.6 mm print clearance. Board {bw:.0f} x {bh:.0f} mm (C21).</text>"
+    svg(W, H, b, f"{kind}-panel.svg")
+
+
+def rear_panel():
+    for kind in PANELS:
+        panel(kind)
 
 
 def bay_flow():

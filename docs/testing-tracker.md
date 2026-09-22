@@ -29,7 +29,7 @@ Validated.
 |---|---|---|---|---|
 | Netlist (`design.py`) pin coverage | yes, `design.py` check | no | every pin assigned or NC | |
 | Schematic ERC | yes, 0 errors | no | kicad-cli 9.0.8 | 9 lib-cache warnings on 2N7002, 4 placeholder footprints |
-| Board DRC | yes: 1 error, silkscreen/zone-island warnings | no | kicad-cli 9.0.8 | 71 signal nets autorouted; pairs, bays and power vias by hand |
+| Board DRC (v1 outline, unrouted) | yes: 0 errors, silkscreen/isolated-copper warnings | no | kicad-cli 9.0.8, `check_place.py` 0 problems | routing to be rerun on the new outline (R16) |
 | Symbols from datasheet tables | yes | no | CM5 datasheet, USB5744 DS00001855M, ASM1153E Rev 0.4 | |
 | Footprints: KPJX-4S-S, RPA0010A | generated | no | Kycon drawing, TI land pattern | first board proves them |
 | Footprints: CM5 module, M.2 socket | copied from CM5IO rev 2 | no | Raspberry Pi design files | M.2 pegs vs TE drawing pending |
@@ -40,6 +40,6 @@ Validated.
 
 | Item | Tested | Validated | Conditions | Notes |
 |---|---|---|---|---|
-| Tray / lid / door STL export | yes, OpenSCAD 2021.01 | no | no warnings | no print yet |
-| Hinged door, bezel, rack | yes | no | | |
+| Tray / lid / door STL export (v1 box) | yes, OpenSCAD 2021.01 | no | no warnings | no print yet |
+| Hinged M.2 slot door, bezel, scene | yes | no | renders in `enclosure/renders/` | |
 | Cutout fit against real connectors | no | no | | first print |

@@ -11,9 +11,9 @@ cut_clear  = 0.6;     // added around each connector cutout
 fit        = 0.25;    // lid-to-tray sliding fit per side
 
 // heights (z = 0 at the board top surface)
-below_board = 6.0;    // standoff height: THT leads and the DIN jack legs
+below_board = 6.0;    // standoff height: THT leads, the CR2032 holder and buzzer on the bottom side
 board_t     = 1.6;
-above_board = 30.0;   // CM5 + cooler (~22), electrolytics (10.5), DIN body (12.9)
+above_board = 26.0;   // CM5 + official cooler (~22), electrolytics (10.5); DIN is on the wall
 lid_lip     = 4.0;    // how far the lid skirt drops over the tray
 
 // mounting
@@ -27,13 +27,14 @@ corner_r    = 3.0;
 oled_win    = [24.0, 13.0];   // visible area of a 0.96" 128x64 module
 oled_pcb    = [27.5, 27.5];   // module PCB, sits in a recess under the window
 oled_hole_pitch = [23.0, 23.5];
-oled_offset = [0, 0];         // move the window relative to J41 if wanted
+oled_pos    = [130, 50];      // window centre in board coordinates (the module is on a 4-wire lead to J41,
+                              // so it sits over the M.2 column where the lid is free); [] = above J41
 fan_grille_d = 40;
 vent_w      = 2.0;
 vent_pitch  = 5.0;
 
-// M.2 door on the RIGHT wall (x = board_w side)
-door_w      = 26.0;   // opening width along y
+// M.2 slot door on the FRONT wall (y = board_h side), centred on the M.2 column
+door_w      = 26.0;   // opening width along x
 door_h      = 8.0;    // opening height above board
 door_z      = 0.5;
 door_plug_t = 2.0;
@@ -56,11 +57,4 @@ hinge_pin_d = 2.0;    // filament pin
 hinge_knuckle_d = 5.0;
 door_lip    = 3.0;    // door overlaps the opening by this much all round
 
-// drive rack: four vertical slots for 3.5" or 2.5" drives beside the unit
-rack_slots  = 4;
-rack_pitch  = 32.0;   // 26.1 mm 3.5" drive + air gap
-rack_slot_w = 27.0;   // 3.5" drive thickness 26.1 + fit
-rack_depth  = 60.0;   // how much of the 147 mm drive length is supported
-rack_height = 40.0;
-rack_wall   = 3.0;
-rack_25_w   = 10.0;   // secondary groove for 2.5" drives (9.5 mm)
+// (the v0 drive rack is gone: drives lie loose on the bench and connect with 22-pin cables, C21)

@@ -57,11 +57,15 @@ python3 tools/design.py          # pin coverage check
 python3 tools/gen_sch.py         # brain-drain.kicad_sch + sheets/, ERC via kicad-cli
 python3 tools/gen_connections.py # CONNECTIONS.md
 python3 tools/gen_pcb.py         # brain-drain.kicad_pcb: outline, holes, placed footprints with nets
-python3 tools/route.py prepare   # net classes, diff-pair rules, copper zones
+python3 tools/check_place.py     # every courtyard inside the outline, no clashes (-v lists positions)
+python3 tools/route.py prepare   # net classes, diff-pair rules, copper zones, CM5 hole keep-outs
+python3 tools/route.py fanout    # via + stub next to every SMD pad on a plane net (small parts only)
 python3 tools/route.py dsn       # Specctra DSN -> routing/ (full, and lite = no diff pairs / bay nets)
 java -Djava.awt.headless=true -jar tools/freerouting/freerouting-2.1.0.jar -de routing/brain-drain-lite.dsn -do routing/brain-drain-lite.ses -mp 12
 python3 tools/route.py import    # session back into the board, bay nets stripped, zones filled
 python3 tools/fpgen.py           # project footprints from vendor drawings
+sh tools/render_board.sh         # renders/board-top.png, board-inner.png, board-3d-{top,bottom,iso}.png
+kicad-cli pcb drc --format json --severity-all -o routing/drc.json brain-drain.kicad_pcb
 ```
 
 Open `hardware/brain-drain.kicad_pro` in KiCad 9 to inspect or tidy. Hand
@@ -71,8 +75,8 @@ placement survives regeneration if written to `tools/placement.json`.
 
 ```
 cd enclosure
-make            # board.scad from the board file, then stl/{tray,lid,door,door_hinged,bezel,rack}.stl
-make preview    # PNG previews via tools/stl_preview.py (no display needed)
+make            # board.scad from the board file, then stl/{tray,lid,door,door_hinged,bezel}.stl
+make renders    # scene STLs (unit, four loose drives, cables) and renders/*.png via tools/stl_preview.py (no display needed)
 ```
 
 Edit `params.scad` for print parameters; never edit `board.scad`.

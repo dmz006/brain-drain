@@ -18,6 +18,17 @@ revisions are noted in the entries.
 - Parametric OpenSCAD enclosure: tray, lid, hinged door, OLED bezel, drive rack.
 - Documentation set, diagrams, renders, logo.
 
+### Changed
+- **Portable "brain box" (C21, 2026-09-23):** the board is re-laid out at 150 × 98 mm with the four
+  SATA receptacles on the rear edge, DIN / RJ45 / USB-C on the left wall, microSD and the M.2 SSD
+  slot on the front wall, the CM5 in landscape, CR2032 holder and buzzer on the bottom side. The
+  enclosure is a closed box of about 157 × 105 × 39 mm with an M.2 slot door on the front; the drive
+  rack is removed, drives lie loose on 22-pin cables. Placement is checked by `check_place.py`;
+  board renders come from `render_board.sh`. The v0 autoroute was discarded with the outline (R16).
+- Enclosure preview renderer: camera matrices fixed (world up is up, viewer above the cable side),
+  large triangles subdivided so the painter's sort no longer draws walls over the lid.
+- Option B (bridges in the cables, ~90 × 70 mm board) recorded as D6 for a later study.
+
 ### Fixed
 - Board generator: pad angles now follow footprint rotation (KiCad stores them absolute), which
   removed the overlapping pads on every rotated fine-pitch part; region packer with capacity checks

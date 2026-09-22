@@ -3,7 +3,8 @@
   python3 tools/route.py prepare   net classes, diff-pair rules, copper zones -> brain-drain.kicad_pcb
   python3 tools/route.py dsn       export Specctra DSN (full and "lite": no diff pairs, no bay nets)
   python3 tools/route.py import    import the freerouting session, strip bay-net tracks, fill zones, DRC
-  python3 tools/route.py all       prepare + dsn + freerouting + import
+  python3 tools/route.py fanout    via + stub beside every SMD pad on a net that has a copper plane
+  python3 tools/route.py all       prepare + fanout + dsn + freerouting + import
 
 Bay nets (anything touching the bridge-* and bay-switch-* sheets) are removed
 after import: their routing is redone once the real SATA footprint lands.
@@ -78,9 +79,9 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
     # copper zones: GND on In1, power islands on In2, GND on B.Cu
     for z in list(board.Zones()):
         board.Remove(z)
-    ox, oy = 20.0, 20.0
-    W, H = 180.0, 110.0
-
+    import gen_pcb
+    ox, oy = gen_pcb.ORIGIN
+    W, H = gen_pcb.BOARD_W, gen_pcb.BOARD_H
     def zone(net_name, layer, rect, priority=0):
         net = board.GetNetcodeFromNetname(net_name)
         z = pcbnew.ZONE(board)
@@ -89,9 +90,10 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
         z.SetLocalClearance(MM(0.25)); z.SetMinThickness(MM(0.25))
         z.SetPadConnection(pcbnew.ZONE_CONNECTION_THERMAL)
         z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)
-        x0, y0, x1, y1 = rect
-        pts = [pcbnew.VECTOR2I(MM(ox + x0), MM(oy + y0)), pcbnew.VECTOR2I(MM(ox + x1), MM(oy + y0)),
-               pcbnew.VECTOR2I(MM(ox + x1), MM(oy + y1)), pcbnew.VECTOR2I(MM(ox + x0), MM(oy + y1))]
+        if len(rect) == 4:   # rectangle
+            x0, y0, x1, y1 = rect
+            rect = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+        pts = [pcbnew.VECTOR2I(MM(ox + x), MM(oy + y)) for x, y in rect]   # polygon
         outline = z.Outline()
         outline.RemoveAllContours()
         outline.NewOutline()
@@ -103,10 +105,13 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
 
     zone("GND", pcbnew.In1_Cu, (0, 0, W, H))
     zone("GND", pcbnew.B_Cu, (0, 0, W, H))
-    zone("+12V", pcbnew.In2_Cu, (0, 0, 42, 82), 1)          # input, bucks, bay switch feed
-    zone("5V_SYS", pcbnew.In2_Cu, (42, 28, 180, 110), 1)    # CM5, hubs, bridges (VBUS/VCCIN), M.2 power parts
-    zone("5V_HDD", pcbnew.In2_Cu, (42, 0, 180, 28), 1)      # bay switch row
-    zone("+3V3", pcbnew.In2_Cu, (100, 28, 180, 62), 2)      # hub B / M.2 region, higher priority island
+    # In2 power islands for the 150x98 layout (gen_pcb.py REGIONS): one contiguous polygon per rail,
+    # built from rectangles; a higher priority island wins where they overlap.
+    # bridge row, a link past bay 1's switch region, CM5 + front band: one L-shaped polygon
+    zone("5V_SYS", pcbnew.In2_Cu, [(0, 0), (124, 0), (124, 22), (14, 22), (14, 33), (82, 33), (82, H), (0, H)], 1)
+    zone("5V_HDD", pcbnew.In2_Cu, (14, 22, 124, 33), 1)      # bay switch row
+    zone("+3V3", pcbnew.In2_Cu, (82, 33, W, H), 2)           # hubs column, M.2 column, right front band
+    zone("+12V", pcbnew.In2_Cu, (96, 33, 124, 87), 3)        # buck column carved out of the 3V3 island
     # keep-out areas (no tracks / vias) around the CM5 mounting holes: the DSN export carries no
     # hole clearance, so without these the autorouter runs traces under the standoffs
     m1 = next((f for f in board.GetFootprints() if f.GetReference() == "M1"), None)
@@ -130,6 +135,65 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
     filler.Fill(board.Zones())
     print(f"net classes set; {len(assignments)} nets assigned ({sum(v == 'Bay' for v in assignments.values())} bay, "
           f"{sum(v == 'DiffPair90' for v in assignments.values())} diff-pair); zones filled")
+
+
+def fanout(board: pcbnew.BOARD) -> None:
+    """Drop a via and a short stub next to every SMD pad whose net has a copper zone, so the
+    inner/back planes reach the top-side parts. Tries four directions and skips a pad if all
+    collide with existing copper (reported)."""
+    zones_by_net = {}
+    for z in board.Zones():
+        if z.GetIsRuleArea():
+            continue
+        zones_by_net.setdefault(z.GetNetname(), []).append(z)
+    via_d, via_drill, stub_w = MM(0.6), MM(0.3), MM(0.3)
+    occupied = []  # bounding boxes of pads and vias on F.Cu (coarse collision check)
+    for f in board.GetFootprints():
+        for pad in f.Pads():
+            occupied.append(pad.GetBoundingBox())
+    for t in board.GetTracks():
+        occupied.append(t.GetBoundingBox())
+    placed = skipped = 0
+    for f in board.GetFootprints():
+        fc = f.GetPosition()
+        if len(list(f.Pads())) > 8:
+            continue   # ICs and connectors with fine pitch: a stub between 0.4 mm pads shorts them; the router vias these itself
+        for pad in f.Pads():
+            net = pad.GetNetname()
+            if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD or net not in zones_by_net:
+                continue
+            if not any(z.GetBoundingBox().Contains(pad.GetPosition()) for z in zones_by_net[net]):
+                continue
+            ppos = pad.GetPosition(); px, py = int(ppos.x), int(ppos.y)   # plain ints: SWIG hands back mutable refs
+            sz = pad.GetSize(); half = max(int(sz.x), int(sz.y)) / 2
+            dist = half + via_d / 2 + MM(0.35)
+            import math
+            base = math.atan2(py - int(fc.y), px - int(fc.x))
+            done = False
+            for k in (0, 1, -1, 2):
+                a = base + k * math.pi / 2
+                vx, vy = int(px + dist * math.cos(a)), int(py + dist * math.sin(a))
+                box = pcbnew.BOX2I(pcbnew.VECTOR2I(vx - via_d // 2 - MM(0.15), vy - via_d // 2 - MM(0.15)),
+                                   pcbnew.VECTOR2I(via_d + 2 * MM(0.15), via_d + 2 * MM(0.15)))
+                if any(o.Intersects(box) and not o.Contains(pcbnew.VECTOR2I(px, py)) for o in occupied):
+                    continue
+                if not any(z.GetBoundingBox().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
+                    continue
+                v = pcbnew.PCB_VIA(board)
+                v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
+                v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                v.SetNetCode(pad.GetNetCode()); board.Add(v)
+                tr = pcbnew.PCB_TRACK(board)
+                tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
+                tr.SetWidth(stub_w); tr.SetLayer(pcbnew.F_Cu)
+                tr.SetNetCode(pad.GetNetCode()); board.Add(tr)
+                occupied.append(v.GetBoundingBox()); occupied.append(tr.GetBoundingBox())
+                placed += 1; done = True
+                break
+            if not done:
+                skipped += 1
+    pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    print(f"fanout: {placed} vias placed, {skipped} pads skipped (no free spot)")
 
 
 def export_dsn(board: pcbnew.BOARD) -> None:
@@ -242,6 +306,9 @@ def main(cmd: str) -> int:
     board = pcbnew.LoadBoard(str(PCB))
     if cmd in ("prepare", "all"):
         prepare(board, d)
+        pcbnew.SaveBoard(str(PCB), board)
+    if cmd in ("fanout", "all"):
+        fanout(board)
         pcbnew.SaveBoard(str(PCB), board)
     if cmd in ("dsn", "all"):
         export_dsn(board)

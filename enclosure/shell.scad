@@ -1,5 +1,7 @@
-// brain-drain enclosure: tray (bottom), lid (top), door plug. Board origin: x from
-// the left, y from the REAR edge (cables), z from the board top surface.
+// brain-drain enclosure v1 ("brain box", C21): tray (bottom), lid (top), M.2 slot door.
+// Board origin: x from the left, y from the REAR edge (the four drive cables), z from the
+// board top surface. Left wall: DIN power, RJ45, USB-C. Front wall: microSD, M.2 SSD slot.
+// Lid: OLED window, DIP slot, LED holes, fan grille. Right wall: vents only.
 //   openscad -D part=\"tray\" -o stl/tray.stl shell.scad
 //   openscad -D part=\"lid\"  -o stl/lid.stl  shell.scad
 //   openscad -D part=\"door\" -o stl/door.stl shell.scad
@@ -40,11 +42,23 @@ module left_cutouts() {
             cube([wall + 2, w, h]);
 }
 
+module front_cutouts() {
+    feature("front") let (x = bx($f[2]), w = $f[5] + 2 * cut_clear, h = $f[6] + 2 * cut_clear, z = $f[7])
+        translate([x - w / 2, outer_h - wall - 1, z_board_top + z - cut_clear])
+            cube([w, wall + 2, h]);
+}
+
 module door_cutout() {
-    // right wall opening for the M.2 module: centred on the module's y, from the board up
-    feature("m2") let (y = by($f[3]))
-        translate([outer_w - wall - 1, y - door_w / 2, z_board_top + door_z])
-            cube([wall + 2, door_w, door_h]);
+    // front wall slot for the M.2 SSD: centred on the M.2 column's x, from the board up
+    feature("m2") let (x = bx($f[2]))
+        translate([x - door_w / 2, outer_h - wall - 1, z_board_top + door_z])
+            cube([door_w, wall + 2, door_h]);
+}
+
+module buzzer_holes() {
+    // ring of sound holes in the floor under the bottom-side buzzer
+    feature("bottom") let (x = bx($f[2]), y = by($f[3]))
+        for (a = [0 : 60 : 300]) translate([x + 3 * cos(a), y + 3 * sin(a), -1]) cylinder(d = 1.6, h = floor_t + 2);
 }
 
 module standoffs() {
@@ -57,12 +71,11 @@ module standoffs() {
 }
 
 module side_vents() {
-    // slots low on the front (+y) wall and high on the rear wall between connectors are
-    // left out of v1; vents go in the lid and along the front wall
-    n = floor((inner_w - 30) / vent_pitch);
+    // vent slots in the RIGHT wall (x = outer_w), the only wall with nothing on it; the lid has the fan grille
+    n = floor((inner_h - 30) / vent_pitch);
     for (i = [0 : n - 1])
-        translate([wall + 15 + i * vent_pitch, outer_h - wall - 1, z_board_top + 6])
-            cube([vent_w, wall + 2, above_board - 12]);
+        translate([outer_w - wall - 1, wall + 15 + i * vent_pitch, z_board_top + 6])
+            cube([wall + 2, vent_w, above_board - 12]);
 }
 
 // --------------------------------------------------------------- tray
@@ -73,8 +86,10 @@ module tray() {
         translate([wall, wall, floor_t]) rounded_box(inner_w, inner_h, tray_height, corner_r - wall + 0.1);
         rear_cutouts();
         left_cutouts();
+        front_cutouts();
         door_cutout();
         side_vents();
+        buzzer_holes();
         feet_pockets();
         // lid seat: a rebate around the top inside edge
         translate([wall - fit, wall - fit, tray_height - lid_lip])
@@ -83,7 +98,7 @@ module tray() {
             }
     }
     standoffs();
-    if (hinge) feature("m2") door_knuckles(by($f[3]), z_board_top + door_z + door_h + door_lip);
+    if (hinge) feature("m2") door_knuckles(bx($f[2]), z_board_top + door_z + door_h + door_lip);
     // lid screw bosses in the four corners (lid screws come down into these)
     for (c = [[wall + 3, wall + 3], [outer_w - wall - 3, wall + 3], [wall + 3, outer_h - wall - 3], [outer_w - wall - 3, outer_h - wall - 3]])
         translate([c[0], c[1], floor_t]) difference() {
@@ -105,10 +120,10 @@ module lid() {
                     translate([wall, wall, -1]) rounded_box(inner_w - 2 * wall + 2 * fit, inner_h - 2 * wall + 2 * fit, lid_lip + 2, 1);
                 }
         }
-        // OLED window and module recess above J41
-        feature("top") if ($f[0] == "J41") let (x = bx($f[2]) + oled_offset[0], y = by($f[3]) + oled_offset[1]) {
-            translate([x - oled_win[0] / 2, y - oled_win[1] / 2 - 5, -1]) cube([oled_win[0], oled_win[1], lid_t + 2]);
-            translate([x - oled_pcb[0] / 2, y - oled_pcb[1] / 2 - 5, lid_t - 1.2]) cube([oled_pcb[0], oled_pcb[1], 5]);
+        // OLED window and module recess: at oled_pos, or above J41 when oled_pos is empty
+        feature("top") if ($f[0] == "J41") let (x = len(oled_pos) ? bx(oled_pos[0]) : bx($f[2]), y = len(oled_pos) ? by(oled_pos[1]) : by($f[3]) - 5) {
+            translate([x - oled_win[0] / 2, y - oled_win[1] / 2, -1]) cube([oled_win[0], oled_win[1], lid_t + 2]);
+            translate([x - oled_pcb[0] / 2, y - oled_pcb[1] / 2, lid_t - 1.2]) cube([oled_pcb[0], oled_pcb[1], 5]);
         }
         // DIP switch slot
         feature("top") if ($f[0] == "SW1") let (x = bx($f[2]), y = by($f[3]), r = $f[4],
@@ -116,8 +131,8 @@ module lid() {
             translate([x - (w + 2 * cut_clear) / 2, y - (h + 2 * cut_clear) / 2, -1]) cube([w + 2 * cut_clear, h + 2 * cut_clear, lid_t + 2]);
         // LED holes
         feature("led") translate([bx($f[2]), by($f[3]), -1]) cylinder(d = $f[5], h = lid_t + 2);
-        // fan grille over the CM5 (module centre = MH1 origin + half the hole pitch)
-        feature("cm5") let (cx = bx($f[2]) + 16.5, cy = by($f[3]) - 24)
+        // fan grille over the CM5 (board.scad gives the module centre)
+        feature("cm5") let (cx = bx($f[2]), cy = by($f[3]))
             translate([cx, cy, -1]) for (i = [0 : 8]) for (j = [0 : 8])
                 let (px = (i - 4) * 4.5, py = (j - 4) * 4.5) if (px * px + py * py < (fan_grille_d / 2) * (fan_grille_d / 2))
                     translate([px, py, 0]) cylinder(d = 3, h = lid_t + 2);

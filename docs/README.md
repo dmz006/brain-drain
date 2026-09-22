@@ -20,6 +20,7 @@
 |---|---|
 | ![system](img/system-block.png) | ![bay flow](img/bay-flow.png) |
 | ![rear panel](img/rear-panel.png) | ![oled](img/oled-running.png) |
+| ![left panel](img/left-panel.png) | ![front panel](img/front-panel.png) |
 
 Renders of the board live in `hardware/renders/`, of the enclosure in
 `enclosure/renders/`.

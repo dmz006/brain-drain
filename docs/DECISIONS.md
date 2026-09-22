@@ -8,6 +8,7 @@ chosen and why, so nobody re-litigates them later.
 | # | Decision | Options | Recommendation | Blocks |
 |---|---|---|---|---|
 | D5 | OLED | 0.96"/1.3" 4-pin I2C vs 2.42" SSD1309 | 0.96"/1.3" for v1 | enclosure |
+| D6 | Option B: bridges move into the cables | board = CM5 + hubs + 4× USB-A + switched 12 V/5 V outputs, about 90 × 70 mm; commercial USB 3 to SATA cables | parked by the owner on 2026-09-23 as a later study; A (C21) is being built | nothing now |
 | D8 | Build order | software-sim first / schematic first / enclosure first | software-sim first (ARCHITECTURE §8) | everything |
 
 ## Closed
@@ -34,3 +35,4 @@ chosen and why, so nobody re-litigates them later.
 | C18 | M.2 socket | **TE 2199230-4**, 4.2 mm M-key | most common small-run M.2 socket, stocked at distributors and JLCPCB | 2026-09-23 |
 | C19 | Board outline | **Option A: 180 × 110 mm**, all cables on the rear edge (DIN, RJ45, USB-C/UART, 4× SATA), CM5 centred, M.2 along the front with its door on a side wall | one enclosure wall with cutouts, single cable exit, M.2 door away from cables, fits a 220 mm print bed | 2026-09-23 |
 | C20 | Licence | **Polyform Noncommercial 1.0.0** for hardware, software and enclosure | matches the owner's datawatch project; source-available, noncommercial | 2026-09-23 |
+| C21 | Portable "brain box" (supersedes C19) | **Option A**: bridges stay on the board, drives on 22-pin cables, no rack or chassis. Board **150 × 98 mm**: 4× SATA on the rear at 28.9 mm pitch, DIN / RJ45 / USB-C on the left wall, microSD + M.2 SSD slot on the front wall, CM5 landscape centre, hubs and bucks in the right column, M.2 vertical along the right edge, CR2032 and buzzer on the bottom. Enclosure about 157 × 105 × 39 mm | owner wants the unit, brick and cables in a backpack and drives loose on the bench; A keeps every chosen part (ASM1153E, per-bay power, allow-list, M.2) and only the outline and enclosure change. Option B (D6) parked for later. Brief: `decisions/2026-09-23-portable-brain.md` | 2026-09-23 |

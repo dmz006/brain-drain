@@ -47,7 +47,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
 | J10–J13 | 4 | Molex 47018-4001, SATA 22-pin right-angle SMT host receptacle | bay connectors | 1.5 ea | decided C17; drawing SD-47018-001 |
-| CBL1–4 | 4 | SATA 22-pin male→female extension cable, 0.5 m | drive pigtails | 3 ea | off-the-shelf |
+| CBL1–4 | 4 | SATA 22-pin male→female extension cable, 0.5 m | drive cables: these are the "bays" (C21); the drive end plugs straight onto a bare drive | 3 ea | off-the-shelf |
 
 ## E. Power
 
