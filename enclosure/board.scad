@@ -2,29 +2,29 @@
 board_w = 180.00;
 board_h = 110.00;
 // mounting holes [x, y]
-board_holes = [[4.00, 4.00], [176.00, 4.00], [4.00, 106.00], [176.00, 106.00]];
+board_holes = [[4.00, 106.00], [176.00, 106.00], [4.00, 4.00], [176.00, 4.00]];
 // features: [ref, kind, x, y, rot, w, h, z]  (kinds: rear left top led cm5 m2 door)
 board_features = [
-  ["J21", "rear", 12.00, 0.00, 0, 17.00, 16.00, 0.00],  // DIN power jack face (Kycon: 16 wide, ~15 tall)
-  ["M1", "cm5", 62.00, 80.00, 0, 40.00, 55.00, 0.00],  // CM5 module (origin = MH1 hole)
-  ["J40", "top", 46.00, 92.00, 0, 10.00, 5.00, 0.00],  // fan header
-  ["D1", "led", 6.00, 106.00, 0, 3.20, 0.00, 0.00],  // power LED
-  ["D2", "led", 10.00, 106.00, 0, 3.20, 0.00, 0.00],  // activity LED
-  ["D3", "led", 14.00, 106.00, 0, 3.20, 0.00, 0.00],  // status LED
-  ["SW1", "top", 28.00, 100.00, 90, 23.00, 11.00, 0.00],  // 8-way DIP switch slot
-  ["J41", "top", 46.00, 104.00, 0, 30.00, 30.00, 0.00],  // OLED module window region (module is lid-mounted, header J41 below)
-  ["J3", "left", 6.00, 88.00, 90, 15.00, 3.00, 0.00],  // microSD card slot
+  ["J11", "rear", 96.00, 3.00, 0, 28.00, 9.00, 0.00],  // SATA 22-pin receptacle, bay 2
+  ["D3", "led", 22.00, 106.00, 0, 3.20, 0.00, 0.00],  // status LED
+  ["SW1", "top", 26.00, 100.00, 90, 23.00, 11.00, 0.00],  // 8-way DIP switch slot
+  ["J41", "top", 40.00, 106.00, -90, 30.00, 30.00, 0.00],  // OLED module window region (module is lid-mounted, header J41 below)
+  ["D1", "led", 12.00, 106.00, 0, 3.20, 0.00, 0.00],  // power LED
   ["J4", "rear", 34.00, 6.00, 0, 16.50, 13.50, 0.00],  // RJ45 magjack
-  ["J5", "rear", 50.00, 3.00, 0, 9.50, 3.60, 0.90],  // USB-C receptacle
-  ["J10", "rear", 74.00, 3.00, 0, 28.00, 9.00, 0.00],  // SATA 22-pin receptacle, bay 1
-  ["D10", "led", 74.00, 24.00, 0, 3.20, 0.00, 0.00],  // bay 1 LED
-  ["J11", "rear", 104.00, 3.00, 0, 28.00, 9.00, 0.00],  // SATA 22-pin receptacle, bay 2
-  ["D11", "led", 104.00, 24.00, 0, 3.20, 0.00, 0.00],  // bay 2 LED
-  ["J12", "rear", 134.00, 3.00, 0, 28.00, 9.00, 0.00],  // SATA 22-pin receptacle, bay 3
-  ["D12", "led", 134.00, 24.00, 0, 3.20, 0.00, 0.00],  // bay 3 LED
-  ["J13", "rear", 164.00, 3.00, 0, 28.00, 9.00, 0.00],  // SATA 22-pin receptacle, bay 4
-  ["D13", "led", 164.00, 24.00, 0, 3.20, 0.00, 0.00],  // bay 4 LED
+  ["D2", "led", 17.00, 106.00, 0, 3.20, 0.00, 0.00],  // activity LED
+  ["J40", "top", 36.00, 88.00, 90, 10.00, 5.00, 0.00],  // fan header
+  ["D12", "led", 137.50, 27.00, 0, 3.20, 0.00, 0.00],  // bay 3 LED
+  ["J12", "rear", 126.00, 3.00, 0, 28.00, 9.00, 0.00],  // SATA 22-pin receptacle, bay 3
+  ["D11", "led", 107.50, 27.00, 0, 3.20, 0.00, 0.00],  // bay 2 LED
+  ["J13", "rear", 156.00, 3.00, 0, 28.00, 9.00, 0.00],  // SATA 22-pin receptacle, bay 4
+  ["J3", "left", 12.00, 92.00, -90, 15.00, 3.00, 0.00],  // microSD card slot
+  ["D13", "led", 167.50, 27.00, 0, 3.20, 0.00, 0.00],  // bay 4 LED
+  ["M1", "cm5", 62.00, 82.00, 0, 40.00, 55.00, 0.00],  // CM5 module (origin = MH1 hole)
+  ["D50", "led", 166.00, 104.00, 0, 3.20, 0.00, 0.00],  // M.2 LED
+  ["J10", "rear", 66.00, 3.00, 0, 28.00, 9.00, 0.00],  // SATA 22-pin receptacle, bay 1
+  ["J21", "rear", 16.00, 0.00, 0, 17.00, 16.00, 0.00],  // DIN power jack face (Kycon: 16 wide, ~15 tall)
   ["J50", "m2", 62.00, 97.00, 90, 22.00, 80.00, 0.00],  // M.2 socket; module runs toward +x
-  ["D50", "led", 170.00, 106.00, 0, 3.20, 0.00, 0.00],  // M.2 LED
-  ["SW3", "door", 176.00, 92.00, 90, 0.00, 0.00, 0.00],  // M.2 door microswitch
+  ["D10", "led", 77.50, 27.00, 0, 3.20, 0.00, 0.00],  // bay 1 LED
+  ["J5", "left", 3.00, 36.00, -90, 9.50, 3.60, 0.90],  // USB-C receptacle (left wall)
+  ["SW3", "door", 172.00, 96.00, 0, 0.00, 0.00, 0.00],  // M.2 door microswitch
 ];

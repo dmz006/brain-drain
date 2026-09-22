@@ -30,32 +30,36 @@ CORNER_R = 3.0
 HOLES = [(4, 4), (BOARD_W - 4, 4), (4, BOARD_H - 4), (BOARD_W - 4, BOARD_H - 4)]  # CM5 brings its own four
 
 # Regions (x0, y0, x1, y1) in board mm, y down from the rear edge (rear edge = y 0).
+# Regions are sized so the parts fit (checked at generation time). Rear row: connectors
+# 0-8, bridges 8-22, bay switches 22-31. CM5 keep-out x 58-100, y 31-87 (holes 3.5 in from
+# the edges). M.2 module keep-out x 51-143, y 86-108.
 REGIONS = {
-    "power-input": (0, 0, 22, 45),
-    "power-bucks": (0, 45, 40, 80),
-    "cm5": (100, 28, 120, 85),
-    "usb3-hub-A": (60, 18, 90, 40),
-    "usb3-hub-B": (120, 40, 150, 62),
-    "bridge-1": (60, 8, 88, 21), "bridge-2": (90, 8, 118, 21), "bridge-3": (120, 8, 148, 21), "bridge-4": (150, 8, 178, 21),
-    "bay-switch-1": (60, 21, 88, 28), "bay-switch-2": (90, 21, 118, 28), "bay-switch-3": (120, 21, 148, 28), "bay-switch-4": (150, 21, 178, 28),
-    "m2-nvme": (120, 62, 178, 108),
+    "power-input": (2, 19, 26, 30),
+    "power-bucks": (2, 47, 42, 84),
+    "cm5": (100, 31, 118, 86),
+    "usb3-hub-A": (26, 32, 51, 46),
+    "usb3-hub-B": (118, 31, 150, 56),
+    "bridge-1": (52, 8, 80, 22), "bridge-2": (82, 8, 110, 22), "bridge-3": (112, 8, 140, 22), "bridge-4": (142, 8, 170, 22),
+    "bay-switch-1": (52, 22, 76, 31), "bay-switch-2": (82, 22, 106, 31), "bay-switch-3": (112, 22, 136, 31), "bay-switch-4": (142, 22, 166, 31),
+    "m2-nvme": (150, 31, 178, 86),
 }
+SPILL = (100, 56, 150, 86)   # anything that does not fit its region lands here and is reported
 # Fixed anchors: reference -> (x, y, rotation) in board mm
 FIXED = {
-    "J21": (12.0, 0.0, 0),            # DIN jack: face on the rear edge
-    "J4": (34.0, 6.0, 0),             # RJ45
-    "J5": (50.0, 3.0, 0),             # USB-C
-    "J7": (56.0, 12.0, 90),           # UART header
-    "J6": (52.0, 12.0, 90),           # nRPIBOOT
-    "J10": (74.0, 3.0, 0), "J11": (104.0, 3.0, 0), "J12": (134.0, 3.0, 0), "J13": (164.0, 3.0, 0),   # SATA, 30 mm pitch
-    "M1": (62.0, 80.0, 0),           # CM5: footprint origin is mounting hole MH1; module spans x 58.5-98.5, y 28.5-83.5
+    "J21": (16.0, 0.0, 0),            # DIN jack: face on the rear edge, clear of mounting hole H1
+    "J4": (34.0, 6.0, 0),             # RJ45 (23 mm deep: x 30-49, y 3.5-26)
+    "J5": (3.0, 36.0, 270),           # USB-C rpiboot on the LEFT wall (rear edge is full)
+    "J7": (44.0, 28.5, 90),           # UART header, below the magjack, pins along x
+    "J6": (32.0, 28.5, 90),           # nRPIBOOT
+    "J10": (66.0, 3.0, 0), "J11": (96.0, 3.0, 0), "J12": (126.0, 3.0, 0), "J13": (156.0, 3.0, 0),   # SATA, 30 mm pitch, clear of H2
+    "M1": (62.0, 82.0, 0),           # CM5: origin = MH1; holes at x 62/95, y 34/82; module x 58.5-98.5, y 30.5-85.5
     "J50": (62.0, 97.0, 90),          # M.2 socket at the left; module runs toward +x, SSD inserts through a door in the right wall
-    "J3": (6.0, 88.0, 90),            # microSD on the left edge, front-left corner
-    "J41": (46.0, 104.0, 0), "SW1": (28.0, 100.0, 90), "J40": (46.0, 92.0, 0),
-    "D1": (6.0, 106.0, 0), "D2": (10.0, 106.0, 0), "D3": (14.0, 106.0, 0),
-    "D10": (74.0, 24.0, 0), "D11": (104.0, 24.0, 0), "D12": (134.0, 24.0, 0), "D13": (164.0, 24.0, 0),
-    "D50": (170.0, 106.0, 0), "SW3": (176.0, 92.0, 90), "BZ1": (140.0, 76.0, 0), "BT1": (118.0, 74.0, 0),
-    "C20": (8.0, 30.0, 0), "C21": (16.0, 30.0, 0),
+    "J3": (12.0, 92.0, 270),          # microSD, card entry toward the left wall
+    "J41": (40.0, 106.0, 270), "SW1": (26.0, 100.0, 90), "J40": (36.0, 88.0, 90),
+    "D1": (12.0, 106.0, 0), "D2": (17.0, 106.0, 0), "D3": (22.0, 106.0, 0),
+    "D10": (77.5, 27.0, 0), "D11": (107.5, 27.0, 0), "D12": (137.5, 27.0, 0), "D13": (167.5, 27.0, 0),   # end of each bay switch row
+    "D50": (166.0, 104.0, 0), "SW3": (172.0, 96.0, 0), "BZ1": (142.0, 72.0, 0), "BT1": (118.0, 70.0, 0),
+    "C20": (48.0, 60.0, 0), "C21": (48.0, 72.0, 0),   # bulk caps beside the bucks
 }
 LAYERS = [(0, "F.Cu", "signal"), (1, "In1.Cu", "power"), (2, "In2.Cu", "power"), (31, "B.Cu", "signal"),
           (32, "B.Adhes", "user"), (33, "F.Adhes", "user"), (34, "B.Paste", "user"), (35, "F.Paste", "user"),
@@ -95,9 +99,15 @@ def set_props(node, comp: design.Comp, x, y, rot, nets: dict[str, int], pin_net)
             elif str(c[1]) == "Value":
                 c[2] = Str(comp.value)
     node.insert(4, ["uuid", Str(new_uuid())])
-    # pad nets
+    # pad nets; pad angles are stored absolute in KiCad files, so add the footprint rotation
     for p in sexp.find_all(node, "pad"):
         num = str(p[1])
+        at = sexp.find(p, "at")
+        if at is not None and rot:
+            ang = float(at[3]) if len(at) > 3 else 0.0
+            while len(at) > 3:
+                at.pop()
+            at.append(sexp.fmt((ang + rot) % 360))
         net = pin_net.get((comp.ref, num))
         for i, c in enumerate(list(p)):
             if isinstance(c, list) and c and c[0] == "net":
@@ -139,25 +149,45 @@ def main():
         hc = design.Comp(f"H{i}", "MountingHole:MountingHole_2.7mm_M2.5", "M2.5", "cm5")
         body.append(set_props(node, hc, ox + hx, oy + hy, 0, nets, {}))
     # footprints
-    cursors = {}
     placed = 0
+    spilled = []
+    # group the free parts per region, largest first, and shelf-pack them
+    groups: dict[str, list] = {}
+    fixed_items = []
+    GAP = 0.4
     for comp in d.comps.values():
         node = footprint_node(comp)
         fx0, fy0, fx1, fy1 = kifp.bbox(node)
-        w, h = (fx1 - fx0) + 1.0, (fy1 - fy0) + 1.0
-        if comp.ref in saved:
-            x, y, rot = saved[comp.ref]
-        elif comp.ref in FIXED:
-            x, y, rot = FIXED[comp.ref]
+        w, h = (fx1 - fx0) + GAP, (fy1 - fy0) + GAP
+        if comp.ref in saved or comp.ref in FIXED:
+            fixed_items.append((comp, node, fx0, fy0))
         else:
-            rx0, ry0, rx1, ry1 = REGIONS[comp.sheet]
-            cx, cy, rowh = cursors.get(comp.sheet, (rx0 + 1, ry0 + 1, 0.0))
-            if cx + w > rx1 and cx > rx0 + 1:
-                cx, cy, rowh = rx0 + 1, cy + rowh + 0.5, 0.0
-            x, y, rot = cx + w / 2, cy + h / 2, 0
-            cursors[comp.sheet] = (cx + w + 0.5, cy, max(rowh, h))
-        body.append(set_props(node, comp, ox + x, oy + y, rot, nets, pin_net))
-        placed += 1
+            groups.setdefault(comp.sheet, []).append((comp, node, w, h, fx0, fy0))
+    for comp, node, fx0, fy0 in fixed_items:
+        x, y, rot = saved.get(comp.ref, FIXED.get(comp.ref))
+        body.append(set_props(node, comp, ox + x, oy + y, rot, nets, pin_net)); placed += 1
+    spill_cursor = [SPILL[0], SPILL[1], 0.0]
+    for sheet, items in groups.items():
+        items.sort(key=lambda t: (-t[3], -t[2], t[0].ref))
+        rx0, ry0, rx1, ry1 = REGIONS[sheet]
+        cx, cy, rowh = rx0, ry0, 0.0
+        for comp, node, w, h, fx0, fy0 in items:
+            if cx + w > rx1 and cx > rx0:
+                cx, cy, rowh = rx0, cy + rowh, 0.0
+            if cy + h > ry1:  # region full: spill
+                sx, sy, srowh = spill_cursor
+                if sx + w > SPILL[2]:
+                    sx, sy, srowh = SPILL[0], sy + srowh, 0.0
+                x, y = sx - fx0, sy - fy0
+                spill_cursor = [sx + w, sy, max(srowh, h)]
+                spilled.append((comp.ref, sheet))
+            else:
+                x, y = cx - fx0, cy - fy0   # place so the footprint's bbox corner sits at the cursor
+                cx, rowh = cx + w, max(rowh, h)
+            body.append(set_props(node, comp, ox + x, oy + y, 0, nets, pin_net)); placed += 1
+    if spilled:
+        print(f"WARNING: {len(spilled)} parts did not fit their region and were placed in the spill area: "
+              + ", ".join(f"{r}({s})" for r, s in spilled[:20]))
     layers = ["layers"] + [[i, Str(n), k] for i, n, k in LAYERS]
     pcb = ["kicad_pcb", ["version", 20241229], ["generator", Str("brain-drain-gen_pcb")], ["generator_version", Str("9.0")],
            ["general", ["thickness", 1.6], ["legacy_teardrops", "no"]], ["paper", Str("A3")], layers,

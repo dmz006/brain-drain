@@ -235,8 +235,10 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
 
 ### 3.10 PCB
 
-* **Size:** 180 × 110 mm (decision C19): DIN, RJ45, USB-C/UART and the four SATA
-  receptacles in one row on the rear edge, CM5 centred, M.2 along the front.
+* **Size:** 180 × 110 mm (decision C19): DIN, RJ45 and the four SATA receptacles in
+  one row on the rear edge (the USB-C rpiboot port moved to the left wall next to
+  the microSD: the magjack is 23 mm deep and the rear edge is full), CM5 centred,
+  M.2 along the front.
 * **Stack:** 4-layer, 1.6 mm, ENIG. Sig / GND / PWR / Sig. Target the JLCPCB
   JLC04161H-7628 stackup so controlled impedance is free: 90 Ω differential for
   USB 3 SS and SATA pairs, 85 Ω for the PCIe Gen3 pair to the M.2 slot. Length-match

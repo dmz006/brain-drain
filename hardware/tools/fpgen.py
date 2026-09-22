@@ -74,12 +74,12 @@ def kycon_kpjx_4s_s():
     L.append(text("Footprint", "", 0, 0, "F.Fab", hide=True))
     L.append(text("Datasheet", "https://www.kycon.com/Pub_Eng_Draw/KPJX-4S-S.pdf", 0, 0, "F.Fab", hide=True))
     L.append(text("Description", "", 0, 0, "F.Fab", hide=True))
-    # signal pins: 0.6 x 2.7 rectangular legs -> oval drill 0.9 x 3.0, pad 1.6 x 3.7
+    # signal pins: 0.6 x 2.7 rectangular legs -> oval drill 0.8 x 2.9, pad 1.5 x 3.3 (pitch is 3.65 mm)
     for num, x, y in ((1, 2.90, 14.65), (2, -2.90, 14.65), (3, 2.90, 11.00), (4, -2.90, 11.00)):
-        L.append(tht(num, x, y, 0.9, 3.0, 1.6, 3.7))
+        L.append(tht(num, x, y, 0.8, 2.9, 1.5, 3.3))
     # shield: two 0.6 x 2.7 tabs at the rear corners and two round 1.7 mm legs
     for x, y in ((7.80, 16.00), (-7.80, 16.00)):
-        L.append(tht(5, x, y, 0.9, 3.0, 1.6, 3.7))
+        L.append(tht(5, x, y, 0.8, 2.9, 1.5, 3.3))
     for x, y in ((2.50, 7.50), (-2.50, 7.50)):
         L.append(tht(5, x, y, 1.7, None, 2.5, 2.5, "circle"))
     # plastic locating pegs 2.2 mm and the 2.2 x 1.0 slot

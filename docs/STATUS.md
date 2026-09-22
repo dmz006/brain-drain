@@ -7,7 +7,7 @@ blocked lists with stable ids (never reused).
 |---|---|---|
 | Design docs | complete for v0; decisions C1–C19 closed, D5 (OLED size) open | `ARCHITECTURE.md`, `DECISIONS.md` |
 | Schematic | generated, **0 ERC errors**, 13 warnings (9 lib-cache notes on 2N7002, 4 placeholder SATA footprints) | `hardware/renders/schematic/` |
-| Board | 180 × 110 mm outline, 307 footprints placed with nets, net classes and copper zones, autoroute pass in progress for non-bay nets | `hardware/renders/board-top.png`, `board-3d-top.png` |
+| Board | 180 × 110 mm outline, 307 footprints placed with nets, net classes and copper zones, **DRC: 0 errors** (silkscreen warnings only); signals-only autoroute in progress | `hardware/renders/board-top.png`, `board-3d-top.png` |
 | Footprints | DIN, TPS56637 generated from drawings; CM5 and M.2 copied from the CM5IO design files; **SATA 22-pin is a placeholder** | `hardware/lib/brain-drain.pretty/README.md` |
 | Software | engine, policy, fence, overwrite/verify, firmware wrappers, certificates, bay 5, bench tool, Pi deployment; **61 tests pass**; firmware paths untested on hardware | `docs/testing-tracker.md` |
 | Enclosure | tray, lid, blank and hinged doors, OLED bezel, feet, drive rack; STLs export clean; not printed | `enclosure/renders/` |

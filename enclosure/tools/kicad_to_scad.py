@@ -24,7 +24,7 @@ OUT = ROOT / "enclosure" / "board.scad"
 FEATURES = {
     "J21": ("rear", 17.0, 16.0, 0.0, "DIN power jack face (Kycon: 16 wide, ~15 tall)"),
     "J4":  ("rear", 16.5, 13.5, 0.0, "RJ45 magjack"),
-    "J5":  ("rear", 9.5, 3.6, 0.9, "USB-C receptacle"),
+    "J5":  ("left", 9.5, 3.6, 0.9, "USB-C receptacle (left wall)"),
     "J10": ("rear", 28.0, 9.0, 0.0, "SATA 22-pin receptacle, bay 1"),
     "J11": ("rear", 28.0, 9.0, 0.0, "SATA 22-pin receptacle, bay 2"),
     "J12": ("rear", 28.0, 9.0, 0.0, "SATA 22-pin receptacle, bay 3"),

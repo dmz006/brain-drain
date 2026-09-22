@@ -18,6 +18,12 @@ revisions are noted in the entries.
 - Parametric OpenSCAD enclosure: tray, lid, hinged door, OLED bezel, drive rack.
 - Documentation set, diagrams, renders, logo.
 
+### Fixed
+- Board generator: pad angles now follow footprint rotation (KiCad stores them absolute), which
+  removed the overlapping pads on every rotated fine-pitch part; region packer with capacity checks
+  and a spill area; DIN jack pads shorter than their pitch; M.2 footprint mask margins removed;
+  USB-C moved to the left wall; DRC now reports 0 errors before routing.
+
 ### Dependencies
 - Python: pyudev; dev: pytest, ruff, pillow, numpy, cairosvg; hw: gpiod, luma.oled, smbus2.
 - Tools (not vendored): KiCad 9.0.8, OpenSCAD 2021.01, freerouting 2.1.0 jar (downloaded into `hardware/tools/freerouting/`, gitignored), Java 21.

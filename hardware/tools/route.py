@@ -49,12 +49,14 @@ def diff_pair_nets(d: design.Design) -> set[str]:
 
 def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
     ds = board.GetDesignSettings()
+    ds.m_SolderMaskMinWidth = 0
+    ds.m_SolderMaskExpansion = MM(0.05)
     ncs = ds.m_NetSettings  # NET_SETTINGS
     # net classes
     nc_default = ncs.GetDefaultNetclass()
     nc_default.SetTrackWidth(MM(0.2)); nc_default.SetClearance(MM(0.15))
     nc_default.SetViaDiameter(MM(0.6)); nc_default.SetViaDrill(MM(0.3))
-    for name, width, clearance, gap in (("Power", 0.6, 0.2, 0.0), ("DiffPair90", 0.15, 0.15, 0.15), ("Bay", 0.25, 0.15, 0.0)):
+    for name, width, clearance, gap in (("Power", 0.6, 0.15, 0.0), ("DiffPair90", 0.15, 0.15, 0.15), ("Bay", 0.25, 0.15, 0.0)):
         nc = pcbnew.NETCLASS(name)
         nc.SetTrackWidth(MM(width)); nc.SetClearance(MM(clearance))
         nc.SetViaDiameter(MM(0.6)); nc.SetViaDrill(MM(0.3))
@@ -86,6 +88,7 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
         z.SetAssignedPriority(priority)
         z.SetLocalClearance(MM(0.25)); z.SetMinThickness(MM(0.25))
         z.SetPadConnection(pcbnew.ZONE_CONNECTION_THERMAL)
+        z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)
         x0, y0, x1, y1 = rect
         pts = [pcbnew.VECTOR2I(MM(ox + x0), MM(oy + y0)), pcbnew.VECTOR2I(MM(ox + x1), MM(oy + y0)),
                pcbnew.VECTOR2I(MM(ox + x1), MM(oy + y1)), pcbnew.VECTOR2I(MM(ox + x0), MM(oy + y1))]
