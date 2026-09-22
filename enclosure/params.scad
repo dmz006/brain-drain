@@ -1,8 +1,8 @@
 // brain-drain enclosure parameters. All mm. Board values are placeholders
 // until hardware/brain-drain.kicad_pcb exists; then board.scad is generated.
 
-board_x = 160;      // PCB outline
-board_y = 100;
+board_x = 180;      // PCB outline (C19)
+board_y = 110;
 board_t = 1.6;
 wall    = 2.4;
 clear   = 1.0;      // board-to-wall clearance

@@ -17,7 +17,7 @@ Y10;Y11;Y12;Y13,4,,30 MHz crystal 3225 CL16pF,bridge,0.3,,
 L10;L11;L12;L13,4,,4.7 uH 1 A inductor for ASM1153E core switcher,bridge,0.3,,
 C_sata,16,,10 nF 0402 SATA AC coupling,bridge,0.02,,
 D10;D11;D12;D13,4,,3 mm LED blue bay activity,bridge,0.1,,
-J10;J11;J12;J13,4,Molex 67491 series,SATA 22-pin right-angle receptacle,connectors,0.8,verify,
+J10;J11;J12;J13,4,47018-4001,Molex SATA 22-pin right-angle SMT receptacle,connectors,1.5,,C17
 CBL1;CBL2;CBL3;CBL4,4,,SATA 22-pin M-F extension 0.5 m,connectors,3,,off-the-shelf
 PSU1,1,,12 V 10 A desktop brick 120 W,power,25,,
 J21,1,KPJX-4S-S,4-pin DIN power jack 7.5 A/pin,power,2.5,,C13; choose brick before layout
@@ -42,12 +42,12 @@ D1,1,,3 mm LED green power,ui,0.1,,
 D2,1,,3 mm bicolour LED status,ui,0.2,,
 BZ1,1,,5 V magnetic buzzer + NPN,ui,0.5,,
 J40,1,,4-pin fan header Pi pinout,misc,0.1,,fan required
-J50,1,,M.2 M-key socket 4.2 mm,m2,1.2,,C15 populated in v1
+J50,1,2199230-4,TE M.2 M-key socket 4.2 mm,m2,1.2,,C15/C18 populated in v1
 MP50,3,,M.2 standoff + M2 screw,m2,0.3,,
 U50,1,TPS22965DSGR,Load switch 5.5 V 6 A switched 3V3_M2,m2,0.8,,
 U51,1,AP63203WU-7,3V3_M2 buck 2 A from 12 V,m2,0.6,,
 L51,1,,4.7 uH shielded inductor 3 A,m2,0.4,,
 D50,1,,3 mm LED blue M.2 activity,m2,0.1,,
-PCB,5,,4-layer 160x100 ENIG JLC04161H-7628,fab,12,,per board at qty 5
+PCB,5,,4-layer 180x110 ENIG JLC04161H-7628,fab,14,,per board at qty 5 (C19)
 ASM,5,,SMD assembly,fab,30,,per board at qty 5
 ENC,1,,PETG/ASA print + inserts + feet,enclosure,8,,

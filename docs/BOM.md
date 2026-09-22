@@ -46,7 +46,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| J10–J13 | 4 | SATA 22-pin (7+15) right-angle receptacle, backplane style (e.g. Molex 67491 series) | bay connectors | 0.8 ea | verify exact PN; generic LCSC part fine |
+| J10–J13 | 4 | Molex 47018-4001, SATA 22-pin right-angle SMT host receptacle | bay connectors | 1.5 ea | decided C17; drawing SD-47018-001 |
 | CBL1–4 | 4 | SATA 22-pin male→female extension cable, 0.5 m | drive pigtails | 3 ea | off-the-shelf |
 
 ## E. Power
@@ -85,7 +85,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 | D50 | 1 | 3 mm LED blue | M.2 bay activity | 0.1 | |
 | BZ1 | 1 | 5 V magnetic buzzer 12 mm | driven by Q1 (2N7002), D4 1N4148W flyback | 0.5 | |
 | J40 | 1 | 4-pin fan header, Pi pinout | 5 V PWM fan | 0.1 | fan required on CM5 |
-| J50 | 1 | M.2 M-key socket (e.g. TE 2199230-4 / Lotes APCI0076), 4.2 mm height | NVMe bay 5 on PCIe Gen3 x1 | 1.2 | decided C15: **populated in v1** |
+| J50 | 1 | TE 2199230-4, M.2 M-key socket, 4.2 mm | NVMe bay 5 on PCIe Gen3 x1 | 1.2 | decided C15/C18: **populated in v1** |
 | MP50 | 3 | M.2 standoff + M2 screw, 2242/2260/2280 positions | | 0.3 | |
 | U50 | 1 | TI TPS22965DSGR load switch, 5.5 V 6 A | switched 3V3 for the M.2 slot, 3 A budget | 0.8 | soft-start; enable from GPIO |
 | U51 | 1 | AP63203WU-7 | dedicated 3V3_M2 buck from 12 V (M.2 SSDs draw up to 2.5–3 A) | 0.6 | keeps SSD load off the logic 3V3 |
@@ -96,7 +96,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 
 | Item | Qty | Description | ~USD | Note |
 |---|---|---|---|---|
-| PCB | 5 | 4-layer 160×100 mm, 1.6 mm, ENIG, JLC04161H-7628 | 60 / 5 | controlled impedance |
+| PCB | 5 | 4-layer 180×110 mm, 1.6 mm, ENIG, JLC04161H-7628 | 70 / 5 | controlled impedance; outline C19 |
 | Assembly | 5 | SMD side assembled, through-hole hand-fitted | 150 / 5 | QFN + 0.4 mm DF40 |
 
 ## H. Enclosure
