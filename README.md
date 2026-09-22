@@ -1,6 +1,6 @@
 # brain-drain
 
-Standalone four-bay disk sanitizer: Raspberry Pi CM4 carrier board, Python
+Standalone four-bay disk sanitizer: Raspberry Pi CM5 carrier board, Python
 sanitizer service, and a 3D-printed enclosure. Wipe methods follow
 NIST SP 800-88 Rev. 2.
 
@@ -11,7 +11,7 @@ Read `docs/ARCHITECTURE.md` first. `docs/BOM.md` is the parts list,
 
 | Directory | Workstream |
 |---|---|
-| `hardware/` | KiCad 9 carrier board: CM4, VL805 xHCI, 4× ASM1153E, per-bay power switching, UI |
+| `hardware/` | KiCad 9 carrier board: CM5, 2× VL817 hubs, 4× ASM1153E, per-bay power switching, UI |
 | `software/` | `braindrain` Python service: enumerate, policy, wipe, verify, report, OLED |
 | `enclosure/` | OpenSCAD parametric enclosure |
 | `docs/` | architecture, BOM, decisions |
