@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "web_search": {
-      "command": "/home/dmz/workspace/datawatch/datawatch",
+      "command": "/home/dmz/.local/bin/datawatch",
       "args": [
         "mcp-search"
       ],

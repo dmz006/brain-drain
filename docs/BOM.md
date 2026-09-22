@@ -25,17 +25,17 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| U1, U2 | 2 | VIA VL817-Q7 | USB 3.1 Gen1 4-port hub, one per CM5 native USB 3.0 port, two downstream ports used each | 4 ea | alt Genesys GL3523 / Microchip USB5744 |
-| Y1, Y2 | 2 | 25 MHz crystal, 3225 | hub reference clock | 0.3 ea | |
-| U3, U4 | 2 | 1.2 V LDO (e.g. AP2112K-1.2) | hub core | 0.3 ea | verify VL817 core rail |
+| U1, U2 | 2 | Microchip USB5744/2G (56-VQFN 7×7) | USB 3.2 Gen1 4-port hub, one per CM5 native USB 3.0 port, two downstream ports used each | 2.44 ea | public datasheet DS00001855M; -I/2G industrial $3.64; LCSC C633619/C633621 (C11) |
+| Y1, Y2 | 2 | 25 MHz crystal, 3225 | hub reference clock | 0.3 ea | per datasheet §crystal |
+| U3 | 1 | 1.2 V LDO, 500 mA (e.g. AP2112K-1.2 or TLV75512) | VDD12 core for both hubs | 0.3 | USB5744 needs an external 1.2 V (ds Fig. 4-1) |
 | C_ss | 12 | 100 nF 0402 | USB 3 SS TX AC coupling (2 upstream + 4 downstream links) | — | |
-| — | — | VIA VL805-Q6 + SPI flash | **REMOVED**: PCIe xHCI was only needed on CM4 | — | |
+| — | — | VIA VL817-Q7 | **NOT USED**: datasheet only on request (C11) | — | |
 
 ## C. USB→SATA bridges (×4 bays)
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| U10–U13 | 4 | ASMedia ASM1153E | USB 3.0 → SATA 6G, UASP, SAT passthrough | 3 ea | alt ASM235CM, pin-incompatible |
+| U10–U13 | 4 | ASMedia ASM1153E (QFN-48 6×6) | USB 3.0 → SATA 6G, UASP, SAT passthrough | 3 ea | decided C12; LCSC C2762919; datasheet Rev 0.4 mirror copy, local only |
 | Y10–Y13 | 4 | 25 MHz crystal 3225 | | 0.3 ea | |
 | U14–U17 | 4 | 1.2 V LDO (AP2112K-1.2) | bridge core | 0.3 ea | verify per ref design |
 | C_sata | 16 | 10 nF 0402 | SATA TX/RX AC coupling | — | 4 per link |
@@ -53,8 +53,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
 | PSU1 | 1 | 12 V / 10 A desktop brick, 120 W | | 25 | connector must match J20/J21 |
-| J20 | 1 | High-current DC barrel jack, 5.5×2.5 mm (Kycon KLDHCX series) | input, ≥8 A | 1.5 | **verify rating**; populate J20 *or* J21 |
-| J21 | 1 | 4-pin DIN power jack (Kycon KPJX-4S-S) | input, alt footprint | 2.5 | standard on 12 V/10 A bricks |
+| J21 | 1 | 4-pin DIN power jack, Kycon KPJX-4S-S | 12 V input, 7.5 A per pin, 48 V | 2.5 | decided C13; barrel dropped (5 A rated). **Choose the brick before layout; DIN pin assignment varies by vendor** |
 | F1 | 1 | SMD fuse 10 A slow (Littelfuse 0453010.MR) | input | 1.5 | |
 | D20 | 1 | SMBJ15A | input TVS | 0.3 | |
 | Q20 | 1 | P-MOSFET −30 V ≥12 A (e.g. AO4407A / SQJ431EP) + 12 V zener | reverse polarity | 0.8 | |
@@ -77,12 +76,17 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 |---|---|---|---|---|---|
 | SW1 | 1 | 8-way DIP switch, 2.54 mm through-hole | mode select | 1 | |
 | DS1 | 1 | 0.96" SSD1306 128×64 I2C OLED module (or 1.3" SH1106) | status | 3 | 4-pin header; alt 2.42" SSD1309 |
-| D1 | 1 | 3 mm LED green | power | 0.1 | |
+| D1 | 1 | 3 mm LED green | power | 0.1 | C14: all panel LEDs 3 mm through-hole |
 | D2 | 1 | 3 mm bicolour LED | status | 0.2 | |
+| D50 | 1 | 3 mm LED blue | M.2 bay activity | 0.1 | |
 | BZ1 | 1 | 5 V magnetic buzzer + NPN | | 0.5 | |
 | U40 | 1 | NXP PCF85063AT + 32.768 kHz crystal | I2C RTC fallback | 1.3 | **DNP**, CM5 has an RTC |
 | J40 | 1 | 4-pin fan header, Pi pinout | 5 V PWM fan | 0.1 | fan required on CM5 |
-| J50 | 1 | M.2 M-key socket, 2280 standoff, 3V3 switch (TPS22965) | optional NVMe bay (D10) | 3 | **DNP** in v1 |
+| J50 | 1 | M.2 M-key socket (e.g. TE 2199230-4 / Lotes APCI0076), 4.2 mm height | NVMe bay 5 on PCIe Gen3 x1 | 1.2 | decided C15: **populated in v1** |
+| MP50 | 3 | M.2 standoff + M2 screw, 2242/2260/2280 positions | | 0.3 | |
+| U50 | 1 | TI TPS22965DSGR load switch, 5.5 V 6 A | switched 3V3 for the M.2 slot, 3 A budget | 0.8 | soft-start; enable from GPIO |
+| U51 | 1 | AP63203WU-7 | dedicated 3V3_M2 buck from 12 V (M.2 SSDs draw up to 2.5–3 A) | 0.6 | keeps SSD load off the logic 3V3 |
+| L51 | 1 | 4.7 µH shielded inductor, 3 A | | 0.4 | |
 | — | — | passives, test points, mounting hardware | | 5 | |
 
 ## G. PCB and assembly
@@ -106,12 +110,12 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 | Block | ~USD |
 |---|---|
 | CM5 + cooler + RTC cell | 100 |
-| Board-mounted electronics | 55 |
+| Board-mounted electronics | 58 |
 | PCB + assembly share (qty 5) | 42 |
 | Connectors, cables, UI, OLED | 25 |
 | PSU | 25 |
 | Enclosure | 10 |
-| **Total** | **~255** |
+| **Total** | **~260** |
 
 ## Compute module list prices (Raspberry Pi product briefs, September 2026)
 

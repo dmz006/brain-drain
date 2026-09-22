@@ -21,3 +21,6 @@ enclosure/stl/*.stl
 hardware/*-backups/
 hardware/fp-info-cache
 hardware/*.kicad_prl
+
+# vendor datasheets: local reference only, not redistributed
+hardware/ref/datasheets/

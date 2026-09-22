@@ -7,11 +7,7 @@ chosen and why, so nobody re-litigates them later.
 
 | # | Decision | Options | Recommendation | Blocks |
 |---|---|---|---|---|
-| D2 | 12 V input connector | high-current barrel 5.5×2.5 vs 4-pin DIN (both footprints on board, populate one) | DIN, because 12 V/10 A bricks ship with it; barrel if a ≥8 A jack is confirmed | BOM, enclosure cutout |
-| D3 | USB→SATA bridge | ASM1153E vs ASM235CM | ASM1153E unless stock is bad | schematic |
 | D5 | OLED | 0.96"/1.3" 4-pin I2C vs 2.42" SSD1309 | 0.96"/1.3" for v1 | enclosure |
-| D10 | Optional M.2 NVMe bay on the free PCIe Gen3 x1 | populate in v1 / footprint only / omit | footprint only (DNP) in v1; enables native `nvme sanitize` later | layout, enclosure door |
-| D7 | Bay LEDs | 3 mm TH through panel vs 0603 + light pipes | 3 mm TH | layout, enclosure |
 | D8 | Build order | software-sim first / schematic first / enclosure first | software-sim first (ARCHITECTURE §8) | everything |
 
 ## Closed
@@ -28,3 +24,8 @@ chosen and why, so nobody re-litigates them later.
 | C8 (was D1, D4) | USB 3 topology | CM5 USB 3.0 port → VL817 hub → 2× ASM1153E, twice. No PCIe xHCI | ~400 MB/s per pair of bays, no firmware loading, uses the originally requested VL817 | 2026-09-22 |
 | C9 (was D6) | Module size | CM5002016 (2 GB, 16 GB eMMC) for production; CM5002000 Lite via microSD for dev | service needs < 1 GB; eMMC can't fall out mid-job; same carrier serves both | 2026-09-22 |
 | C10 | User interaction | No Start button. A drive is wiped as soon as it is detected (after a 5 s grace countdown); unplugging aborts; DIP is the only control | single-purpose appliance, keep it simple | 2026-09-22 |
+| C11 | USB 3.0 hub | **Microchip USB5744**, one per CM5 USB 3.0 port | same 4-port 5 Gbit/s spec as VL817; fully public datasheet; smallest and cheapest; JLCPCB-assembled; +1 LDO for 1.2 V core | 2026-09-23 |
+| C12 (was D3) | USB→SATA bridge | **ASMedia ASM1153E** | dmz's call: Linux track record (UASP+TRIM, no quirks) over the public-datasheet rule; datasheet from a mirror copy, kept locally in hardware/ref/datasheets (not committed) | 2026-09-23 |
+| C13 (was D2) | 12 V input | **4-pin DIN Kycon KPJX-4S-S only**; barrel footprint dropped | barrels are 5 A rated, design peak is 7.4 A; DIN is 7.5 A/pin and what 12 V/10 A bricks ship with. Brick must be chosen before layout to match DIN pin assignment | 2026-09-23 |
+| C14 (was D7) | Panel LEDs | **3 mm through-hole**, 6 off | cheapest, tolerant of enclosure error, bay LEDs blink with real disk activity | 2026-09-23 |
+| C15 (was D10) | M.2 NVMe bay | **Populated in v1**: M.2 M-key on PCIe Gen3 x1, switched 3V3, enclosure access door | dmz's call: NVMe wipes from day one; accepts door + PCIe rescan software as v1 work | 2026-09-23 |

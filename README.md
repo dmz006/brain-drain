@@ -11,7 +11,7 @@ Read `docs/ARCHITECTURE.md` first. `docs/BOM.md` is the parts list,
 
 | Directory | Workstream |
 |---|---|
-| `hardware/` | KiCad 9 carrier board: CM5, 2× VL817 hubs, 4× ASM1153E, per-bay power switching, UI |
+| `hardware/` | KiCad 9 carrier board: CM5, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, UI |
 | `software/` | `braindrain` Python service: enumerate, policy, wipe, verify, report, OLED |
 | `enclosure/` | OpenSCAD parametric enclosure |
 | `docs/` | architecture, BOM, decisions |
