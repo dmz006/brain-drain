@@ -11,7 +11,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| M1 | 1 | Raspberry Pi CM4004008 | CM4, no wireless, 4 GB RAM, 8 GB eMMC | 65 | Any CM4 fits; Lite needs microSD |
+| M1 | 1 | Raspberry Pi CM4002016 | CM4, no wireless, 2 GB RAM, 16 GB eMMC | 82.50 | 2026 list price after memory-driven rises. 4 GB is $115. CM5002016 is $92.50 (see D9). Lite needs microSD |
 | J1, J2 | 2 | Hirose DF40C-100DS-0.4V(51) | CM4 mating connectors, 100-pin 0.4 mm | 4 | 1.5 mm stack height |
 | J3 | 1 | microSD push-push socket | for CM4 Lite variants | 1 | verify footprint |
 | J4 | 1 | GbE magjack, 1000BASE-T, w/ LEDs (e.g. Hanrun HR911130A) | network for NTP / SSH / cert push | 2.5 | verify |
@@ -108,10 +108,26 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 
 | Block | ~USD |
 |---|---|
-| CM4 + heatsink | 68 |
+| CM4 + heatsink | 86 |
 | Board-mounted electronics | 55 |
 | PCB + assembly share (qty 5) | 42 |
 | Connectors, cables, UI, OLED | 25 |
 | PSU | 25 |
 | Enclosure | 10 |
-| **Total** | **~225** |
+| **Total** | **~245** |
+
+## Compute module list prices (Raspberry Pi product briefs, September 2026)
+
+Prices rose sharply through 2025–2026 (memory-driven rises in Oct 2025, Feb 2026,
+Apr 2026). No-wireless variants; wireless adds $5 on both modules.
+
+| RAM | CM4 Lite | CM4 8 GB | CM4 16 GB | CM4 32 GB | CM5 Lite | CM5 16 GB | CM5 32 GB |
+|---|---|---|---|---|---|---|---|
+| 1 GB | 41.25 | 66.25 | 66.25 | 76.25 | — | — | — |
+| 2 GB | 57.50 | 82.50 | 82.50 | 92.50 | 67.50 | 92.50 | 102.50 |
+| 4 GB | 90 | 115 | 115 | 125 | 100 | 125 | 135 |
+| 8 GB | 155 | 180 | 180 | 190 | 165 | 190 | 200 |
+| 16 GB | — | — | — | — | 335 | 360 | 370 |
+
+CM5 costs exactly **$10 more** than CM4 at the same RAM and eMMC size. CM5 has
+no 1 GB or 8 GB-eMMC options. eMMC adds $25 over Lite on both.

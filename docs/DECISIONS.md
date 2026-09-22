@@ -12,7 +12,8 @@ chosen and why, so nobody re-litigates them later.
 | D3 | USB→SATA bridge | ASM1153E vs ASM235CM | ASM1153E unless stock is bad | schematic |
 | D4 | xHCI controller | VL805 vs uPD720201 | VL805 (Pi firmware loads it) | schematic |
 | D5 | OLED | 0.96"/1.3" 4-pin I2C vs 2.42" SSD1309 | 0.96"/1.3" for v1 | enclosure |
-| D6 | CM4 variant | CM4004008 vs Lite | eMMC | none, both fit |
+| D6 | Module RAM / storage | 2 GB vs 4 GB; eMMC vs Lite+microSD | 2 GB + 16 GB eMMC; the service needs well under 1 GB | BOM |
+| D9 | CM4 vs CM5 | CM4 (PCIe Gen2 x1, no native USB 3) vs CM5 (PCIe Gen3 x1 + 2× native USB 3, ~$10 more) | CM5: four HDDs run at native speed, four drives ≈ time of one | schematic, power (CM5 needs up to 5 A at 5 V) |
 | D7 | Bay LEDs | 3 mm TH through panel vs 0603 + light pipes | 3 mm TH | layout, enclosure |
 | D8 | Build order | software-sim first / schematic first / enclosure first | software-sim first (ARCHITECTURE §8) | everything |
 

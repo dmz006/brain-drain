@@ -1,5 +1,5 @@
 ref,qty,mpn,description,block,unit_usd,status,note
-M1,1,CM4004008,Raspberry Pi CM4 4GB/8GB eMMC no wireless,compute,65,,any CM4 fits
+M1,1,CM4002016,Raspberry Pi CM4 2GB/16GB eMMC no wireless,compute,82.5,,2026 list; CM5002016 is 92.5
 J1;J2,2,DF40C-100DS-0.4V(51),Hirose CM4 mating connector,compute,2,,
 J3,1,,microSD push-push socket,compute,1,verify,
 J4,1,HR911130A,GbE magjack with LEDs,compute,2.5,verify,
