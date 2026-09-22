@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import logging
 import queue
-import threading
 
-from ..devices import DevInfo, classify, collect_real, identify_real, system_devices
+from ..devices import collect_real, identify_real
 from .bays import SimEvent
 
 log = logging.getLogger(__name__)

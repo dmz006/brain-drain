@@ -8,7 +8,6 @@ A simulated drive advertises it via drive.json:
 from __future__ import annotations
 
 import os
-import time
 
 from .. import blockio
 from ..policy import Tier

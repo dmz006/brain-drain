@@ -61,7 +61,7 @@ def parse_identify(text: str) -> dict:
 def fill_identity(drive) -> None:
     try:
         cp = _run([HDPARM, "-I", drive.dev_path])
-    except (OSError, subprocess.TimeoutExpired) as e:
+    except (OSError, subprocess.TimeoutExpired):
         drive.model = drive.model if drive.model != "?" else "unknown"
         drive.caps.sanitize = False
         return

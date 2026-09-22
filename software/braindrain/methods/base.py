@@ -6,8 +6,8 @@ import abc
 import logging
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 from ..policy import Tier
 
@@ -57,7 +57,7 @@ class MethodResult:
     # Extra facts for the certificate (pattern names, drive-reported durations...)
     facts: dict = field(default_factory=dict)
 
-    def finish(self, ok: bool, detail: str = "") -> "MethodResult":
+    def finish(self, ok: bool, detail: str = "") -> MethodResult:
         self.ok = ok
         self.detail = detail
         self.finished = time.time()

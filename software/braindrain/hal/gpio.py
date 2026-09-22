@@ -62,7 +62,7 @@ class GpioPanel(Panel):
 
 class GpioBayPower(BayPower):
     def __init__(self, cfg):
-        gpiod, Bias, Direction, Value = _gpiod()
+        gpiod, _bias, Direction, Value = _gpiod()
         self._Value = Value
         self.cfg = cfg
         self.req = gpiod.request_lines(

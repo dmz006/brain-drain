@@ -9,7 +9,13 @@ from braindrain.devices import Drive
 from braindrain.methods.base import Cancelled, RunContext
 from braindrain.methods.overwrite import Overwrite
 from braindrain.policy import Media
-from braindrain.verify import check_canaries, full_verify, sample_windows, sampled_verify, write_canaries
+from braindrain.verify import (
+    check_canaries,
+    full_verify,
+    sample_windows,
+    sampled_verify,
+    write_canaries,
+)
 
 
 def mk(tmp_path, size=3 * 1024 * 1024 + 4096, random_fill=True):

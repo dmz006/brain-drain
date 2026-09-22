@@ -80,7 +80,7 @@ class Config:
         return sorted(self.bay_ports)
 
     @classmethod
-    def for_simulation(cls, sim_dir: Path, **overrides) -> "Config":
+    def for_simulation(cls, sim_dir: Path, **overrides) -> Config:
         sim_dir = Path(sim_dir)
         cfg = cls(
             report_dir=sim_dir / "reports",

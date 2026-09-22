@@ -61,7 +61,7 @@ class Dip:
     bits: tuple[bool, bool, bool, bool, bool, bool, bool, bool]
 
     @classmethod
-    def from_string(cls, s: str) -> "Dip":
+    def from_string(cls, s: str) -> Dip:
         s = s.strip()
         if len(s) != 8 or any(c not in "01" for c in s):
             raise ValueError(f"DIP string must be 8 chars of 0/1, got {s!r}")
@@ -80,7 +80,7 @@ class Policy:
     dip: str
 
     @classmethod
-    def from_dip(cls, dip: Dip) -> "Policy":
+    def from_dip(cls, dip: Dip) -> Policy:
         b = dip.bits
         idx = (b[0] << 2) | (b[1] << 1) | b[2]
         return cls(
