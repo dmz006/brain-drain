@@ -11,3 +11,8 @@
   the gitignored `datasheets/` folder.
 * `datasheets/` (gitignored) — local copies of the CM5, CM5IO, USB5744 and
   ASM1153E datasheets used for this design.
+* `m2-mkey-pinout.csv` — M.2 Socket 3 / M-key host pin assignment (PCIe x4
+  positions; only lane 0 is used). Signal names are from the host's point of
+  view: PETp/n = host transmit, PERp/n = host receive. Pins 59–66 are the key
+  notch. Source: pinoutguide.com M.2 table, cross-checked against the PCI-SIG
+  M.2 naming; verify against the socket vendor's drawing before layout.
