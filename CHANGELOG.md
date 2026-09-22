@@ -23,6 +23,7 @@ revisions are noted in the entries.
   removed the overlapping pads on every rotated fine-pitch part; region packer with capacity checks
   and a spill area; DIN jack pads shorter than their pitch; M.2 footprint mask margins removed;
   USB-C moved to the left wall; DRC now reports 0 errors before routing.
+- Routing: freerouting 2.1.0 (Java 21) on the single-ended non-bay nets: 71 nets, 630 segments, 68 vias imported; tracks that crossed the CM5 standoff clearance were removed and circular keep-outs added for future runs.
 
 ### Dependencies
 - Python: pyudev; dev: pytest, ruff, pillow, numpy, cairosvg; hw: gpiod, luma.oled, smbus2.

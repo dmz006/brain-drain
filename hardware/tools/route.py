@@ -107,6 +107,25 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
     zone("5V_SYS", pcbnew.In2_Cu, (42, 28, 180, 110), 1)    # CM5, hubs, bridges (VBUS/VCCIN), M.2 power parts
     zone("5V_HDD", pcbnew.In2_Cu, (42, 0, 180, 28), 1)      # bay switch row
     zone("+3V3", pcbnew.In2_Cu, (100, 28, 180, 62), 2)      # hub B / M.2 region, higher priority island
+    # keep-out areas (no tracks / vias) around the CM5 mounting holes: the DSN export carries no
+    # hole clearance, so without these the autorouter runs traces under the standoffs
+    m1 = next((f for f in board.GetFootprints() if f.GetReference() == "M1"), None)
+    if m1 is not None:
+        for pad in m1.Pads():
+            if pad.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:
+                c = pad.GetPosition()
+                z = pcbnew.ZONE(board)
+                z.SetIsRuleArea(True); z.SetDoNotAllowTracks(True); z.SetDoNotAllowVias(True)
+                z.SetDoNotAllowCopperPour(False); z.SetDoNotAllowPads(False); z.SetDoNotAllowFootprints(False)
+                z.SetLayer(pcbnew.F_Cu); z.SetLayerSet(pcbnew.LSET.AllCuMask(4))
+                import math
+                r = MM(1.35 + 1.7)   # hole radius + the footprint's 1.7 mm hole clearance
+                o = z.Outline(); o.RemoveAllContours(); o.NewOutline()
+                for k in range(24):
+                    a = 2 * math.pi * k / 24
+                    o.Append(int(c.x + r * math.cos(a)), int(c.y + r * math.sin(a)))
+                z.SetZoneName("keepout_CM5_hole")
+                board.Add(z)
     filler = pcbnew.ZONE_FILLER(board)
     filler.Fill(board.Zones())
     print(f"net classes set; {len(assignments)} nets assigned ({sum(v == 'Bay' for v in assignments.values())} bay, "

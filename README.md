@@ -39,7 +39,7 @@ board, a Python service, and a 3D-printed enclosure.
 
 | Directory | Workstream | State |
 |---|---|---|
-| [`hardware/`](hardware/README.md) | KiCad 9 carrier board: CM5, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, M.2 | schematic 0 ERC errors, board placed and being routed; SATA footprint pending a drawing |
+| [`hardware/`](hardware/README.md) | KiCad 9 carrier board: CM5, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, M.2 | schematic 0 ERC errors; board placed, DRC-clean, 71 signal nets autorouted, high-speed pairs by hand next; SATA footprint pending a drawing |
 | [`software/`](software/README.md) | `braindrain` Python service, simulator, bench tool, Pi deployment | 61 tests, ready for the first bench |
 | [`enclosure/`](enclosure/README.md) | OpenSCAD tray, lid, hinged door, OLED bezel, drive rack | STLs export, not printed |
 | [`docs/`](docs/README.md) | architecture, BOM, decisions, status, usage, diagrams | |

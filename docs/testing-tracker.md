@@ -29,7 +29,7 @@ Validated.
 |---|---|---|---|---|
 | Netlist (`design.py`) pin coverage | yes, `design.py` check | no | every pin assigned or NC | |
 | Schematic ERC | yes, 0 errors | no | kicad-cli 9.0.8 | 9 lib-cache warnings on 2N7002, 4 placeholder footprints |
-| Board DRC (parse) | yes | no | | routing in progress |
+| Board DRC | yes: 1 error, silkscreen/zone-island warnings | no | kicad-cli 9.0.8 | 71 signal nets autorouted; pairs, bays and power vias by hand |
 | Symbols from datasheet tables | yes | no | CM5 datasheet, USB5744 DS00001855M, ASM1153E Rev 0.4 | |
 | Footprints: KPJX-4S-S, RPA0010A | generated | no | Kycon drawing, TI land pattern | first board proves them |
 | Footprints: CM5 module, M.2 socket | copied from CM5IO rev 2 | no | Raspberry Pi design files | M.2 pegs vs TE drawing pending |
