@@ -32,7 +32,7 @@ def bay_line(bay: int, st) -> str:
         pct = "  ?%" if p.percent is None else f"{p.percent:3d}%"
         return fit(f"{bay} {p.phase:<4} {pct} {fmt_eta(p.eta_s):>6} {fmt_rate(p.rate_bps):>4}")
     if state == "DONE":
-        return fit(f"{bay} DONE {st.tier_label:<5} {fmt_size(d.size_bytes):>5} unplug")
+        return fit(f"{bay} DONE {st.tier_label:<5}{fmt_size(d.size_bytes):>5} out")
     if state == "ERROR":
         return fit(f"{bay} FAIL {st.message[:15]}")
     if state == "ABORTED":

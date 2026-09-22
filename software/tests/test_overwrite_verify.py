@@ -43,7 +43,8 @@ def test_zero_pass_then_full_verify(tmp_path, cfg):
     d = mk(tmp_path)
     res = Overwrite(["zeros"]).run(d, ctx(cfg))
     assert res.ok and res.bytes_written == d.size_bytes
-    assert open(d.dev_path, "rb").read() == bytes(d.size_bytes)
+    with open(d.dev_path, "rb") as f:
+        assert f.read() == bytes(d.size_bytes)
     v = full_verify(d, res.expect_block, ctx(cfg))
     assert v.ok and v.bytes_checked == d.size_bytes
 

@@ -14,7 +14,7 @@ SANACT = {"block": 2, "overwrite": 3, "crypto": 4}
 
 
 def _run(args, timeout=120):
-    return subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+    return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
 
 
 def controller_path(dev_path: str) -> str:

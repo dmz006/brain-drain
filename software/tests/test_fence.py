@@ -3,9 +3,9 @@ from braindrain.devices import DevInfo, classify
 
 
 def info(**kw):
-    base = dict(dev_path="/dev/sdb", sysfs_path="/sys/x", devtype="disk", removable=False,
-                size_bytes=4_000_000_000_000, usb_port="1-1.2", bridge_vid="174c", bridge_pid="55aa",
-                is_system=False)
+    base = {"dev_path": "/dev/sdb", "sysfs_path": "/sys/x", "devtype": "disk", "removable": False,
+            "size_bytes": 4_000_000_000_000, "usb_port": "1-1.2", "bridge_vid": "174c",
+            "bridge_pid": "55aa", "is_system": False}
     base.update(kw)
     return DevInfo(**base)
 
