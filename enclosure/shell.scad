@@ -20,7 +20,8 @@ module rounded_box(w, h, z, r) {
 }
 
 module feature(kind) {
-    for (f = board_features) if (f[1] == kind) children(f);
+    // binds the matching feature row to $f for the child module (children() takes no arguments)
+    for (f = board_features) if (f[1] == kind) let ($f = f) children();
 }
 
 // --------------------------------------------------------------- cutouts
