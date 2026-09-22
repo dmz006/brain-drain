@@ -1,6 +1,6 @@
 ref,qty,mpn,description,block,unit_usd,status,note
 M1,1,CM5002016,Raspberry Pi CM5 2GB/16GB eMMC no wireless,compute,92.5,,2026 list; Lite CM5002000 67.5 also fits
-J1;J2,2,DF40C-100DS-0.4V(51),Hirose CM4 mating connector,compute,2,,
+J1;J2,2,DF40C-100DS-0.4V(51),Hirose CM5 mating connector,compute,2,,
 J3,1,,microSD push-push socket (CM5 Lite),compute,1,verify,
 J4,1,HR911130A,GbE magjack with LEDs,compute,2.5,verify,
 J5,1,USB4085-GF-A,USB-C 16-pin receptacle (USB 2.0),compute,1,,rpiboot

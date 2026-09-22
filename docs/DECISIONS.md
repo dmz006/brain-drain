@@ -20,7 +20,7 @@ chosen and why, so nobody re-litigates them later.
 |---|---|---|---|---|
 | C1 | Drive pigtail | Off-the-shelf 22-pin SATA M-F extension; board has backplane-style 22-pin receptacles | no custom cable, drive end is native | 2026-09-21 |
 | C2 | Staggered spin-up | Mandatory, per-bay P-FET switches on 12 V and 5 V from GPIO | halves peak input current; also gives unfreeze/reset | 2026-09-21 |
-| C3 | Two 5 V bucks | separate 5V_SYS and 5V_HDD, same TPS56637 | keep spin-up ripple off the CM4 rail | 2026-09-21 |
+| C3 | Two 5 V bucks | separate 5V_SYS and 5V_HDD, same TPS56637 | keep spin-up ripple off the CM5 rail | 2026-09-21 |
 | C4 | RTC on board | PCF85063AT + CR2032 | certificates need timestamps off-network | 2026-09-21 |
 | C5 | Default wipe policy | HDD: 1-pass zeros + full verify (Clear). SSD: Sanitize crypto-scramble then block-erase (Purge). Multi-pass only as explicit legacy modes | NIST 800-88 Rev. 2 | 2026-09-21 |
 | C6 | Enclosure tool | OpenSCAD with params generated from KiCad | ubiquitous, easy to diff | 2026-09-21 |
