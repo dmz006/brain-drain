@@ -5,7 +5,8 @@ LCSC / Digi-Key / Mouser in 2026 and exist to size the budget, not to order from
 Items marked **verify** have a part family chosen but the exact orderable part
 number still needs checking against the datasheet or current stock before layout.
 
-Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
+Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level parts list
+(every R, C, L with values) is in `hardware/CONNECTIONS.md`, generated from the netlist.
 
 ## A. Compute
 
@@ -14,7 +15,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 | M1 | 1 | Raspberry Pi CM5002016 | CM5, no wireless, 2 GB RAM, 16 GB eMMC | 92.50 | 2026 list price. Lite CM5002000 ($67.50) works on the same carrier via the microSD socket; 4 GB is $125 |
 | J1, J2 | 2 | Hirose DF40C-100DS-0.4V(51) | CM5 mating connectors, 100-pin 0.4 mm | 4 | 1.5 mm stack height |
 | J3 | 1 | microSD push-push socket | for CM5 Lite variants | 1 | verify footprint |
-| J4 | 1 | GbE magjack, 1000BASE-T, w/ LEDs (e.g. Hanrun HR911130A) | network for NTP / SSH / cert push | 2.5 | verify |
+| J4 | 1 | GbE magjack UDE RB1-125B8G1A (1000BASE-T, LEDs) | network for NTP / SSH / cert push | 2.5 | only 1G magjack in the stock KiCad library; alt Hanrun HR911130A |
 | J5 | 1 | USB-C 16-pin receptacle (GCT USB4085-GF-A) | rpiboot + spare USB 2.0 | 1 | USB 2.0 only |
 | J6 | 1 | 2-pin header + jumper | nRPIBOOT | 0.1 | |
 | J7 | 1 | 3-pin header | UART0 debug | 0.1 | |
@@ -27,7 +28,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 |---|---|---|---|---|---|
 | U1, U2 | 2 | Microchip USB5744/2G (56-VQFN 7×7) | USB 3.2 Gen1 4-port hub, one per CM5 native USB 3.0 port, two downstream ports used each | 2.44 ea | public datasheet DS00001855M; -I/2G industrial $3.64; LCSC C633619/C633621 (C11) |
 | Y1, Y2 | 2 | 25 MHz crystal, 3225 | hub reference clock | 0.3 ea | per datasheet §crystal |
-| U3 | 1 | 1.2 V LDO, 500 mA (e.g. AP2112K-1.2 or TLV75512) | VDD12 core for both hubs | 0.3 | USB5744 needs an external 1.2 V (ds Fig. 4-1) |
+| U3 | 1 | AP2112K-1.2, SOT-25 | 1.2 V core for both hubs | 0.3 | USB5744 needs an external 1.2 V (ds Fig. 4-1) |
 | C_ss | 12 | 100 nF 0402 | USB 3 SS TX AC coupling (2 upstream + 4 downstream links) | — | |
 | — | — | VIA VL817-Q7 | **NOT USED**: datasheet only on request (C11) | — | |
 
@@ -36,8 +37,8 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
 | U10–U13 | 4 | ASMedia ASM1153E (QFN-48 6×6) | USB 3.0 → SATA 6G, UASP, SAT passthrough | 3 ea | decided C12; LCSC C2762919; datasheet Rev 0.4 mirror copy, local only |
-| Y10–Y13 | 4 | 25 MHz crystal 3225 | | 0.3 ea | |
-| U14–U17 | 4 | 1.2 V LDO (AP2112K-1.2) | bridge core | 0.3 ea | verify per ref design |
+| Y10–Y13 | 4 | 30 MHz crystal 3225, CL 16 pF | default clock strap, no strap resistors | 0.3 ea | |
+| L10–L13 | 4 | 4.7 µH 1 A inductor | ASM1153E internal core switcher (LXI) | 0.3 ea | ASM1153E runs from 5 V alone: no external LDO |
 | C_sata | 16 | 10 nF 0402 | SATA TX/RX AC coupling | — | 4 per link |
 | D10–D13 | 4 | 3 mm LED, blue | bay activity, from bridge LED pin | 0.1 ea | through front panel |
 
@@ -56,7 +57,9 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 | J21 | 1 | 4-pin DIN power jack, Kycon KPJX-4S-S | 12 V input, 7.5 A per pin, 48 V | 2.5 | decided C13; barrel dropped (5 A rated). **Choose the brick before layout; DIN pin assignment varies by vendor** |
 | F1 | 1 | SMD fuse 10 A slow (Littelfuse 0453010.MR) | input | 1.5 | |
 | D20 | 1 | SMBJ15A | input TVS | 0.3 | |
-| Q20 | 1 | P-MOSFET −30 V ≥12 A (e.g. AO4407A / SQJ431EP) + 12 V zener | reverse polarity | 0.8 | |
+| Q20 | 1 | P-MOSFET −30 V ≥12 A (AO4407A, SO-8) | reverse polarity | 0.8 | |
+| D21 | 1 | 12 V zener, SOD-123 | Q20 gate clamp | 0.1 | |
+| R20 | 1 | 100k | Q20 gate pull-down | — | |
 | C20, C21 | 2 | 680 µF 25 V low-ESR electrolytic | 12 V bulk | 0.6 ea | near SATA power |
 | U20 | 1 | TI TPS56637RPAR | 5V_SYS buck, 6 A | 2.5 | |
 | U21 | 1 | TI TPS56637RPAR | 5V_HDD buck, 6 A | 2.5 | same PN |
@@ -65,7 +68,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 | L22 | 1 | 4.7 µH shielded inductor, 3 A | for AP63203 | 0.4 | |
 | C_buck | ~12 | 22 µF 25 V 1210 + 22 µF 10 V 0805 | buck in/out | — | |
 | Q30–Q37 | 8 | P-MOSFET −30 V ≥6 A ≤30 mΩ DFN3×3 (e.g. AON7403 / DMP3007SFG) | per-bay 12 V and 5 V switch | 0.4 ea | verify RDS(on) at Vgs = −5 V for the 5 V side |
-| Q38–Q41 | 4 | 2N7002 | gate driver | 0.05 ea | |
+| Q51–Q64 (8) + Q1 | 9 | 2N7002 | bay switch gate drivers (two per bay) and buzzer driver | 0.05 ea | |
 | F10–F13 | 4 | PTC 1812 3 A hold | per-bay 12 V | 0.3 ea | |
 | F14–F17 | 4 | PTC 1812 2 A hold | per-bay 5 V | 0.3 ea | |
 | U30, U31 | 2 | TI INA3221 | per-bay 12 V current monitor | 1.5 ea | **DNP** in v1 |
@@ -74,13 +77,13 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| SW1 | 1 | 8-way DIP switch, 2.54 mm through-hole | mode select | 1 | |
+| SW1 | 1 | 8-way DIP switch, 2.54 mm through-hole, piano style | mode select | 1 | |
+| SW3 | 1 | 6 mm tactile / microswitch | M.2 door sense | 0.2 | |
 | DS1 | 1 | 0.96" SSD1306 128×64 I2C OLED module (or 1.3" SH1106) | status | 3 | 4-pin header; alt 2.42" SSD1309 |
 | D1 | 1 | 3 mm LED green | power | 0.1 | C14: all panel LEDs 3 mm through-hole |
 | D2 | 1 | 3 mm bicolour LED | status | 0.2 | |
 | D50 | 1 | 3 mm LED blue | M.2 bay activity | 0.1 | |
-| BZ1 | 1 | 5 V magnetic buzzer + NPN | | 0.5 | |
-| U40 | 1 | NXP PCF85063AT + 32.768 kHz crystal | I2C RTC fallback | 1.3 | **DNP**, CM5 has an RTC |
+| BZ1 | 1 | 5 V magnetic buzzer 12 mm | driven by Q1 (2N7002), D4 1N4148W flyback | 0.5 | |
 | J40 | 1 | 4-pin fan header, Pi pinout | 5 V PWM fan | 0.1 | fan required on CM5 |
 | J50 | 1 | M.2 M-key socket (e.g. TE 2199230-4 / Lotes APCI0076), 4.2 mm height | NVMe bay 5 on PCIe Gen3 x1 | 1.2 | decided C15: **populated in v1** |
 | MP50 | 3 | M.2 standoff + M2 screw, 2242/2260/2280 positions | | 0.3 | |

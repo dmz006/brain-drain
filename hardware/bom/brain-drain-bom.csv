@@ -2,7 +2,7 @@ ref,qty,mpn,description,block,unit_usd,status,note
 M1,1,CM5002016,Raspberry Pi CM5 2GB/16GB eMMC no wireless,compute,92.5,,2026 list; Lite CM5002000 67.5 also fits
 J1;J2,2,DF40C-100DS-0.4V(51),Hirose CM5 mating connector,compute,2,,
 J3,1,,microSD push-push socket (CM5 Lite),compute,1,verify,
-J4,1,HR911130A,GbE magjack with LEDs,compute,2.5,verify,
+J4,1,RB1-125B8G1A,UDE GbE magjack with LEDs,compute,2.5,,alt HR911130A
 J5,1,USB4085-GF-A,USB-C 16-pin receptacle (USB 2.0),compute,1,,rpiboot
 J6,1,,2-pin header + jumper nRPIBOOT,compute,0.1,,
 J7,1,,3-pin header UART0,compute,0.1,,
@@ -13,8 +13,8 @@ Y1;Y2,2,,25 MHz crystal 3225,usb-hub,0.3,,
 U3,1,AP2112K-1.2,1.2 V LDO 500 mA for both hubs VDD12,usb-hub,0.3,,
 C_ss,12,,100 nF 0402 USB3 SS AC coupling,usb-hub,0.02,,
 U10;U11;U12;U13,4,ASM1153E,ASMedia USB3 to SATA bridge QFN-48,bridge,3,,C12; LCSC C2762919
-Y10;Y11;Y12;Y13,4,,25 MHz crystal 3225,bridge,0.3,,
-U14;U15;U16;U17,4,AP2112K-1.2,1.2 V LDO bridge core,bridge,0.3,verify,
+Y10;Y11;Y12;Y13,4,,30 MHz crystal 3225 CL16pF,bridge,0.3,,
+L10;L11;L12;L13,4,,4.7 uH 1 A inductor for ASM1153E core switcher,bridge,0.3,,
 C_sata,16,,10 nF 0402 SATA AC coupling,bridge,0.02,,
 D10;D11;D12;D13,4,,3 mm LED blue bay activity,bridge,0.1,,
 J10;J11;J12;J13,4,Molex 67491 series,SATA 22-pin right-angle receptacle,connectors,0.8,verify,
@@ -32,7 +32,7 @@ U22,1,AP63203WU-7,3V3 buck 2 A,power,0.6,,
 L22,1,,4.7 uH shielded inductor 3 A,power,0.4,,
 C_buck,12,,22 uF 25 V 1210 / 10 V 0805,power,0.1,,
 Q30-Q37,8,AON7403,P-MOSFET -30 V 6 A DFN3x3 bay switch,power,0.4,verify,RDS at Vgs -5 V
-Q38-Q41,4,2N7002,Gate driver,power,0.05,,
+Q51-Q64;Q1,9,2N7002,Gate drivers (2 per bay) + buzzer,power,0.05,,
 F10-F13,4,,PTC 1812 3 A hold bay 12 V,power,0.3,,
 F14-F17,4,,PTC 1812 2 A hold bay 5 V,power,0.3,,
 U30;U31,2,INA3221,Bay current monitor,power,1.5,DNP,
@@ -41,7 +41,6 @@ DS1,1,,0.96in SSD1306 128x64 I2C OLED module,ui,3,,alt 1.3in SH1106 / 2.42in SSD
 D1,1,,3 mm LED green power,ui,0.1,,
 D2,1,,3 mm bicolour LED status,ui,0.2,,
 BZ1,1,,5 V magnetic buzzer + NPN,ui,0.5,,
-U40,1,PCF85063AT,I2C RTC fallback + 32.768 kHz crystal,misc,1.3,DNP,CM5 has RTC
 J40,1,,4-pin fan header Pi pinout,misc,0.1,,fan required
 J50,1,,M.2 M-key socket 4.2 mm,m2,1.2,,C15 populated in v1
 MP50,3,,M.2 standoff + M2 screw,m2,0.3,,
