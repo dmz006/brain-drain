@@ -15,7 +15,7 @@ hardware/
   sheets/bay-switch.kicad_sch    # P-FET 12 V / 5 V switch + PTCs (4 instances)
   sheets/power-input.kicad_sch   # jack(s), fuse, TVS, reverse polarity, bulk
   sheets/power-bucks.kicad_sch   # 2× TPS56637, AP63203
-  sheets/ui.kicad_sch            # DIP, button, OLED header, LEDs, buzzer, RTC fallback (DNP)
+  sheets/ui.kicad_sch            # DIP, OLED header, LEDs, buzzer, RTC fallback (DNP)
   sheets/m2-nvme.kicad_sch       # optional M.2 M-key on PCIe Gen3 x1 (DNP, D10)
   brain-drain.kicad_pcb
   lib/                           # project symbols/footprints (VL817, ASM1153E, DF40, SATA 22)

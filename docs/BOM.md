@@ -76,7 +76,6 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`.
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
 | SW1 | 1 | 8-way DIP switch, 2.54 mm through-hole | mode select | 1 | |
-| SW2 | 1 | 16 mm illuminated momentary pushbutton, panel mount + 4-pin header | Start | 3 | |
 | DS1 | 1 | 0.96" SSD1306 128×64 I2C OLED module (or 1.3" SH1106) | status | 3 | 4-pin header; alt 2.42" SSD1309 |
 | D1 | 1 | 3 mm LED green | power | 0.1 | |
 | D2 | 1 | 3 mm bicolour LED | status | 0.2 | |

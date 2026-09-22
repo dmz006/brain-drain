@@ -15,7 +15,6 @@ corner_r = 3;
 oled_w = 27; oled_h = 27;     // 0.96" module outline; window cut is smaller
 oled_win_w = 24; oled_win_h = 13;
 dip_w = 21; dip_h = 10;       // 8-way DIP slot
-button_d = 16;                // 16 mm panel-mount button
 led_d = 3.2;
 
 // Rear face

@@ -27,3 +27,4 @@ chosen and why, so nobody re-litigates them later.
 | C7 (was D9) | Compute module | **CM5** | $10 over CM4 at equal RAM/eMMC; 2× native USB 3.0 so four HDDs run at native speed; PCIe Gen3 x1 left free; on-module RTC | 2026-09-22 |
 | C8 (was D1, D4) | USB 3 topology | CM5 USB 3.0 port → VL817 hub → 2× ASM1153E, twice. No PCIe xHCI | ~400 MB/s per pair of bays, no firmware loading, uses the originally requested VL817 | 2026-09-22 |
 | C9 (was D6) | Module size | CM5002016 (2 GB, 16 GB eMMC) for production; CM5002000 Lite via microSD for dev | service needs < 1 GB; eMMC can't fall out mid-job; same carrier serves both | 2026-09-22 |
+| C10 | User interaction | No Start button. A drive is wiped as soon as it is detected (after a 5 s grace countdown); unplugging aborts; DIP is the only control | single-purpose appliance, keep it simple | 2026-09-22 |

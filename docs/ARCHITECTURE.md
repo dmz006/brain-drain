@@ -1,8 +1,9 @@
 # brain-drain — Architecture
 
-Standalone, headless, four-bay disk sanitizer built on a Raspberry Pi Compute Module 5. Plug in up to four SATA drives via
-external pigtails, set the wipe policy on a DIP switch, press Start, watch progress
-on the OLED, get a per-drive sanitization certificate. Wipe methods follow
+Standalone, headless, four-bay disk sanitizer built on a Raspberry Pi Compute Module 5. Set the wipe policy on a DIP switch,
+plug a drive into any bay and it is wiped as soon as it is ready; the OLED
+shows per-bay progress; unplugging a drive aborts it; each finished drive
+gets a sanitization certificate. No buttons, no menus. Wipe methods follow
 NIST SP 800-88 Rev. 2.
 
 Status: **v0 design, nothing built yet.** This document is the source of truth for
@@ -36,7 +37,7 @@ all three workstreams; change it before changing the hardware.
    └──┬───┬───┬─┬─┘              └─────────────┘              └──────────────┘ │
       │   │   │ └── PCIe Gen3 x1 ──► (free; optional M.2 NVMe bay, see D10)    │
       │   │   └── GPIO ×4 BAY_EN ──► per-bay 12 V / 5 V P-FET switches ────────┘
-      │   └────── GPIO ×8 DIP, ×1 Start, ×1 buzzer, ×2 LED
+      │   └────── GPIO ×8 DIP, ×1 buzzer, ×1 LED
       └────────── I2C1 ──► SSD1306 OLED
 ```
 
@@ -190,13 +191,13 @@ and drive presence electrically. v1 detects presence through USB enumeration.
 | GPIO | Function | Direction | Notes |
 |---|---|---|---|
 | 2, 3 | I2C1 SDA/SCL | — | OLED (0x3C), optional INA3221, optional PCF85063 (0x51) |
-| 4 | START_BTN | in, pull-up | active low, panel-mount momentary; hold 3 s = abort |
+| 4 | spare | — | (was Start button; removed, see C10) |
 | 5, 6, 12, 13 | BAY_EN 1–4 | out | active high, 10 k pull-down |
 | 14, 15 | UART0 TX/RX | — | debug console header |
 | 16, 17, 20, 21, 22, 23, 24, 25 | DIP 1–8 | in, pull-up | ON = low |
 | 18 | BUZZER | out (PWM0) | magnetic buzzer via NPN |
 | 26 | STATUS_LED | out | green/red bicolour, front panel |
-| 27 | BTN_LED | out | Start button ring LED |
+| 27 | spare | — | |
 | 0, 1 | reserved | — | ID EEPROM per Pi convention, not populated |
 
 Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
@@ -208,8 +209,7 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
   (`B1 WD40EFRX 4.0T  OVW 42% 6h12m`), a footer with mode and unit status.
   A 2.42" SSD1309 is a drop-in option for readability if the enclosure grows.
 * **DIP switch:** 8-way, through-hole, reachable through an enclosure slot.
-  Semantics in §4.5.
-* **Start button:** 16 mm illuminated momentary, panel mount, on a 4-pin header.
+  Semantics in §4.5. This is the only control on the unit.
 * **LEDs:** power, status (bicolour), 4× bay activity, all 3 mm through-hole
   poking through the panel, or 0603 + light pipes (decide with enclosure).
 * **Buzzer:** completion chirp, error pattern.
@@ -260,7 +260,7 @@ software/braindrain/
   __init__.py
   config.py        # paths, timings, DIP semantics table
   hal/
-    gpio.py        # BAY_EN, DIP, button, buzzer, LEDs (real + simulated)
+    gpio.py        # BAY_EN, DIP, buzzer, LEDs (real + simulated)
     display.py     # OLED rendering (real + terminal simulator)
     bays.py        # bay ↔ USB port-path table, power sequencing
   devices.py       # enumerate candidate drives, identity, safety filter
@@ -293,8 +293,13 @@ boot medium or any drive that is not in a bay.** Defence in depth:
 4. Every method opens the target with `O_EXCL`.
 5. A dry-run DIP setting (§4.5) exercises the whole pipeline without writes.
 
-Presence is detected by powering bays up staggered (4 s apart) and waiting for a
-block device with capacity > 0 to appear behind the bay's port path.
+Bays are powered at boot, staggered 4 s apart, and stay powered. A drive plugged
+into a live pigtail is detected by the bridge (SATA connectors are hot-plug by
+design), a block device with capacity > 0 appears behind the bay's port path,
+and udev delivers an add event. Removal delivers a remove event, which aborts
+any running job in that bay. There is no confirmation step beyond a short
+grace countdown (default 5 s, shown on the OLED) during which pulling the drive
+back out cancels cleanly.
 
 ### 4.4 Wipe methods and NIST SP 800-88 Rev. 2 mapping
 
@@ -341,30 +346,33 @@ Method implementations:
 | 1–3 | mode index, see below | 000 = `auto` |
 | 4 | overwrite pattern = seeded random | zeros |
 | 5 | sampled verify | full verify |
-| 6 | auto-start when all detected bays are ready | wait for Start |
-| 7 | power bays down when finished | leave powered for removal check |
+| 6 | reserved | |
+| 7 | reserved | |
 | 8 | **maintenance**: SSH + serial shell, never wipe | normal |
 
 Mode index (DIP 1–3, ON = 1): `000 auto` (HDD → Clear+verify, SSD → Purge),
 `001 purge`, `010 clear`, `011 legacy-3pass`, `100 legacy-7pass`,
 `101 crypto-erase-only`, `110 reserved`, `111 dry-run`.
 
-DIP is read when the Start button is pressed, and shown on the OLED footer.
+DIP is read at boot and again each time a drive is detected, and the decoded
+mode is shown on the OLED footer.
 
 ### 4.6 State machine and UX
 
+Per bay, independently:
+
 ```
-BOOT ─► IDLE (bays off) ─► [Start] ─► DETECT (stagger bays on, enumerate, SMART pre-check)
-     ─► ARMED (OLED shows drives + method; hold Start 3 s to begin, or DIP6 auto)
-     ─► RUNNING (per-bay worker threads; one method chain per bay)
-     ─► DONE | ERROR (buzzer, status LED, certificates written)
-     ─► [Start] ─► IDLE
+IDLE ─(drive add)─► DETECTED (identity, SMART pre-check, grace countdown)
+     ─► RUNNING (one worker thread: method chain, then verify)
+     ─► DONE | ERROR (buzzer, LED, certificate written; drive spun down)
+     ─(drive remove, from any state)─► IDLE
 ```
 
-Bays are independent: a failed drive in bay 2 does not stop bays 1, 3, 4.
-Holding Start 3 s while RUNNING aborts all bays and marks their certificates
-`aborted`. Power loss mid-wipe leaves a `state.json` so the next boot reports the
-interrupted drives as *not sanitized*.
+A remove event while RUNNING cancels the worker and writes an `aborted`
+certificate. A drive that re-enumerates in a DONE bay with the same serial
+within 30 s (a bridge glitch) stays DONE rather than being wiped again. Power
+loss mid-wipe leaves a `state.json` so the next boot writes `interrupted`
+certificates for the drives that were running.
 
 ### 4.7 Certificate
 
@@ -380,7 +388,7 @@ configured, POSTed to an HTTP endpoint.
 ### 4.8 Simulation and tests
 
 `BRAIN_DRAIN_SIM=1` swaps the HAL for fakes: bays backed by loop devices or
-sparse files, DIP/button from a small TUI, OLED rendered to the terminal. This is
+sparse files, DIP from a file you edit, OLED rendered to the terminal. This is
 how the engine gets developed and tested on a workstation before the board
 exists. `pytest` covers policy selection, safety fence, progress math, report
 schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
@@ -392,8 +400,8 @@ schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
   (`enclosure/tools/kicad_to_scad.py`) so the shell tracks the board.
 * **Form:** two-part shell, bottom tray + top lid, board on M2.5 heat-set
   inserts. Rear wall: 4× SATA 22-pin windows, DC input, RJ45, USB-C, UART slot.
-  Top: OLED window with a recess for the module, 8-way DIP slot, 16 mm button
-  hole, 6× LED holes. Sides: vents. Fan grille over the CM5 cooler.
+  Top: OLED window with a recess for the module, 8-way DIP slot, 6× LED
+  holes. No button: the DIP switch is the only control. Sides: vents. Fan grille over the CM5 cooler.
 * **Print:** PETG or ASA, 0.2 mm layers, no supports required by design
   (chamfered overhangs, lid printed upside down).
 * **Later:** a matching 4-slot drive rack that keeps the pigtails tidy.

@@ -38,7 +38,6 @@ F10-F13,4,,PTC 1812 3 A hold bay 12 V,power,0.3,,
 F14-F17,4,,PTC 1812 2 A hold bay 5 V,power,0.3,,
 U30;U31,2,INA3221,Bay current monitor,power,1.5,DNP,
 SW1,1,,8-way DIP switch 2.54 mm TH,ui,1,,
-SW2,1,,16 mm illuminated momentary pushbutton,ui,3,,panel mount
 DS1,1,,0.96in SSD1306 128x64 I2C OLED module,ui,3,,alt 1.3in SH1106 / 2.42in SSD1309
 D1,1,,3 mm LED green power,ui,0.1,,
 D2,1,,3 mm bicolour LED status,ui,0.2,,
