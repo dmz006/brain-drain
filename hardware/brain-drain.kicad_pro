@@ -1,0 +1,114 @@
+{
+  "board": {
+    "design_settings": {
+      "defaults": {},
+      "rules": {}
+    },
+    "layer_presets": [],
+    "viewports": []
+  },
+  "boards": [],
+  "cvpcb": {
+    "equivalence_files": []
+  },
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "meta": {
+    "filename": "brain-drain.kicad_pro",
+    "version": 3
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "name": "Default",
+        "clearance": 0.2,
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_width": 0.2,
+        "diff_pair_gap": 0.25
+      }
+    ],
+    "meta": {
+      "version": 4
+    }
+  },
+  "pcbnew": {
+    "page_layout_descr_file": ""
+  },
+  "schematic": {
+    "drawing": {
+      "default_font": "KiCad Font"
+    },
+    "legacy_lib_dir": "",
+    "legacy_lib_list": [],
+    "meta": {
+      "version": 1
+    }
+  },
+  "sheets": [
+    [
+      "0b6a1e2a-0000-4000-8000-000000000001",
+      "Root"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000002",
+      "power-input"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000003",
+      "power-bucks"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000004",
+      "cm5"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000005",
+      "usb3-hub-A"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000006",
+      "usb3-hub-B"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000007",
+      "bridge-1"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000008",
+      "bay-switch-1"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000009",
+      "bridge-2"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000010",
+      "bay-switch-2"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000011",
+      "bridge-3"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000012",
+      "bay-switch-3"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000013",
+      "bridge-4"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000014",
+      "bay-switch-4"
+    ],
+    [
+      "0b6a1e2a-0000-4000-8000-000000000015",
+      "m2-nvme"
+    ]
+  ],
+  "text_variables": {}
+}

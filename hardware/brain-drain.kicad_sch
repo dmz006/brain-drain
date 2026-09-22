@@ -1,0 +1,758 @@
+(kicad_sch
+	(version 20250114)
+	(generator "brain-drain-gen_sch")
+	(generator_version "9.0")
+	(uuid "0b6a1e2a-0000-4000-8000-000000000001")
+	(paper "A3")
+	(title_block
+		(title "brain-drain 4-bay disk sanitizer carrier, CM5")
+		(rev "v0-generated")
+		(company "brain-drain")
+	)
+	(lib_symbols)
+	(text "brain-drain 4-bay disk sanitizer carrier, CM5"
+		(exclude_from_sim no)
+		(at 30 14 0)
+		(effects
+			(font
+				(size 4.0 4.0)
+			)
+			(justify left bottom)
+		)
+		(uuid "bc5dcb3a-e2a8-4d37-a996-e36f5f53d214")
+	)
+	(sheet
+		(at 30 25)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "8664b8cd-a6da-4de6-bc84-08b0689981c2")
+		(property "Sheetname" "power-input"
+			(at 30 24.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/power-input.kicad_sch"
+			(at 30 55.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "2")
+				)
+			)
+		)
+	)
+	(text "12 V DIN input, fuse, TVS, reverse-polarity FET, bulk capacitance"
+		(exclude_from_sim no)
+		(at 32 33 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "fef83af8-4acf-4988-8ee0-2959f5bab95d")
+	)
+	(sheet
+		(at 160 25)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "08e9c24b-2751-43df-b9fb-0240204b6e1d")
+		(property "Sheetname" "power-bucks"
+			(at 160 24.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/power-bucks.kicad_sch"
+			(at 160 55.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "3")
+				)
+			)
+		)
+	)
+	(text "5V_SYS and 5V_HDD (TPS56637), +3V3 and 3V3_M2 (AP63203), +1V2 LDO"
+		(exclude_from_sim no)
+		(at 162 33 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "8a381dd7-d22e-4c9f-9c1c-744c6d4ed520")
+	)
+	(sheet
+		(at 290 25)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "c1ae40b3-9ba7-471a-aa6e-f55fbd088a42")
+		(property "Sheetname" "cm5"
+			(at 290 24.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/cm5.kicad_sch"
+			(at 290 55.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "4")
+				)
+			)
+		)
+	)
+	(text "Compute Module 5: power, control, GPIO, microSD, Ethernet, USB-C, UART, RTC cell, fan, DIP, LEDs, buzzer, OLED"
+		(exclude_from_sim no)
+		(at 292 33 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "46b8b9bd-5fa4-4919-a865-d88c1f8b8a98")
+	)
+	(sheet
+		(at 420 25)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "33204d9b-3840-4745-ac16-7bc5450a6027")
+		(property "Sheetname" "usb3-hub-A"
+			(at 420 24.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/usb3-hub-A.kicad_sch"
+			(at 420 55.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "5")
+				)
+			)
+		)
+	)
+	(text "USB5744 hub A on CM5 USB3-0, bays 1 and 2"
+		(exclude_from_sim no)
+		(at 422 33 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "cc84b033-3e56-4fa1-8ac0-ef3ede7fd0bf")
+	)
+	(sheet
+		(at 30 70)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "809e74a9-08f6-4a33-bd29-cc4c5adeb5d7")
+		(property "Sheetname" "usb3-hub-B"
+			(at 30 69.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/usb3-hub-B.kicad_sch"
+			(at 30 100.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "6")
+				)
+			)
+		)
+	)
+	(text "USB5744 hub B on CM5 USB3-1, bays 3 and 4"
+		(exclude_from_sim no)
+		(at 32 78 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "235097cd-3fc1-48c2-9a52-d79a1a807ab1")
+	)
+	(sheet
+		(at 160 70)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "626713fb-c9aa-4ce2-9bd1-b6a026dbbbd1")
+		(property "Sheetname" "bridge-1"
+			(at 160 69.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bridge-1.kicad_sch"
+			(at 160 100.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "7")
+				)
+			)
+		)
+	)
+	(text "Bay 1: ASM1153E USB-SATA bridge and 22-pin SATA receptacle"
+		(exclude_from_sim no)
+		(at 162 78 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "8ed6c625-a33e-4394-a800-fdcfc7d6ddd3")
+	)
+	(sheet
+		(at 290 70)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "c44df106-0584-4675-9d2c-ae9f1a99ae52")
+		(property "Sheetname" "bay-switch-1"
+			(at 290 69.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bay-switch-1.kicad_sch"
+			(at 290 100.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "8")
+				)
+			)
+		)
+	)
+	(text "Bay 1: switched 12 V and 5 V with soft-start and PTC fuses"
+		(exclude_from_sim no)
+		(at 292 78 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "e1204fb7-e478-4ba6-9742-85bafe7f0566")
+	)
+	(sheet
+		(at 420 70)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "f109d75a-c432-45b8-b4c9-8f60cd4fbff0")
+		(property "Sheetname" "bridge-2"
+			(at 420 69.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bridge-2.kicad_sch"
+			(at 420 100.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "9")
+				)
+			)
+		)
+	)
+	(text "Bay 2: ASM1153E USB-SATA bridge and 22-pin SATA receptacle"
+		(exclude_from_sim no)
+		(at 422 78 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "26031c92-9b67-406f-9b65-77b6d40a6499")
+	)
+	(sheet
+		(at 30 115)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "ed8248c5-2afc-488a-a3d1-54c1a6165fb3")
+		(property "Sheetname" "bay-switch-2"
+			(at 30 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bay-switch-2.kicad_sch"
+			(at 30 145.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "10")
+				)
+			)
+		)
+	)
+	(text "Bay 2: switched 12 V and 5 V with soft-start and PTC fuses"
+		(exclude_from_sim no)
+		(at 32 123 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "d9d2e121-c21c-4785-a45f-09b15a73998f")
+	)
+	(sheet
+		(at 160 115)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "c165245b-53dc-4387-a1fb-84fa2ba4bdaa")
+		(property "Sheetname" "bridge-3"
+			(at 160 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bridge-3.kicad_sch"
+			(at 160 145.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "11")
+				)
+			)
+		)
+	)
+	(text "Bay 3: ASM1153E USB-SATA bridge and 22-pin SATA receptacle"
+		(exclude_from_sim no)
+		(at 162 123 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "1e051af0-21ee-4b30-89cb-0ab9794c89d6")
+	)
+	(sheet
+		(at 290 115)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "96df3c14-e546-4e92-a530-f17c80c8d439")
+		(property "Sheetname" "bay-switch-3"
+			(at 290 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bay-switch-3.kicad_sch"
+			(at 290 145.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "12")
+				)
+			)
+		)
+	)
+	(text "Bay 3: switched 12 V and 5 V with soft-start and PTC fuses"
+		(exclude_from_sim no)
+		(at 292 123 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "dc2b334e-7a88-4c6e-a7c6-65a3bd596035")
+	)
+	(sheet
+		(at 420 115)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "a455887e-27a4-4981-bb2f-c4f9da9b8d5e")
+		(property "Sheetname" "bridge-4"
+			(at 420 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bridge-4.kicad_sch"
+			(at 420 145.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "13")
+				)
+			)
+		)
+	)
+	(text "Bay 4: ASM1153E USB-SATA bridge and 22-pin SATA receptacle"
+		(exclude_from_sim no)
+		(at 422 123 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "a10dc357-04dd-4ef7-843d-89e7c4bfa69c")
+	)
+	(sheet
+		(at 30 160)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "73d28914-76a7-4801-bada-ab32c87c6bbd")
+		(property "Sheetname" "bay-switch-4"
+			(at 30 159.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bay-switch-4.kicad_sch"
+			(at 30 190.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "14")
+				)
+			)
+		)
+	)
+	(text "Bay 4: switched 12 V and 5 V with soft-start and PTC fuses"
+		(exclude_from_sim no)
+		(at 32 168 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "54d1ec01-f999-415a-9ff0-55426449fce2")
+	)
+	(sheet
+		(at 160 160)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "f1a78d64-cea9-40ac-b4a8-3e124fd38925")
+		(property "Sheetname" "m2-nvme"
+			(at 160 159.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/m2-nvme.kicad_sch"
+			(at 160 190.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "brain-drain"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "15")
+				)
+			)
+		)
+	)
+	(text "Bay 5: M.2 M-key on PCIe Gen3 x1, 3V3_M2 buck + load switch, door switch"
+		(exclude_from_sim no)
+		(at 162 168 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "ecadcb96-f791-406a-83d1-ebea94095344")
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

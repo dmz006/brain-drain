@@ -69,7 +69,18 @@ def _pin(p: Pin, x, y, angle):
             f'\t\t\t\t(number {q(p.number)} (effects (font (size {FONT} {FONT}))))\n\t\t\t)')
 
 
+def dedupe_power_out(sym: "Symbol") -> None:
+    seen = set()
+    for u in sym.units:
+        for p in u.left + u.right:
+            if p.etype == "power_out":
+                if p.name in seen:
+                    p.etype = "passive"
+                seen.add(p.name)
+
+
 def render(sym: Symbol) -> str:
+    dedupe_power_out(sym)
     out = [f'\t(symbol {q(sym.name)}\n\t\t(pin_names (offset 1.016))\n\t\t(exclude_from_sim no)\n\t\t(in_bom yes)\n\t\t(on_board yes)']
     w0, h0 = sym.geometry(sym.units[0])
     out.append(_prop("Reference", sym.reference, -w0 / 2, h0 / 2 + PITCH))
@@ -108,6 +119,8 @@ def _etype_cm5(sig: str) -> str:
         return "power_in"
     if "(Output)" in sig:
         return "power_out"
+    if sig == "GPIO_VREF":
+        return "power_in"
     if sig.startswith("GPIO") or sig.startswith("SD_DAT") or sig in ("ID_SD", "ID_SC", "SDA0", "SCL0", "SD_CMD",
                                                                     "HDMI0_SDA", "HDMI0_SCL", "HDMI1_SDA", "HDMI1_SCL",
                                                                     "HDMI0_CEC", "HDMI1_CEC", "CAM_GPIO0", "CAM_GPIO1",
