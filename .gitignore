@@ -1,0 +1,23 @@
+# datawatch-managed (BL219)
+.aider.conf.yml
+.aider.chat.history.md
+.aider.tags.cache.v*/
+
+# datawatch-managed (BL219)
+.goose/
+
+# datawatch-managed (BL219)
+.gemini/
+
+# project
+.claude/settings.local.json
+.datawatch/
+__pycache__/
+*.pyc
+software/.venv/
+software/*.egg-info/
+.pytest_cache/
+enclosure/stl/*.stl
+hardware/*-backups/
+hardware/fp-info-cache
+hardware/*.kicad_prl

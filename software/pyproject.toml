@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "braindrain"
+version = "0.0.1"
+description = "Four-bay NIST 800-88 disk sanitizer service"
+requires-python = ">=3.11"
+dependencies = [
+    "pyudev>=0.24",
+]
+
+[project.optional-dependencies]
+hw = [
+    "gpiod>=2.1",
+    "luma.oled>=3.13",
+    "smbus2>=0.4",
+]
+dev = [
+    "pytest>=8",
+    "pytest-cov",
+    "ruff",
+]
+
+[project.scripts]
+braindrain = "braindrain.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["braindrain*"]
+
+[tool.ruff]
+line-length = 100

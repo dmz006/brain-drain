@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "web_search": {
+      "command": "/home/dmz/workspace/datawatch/datawatch",
+      "args": [
+        "mcp-search"
+      ],
+      "env": {
+        "DATAWATCH_WEB_SEARCH_ENGINE": "bing",
+        "DATAWATCH_WEB_SEARCH_NUM_RESULTS": "10",
+        "DATAWATCH_WEB_SEARCH_URL": "http://datawatch:3001"
+      }
+    }
+  }
+}
