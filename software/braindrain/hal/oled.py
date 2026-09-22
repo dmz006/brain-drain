@@ -23,5 +23,17 @@ class Oled(Display):
             for i, line in enumerate(lines[:8]):
                 draw.text((0, i * 8), line, font=self.font, fill=255)
 
+    def show_frame(self, frame) -> None:
+        if not frame.bitmap:
+            return self.show(frame.lines)
+        s = frame.bitmap_scale
+        with self.canvas(self.device) as draw:
+            for y, row in enumerate(frame.bitmap):
+                for x, on in enumerate(row):
+                    if on:
+                        draw.rectangle((x * s, y * s, x * s + s - 1, y * s + s - 1), fill=255)
+            for i, line in enumerate(frame.lines[:8]):
+                draw.text((frame.text_x, i * 8), line, font=self.font, fill=255)
+
     def close(self) -> None:
         self.device.cleanup()

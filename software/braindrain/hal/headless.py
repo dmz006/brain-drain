@@ -25,8 +25,6 @@ class HeadlessPanel(Panel):
     def set_status(self, color: str) -> None:
         log.info("status LED -> %s", color)
 
-    def buzz(self, pattern: str) -> None:
-        log.info("buzzer: %s", pattern)
 
 
 class HeadlessBayPower(BayPower):

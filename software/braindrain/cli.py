@@ -53,16 +53,67 @@ def cmd_simulate(a) -> int:
     for name, default in (("door", "closed"), ("pedet", "pcie")):
         if not (sim_dir / name).exists():
             (sim_dir / name).write_text(default + "\n")
-    cfg = Config.for_simulation(sim_dir, grace_seconds=a.grace, block_size=a.block_size)
+    cfg = Config.for_simulation(sim_dir, grace_seconds=a.grace, block_size=a.block_size, web_port=a.web)
     panel, power, _ = make_hal(cfg)
     disp = SimDisplay(a.display, sim_dir)
     watcher = SimWatcher(cfg)
-    eng = Engine(cfg, watcher, panel, power, disp, _unit_line(cfg))
+    wifi = _wifi(cfg)
+    eng = Engine(cfg, watcher, panel, power, disp, _unit_line(cfg), wifi)
     watcher.visible = eng.m2_visible
+    web = _web(cfg, eng, wifi)
     signal.signal(signal.SIGINT, lambda *_: eng.stop.set())
     signal.signal(signal.SIGTERM, lambda *_: eng.stop.set())
     logging.getLogger().info("simulating in %s; plug drives with `braindrain sim-plug`", sim_dir)
-    eng.run_forever()
+    try:
+        eng.run_forever()
+    finally:
+        if web:
+            web.stop()
+    return 0
+
+
+def _wifi(cfg):
+    """WifiManager for this config: simulated when sim_dir is set, nmcli on the Pi, None when headless
+    or when nmcli is missing."""
+    from .wifi import NmcliBackend, SimBackend, WifiManager
+
+    if cfg.sim_dir is not None:
+        return WifiManager(cfg, SimBackend(cfg.sim_dir))
+    if cfg.hal == "headless":
+        return None
+    try:
+        return WifiManager(cfg, NmcliBackend())
+    except RuntimeError as e:
+        logging.getLogger().warning("wireless disabled: %s", e)
+        return None
+
+
+def _web(cfg, eng, wifi):
+    if not cfg.web_enabled:
+        return None
+    from .webui import WebUI
+
+    try:
+        web = WebUI(cfg, eng, wifi)
+    except OSError as e:
+        logging.getLogger().error("phone page not started: %s", e)
+        return None
+    web.start()
+    return web
+
+
+def cmd_wifi_reset(a) -> int:
+    cfg = Config.load(a.config)
+    wifi = _wifi(cfg)
+    if wifi is None:
+        print("no wireless on this unit", file=sys.stderr)
+        return 2
+    if a.factory:
+        r = wifi.factory_reset(wait=True)
+        print(f"factory reset: {r['certificates_deleted']} certificate(s) deleted; access point {wifi.state.ssid} key {wifi.state.key}")
+    else:
+        wifi.reset_wifi(wait=True)
+        print(f"network forgotten; access point {wifi.state.ssid} key {wifi.state.key}")
     return 0
 
 
@@ -202,10 +253,16 @@ def cmd_run(a) -> int:
         print("config has no bay_ports; run `braindrain setup-bay` first", file=sys.stderr)
         return 2
     panel, power, disp = make_hal(cfg)
-    eng = Engine(cfg, UdevWatcher(cfg), panel, power, disp, _unit_line(cfg))
+    wifi = _wifi(cfg)
+    eng = Engine(cfg, UdevWatcher(cfg), panel, power, disp, _unit_line(cfg), wifi)
+    web = _web(cfg, eng, wifi)
     signal.signal(signal.SIGTERM, lambda *_: eng.stop.set())
     signal.signal(signal.SIGINT, lambda *_: eng.stop.set())
-    eng.run_forever()
+    try:
+        eng.run_forever()
+    finally:
+        if web:
+            web.stop()
     return 0
 
 
@@ -223,6 +280,7 @@ def main(argv=None) -> int:
     s.add_argument("--display", choices=["term", "log", "none"], default="term")
     s.set_defaults(fn=cmd_simulate)
 
+    s.add_argument("--web", type=int, default=8080, help="phone page port (default 8080; 0 = pick a free port)")
     s = sub.add_parser("sim-plug", help="plug a simulated drive into a bay")
     s.add_argument("bay", type=int)
     s.add_argument("--sim-dir", default=str(DEFAULT_SIM_DIR))
@@ -283,6 +341,10 @@ def main(argv=None) -> int:
     s.add_argument("--out-dir", default=".", help="where to write bench-*.json")
     s.set_defaults(fn=cmd_bench)
 
+    s = sub.add_parser("wifi-reset", help="forget the saved network and go back to the access point")
+    s.add_argument("--factory", action="store_true", help="also delete all certificates and state")
+    s.add_argument("--config", default=None)
+    s.set_defaults(fn=cmd_wifi_reset)
     s = sub.add_parser("run", help="run the appliance service on real hardware")
     s.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
     s.set_defaults(fn=cmd_run)

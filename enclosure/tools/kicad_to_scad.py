@@ -23,29 +23,26 @@ OUT = ROOT / "enclosure" / "board.scad"
 # reference -> (kind, width, height_above_board, z_offset, note). Sizes are the
 # physical part face the enclosure must clear, before clearance is added.
 FEATURES = {
-    # left wall (x = 0): power, network, rpiboot
-    "J21": ("left", 17.0, 16.0, 0.0, "DIN power jack face (Kycon: 16 wide, ~15 tall)"),
-    "J4":  ("left", 16.5, 13.5, 0.0, "RJ45 magjack"),
-    "J5":  ("left", 9.5, 3.6, 0.9, "USB-C receptacle"),
+    # right wall (x = board_w): power, rpiboot, microSD. The left wall is the CM5 antenna edge: nothing on it.
+    "J21": ("right", 17.0, 16.0, 0.0, "DIN power jack face (Kycon: 16 wide, ~15 tall)"),
+    "J5":  ("right", 9.5, 3.6, 0.9, "USB-C receptacle"),
+    "J3":  ("right", 15.0, 3.0, 0.0, "microSD card slot"),
     # rear wall (y = 0): the four drive cables
     "J10": ("rear", 28.0, 9.0, 0.0, "SATA 22-pin receptacle, bay 1"),
     "J11": ("rear", 28.0, 9.0, 0.0, "SATA 22-pin receptacle, bay 2"),
     "J12": ("rear", 28.0, 9.0, 0.0, "SATA 22-pin receptacle, bay 3"),
     "J13": ("rear", 28.0, 9.0, 0.0, "SATA 22-pin receptacle, bay 4"),
-    # front wall (y = board_h): microSD and the M.2 slot
-    "J3":  ("front", 15.0, 3.0, 0.0, "microSD card slot"),
-    "J50": ("m2", 22.0, 80.0, 0, "M.2 socket; module runs toward +y, SSD enters through the front wall"),
-    "SW3": ("door", 0, 0, 0, "M.2 slot microswitch"),
+    # under the hinged lid
+    "J50": ("m2", 22.0, 80.0, 0, "M.2 socket; the SSD lies along the front under the lid, no wall slot"),
+    "SW3": ("lid", 0, 0, 0, "lid microswitch (pressed by the closed lid)"),
     # lid
     "SW1": ("top", 23.0, 11.0, 0.0, "8-way DIP switch slot"),
     "J41": ("top", 30.0, 30.0, 0.0, "OLED header (module is lid-mounted on a 4-wire lead; window position in params.scad)"),
-    "J40": ("top", 10.0, 5.0, 0, "fan header"),
+    "J40": ("top", 10.0, 5.0, 0, "fan header (optional fan)"),
     "D1":  ("led", 3.2, 0, 0, "power LED"), "D2": ("led", 3.2, 0, 0, "activity LED"), "D3": ("led", 3.2, 0, 0, "status LED"),
     "D10": ("led", 3.2, 0, 0, "bay 1 LED"), "D11": ("led", 3.2, 0, 0, "bay 2 LED"), "D12": ("led", 3.2, 0, 0, "bay 3 LED"),
     "D13": ("led", 3.2, 0, 0, "bay 4 LED"), "D50": ("led", 3.2, 0, 0, "M.2 LED"),
-    "M1":  ("cm5", 55.0, 40.0, 0, "CM5 module centre (landscape)"),
-    # tray floor
-    "BZ1": ("bottom", 12.0, 9.5, 0, "buzzer on the bottom side: sound holes in the floor"),
+    "M1":  ("cm5", 55.0, 40.0, 0, "CM5 module centre (landscape, antenna edge at x = 0)"),
 }
 CM5_CENTRE = (16.5, -24.0)   # module centre relative to the footprint origin (MH1) at rotation 0
 
@@ -94,7 +91,7 @@ def main():
              f"board_w = {bw:.2f};", f"board_h = {bh:.2f};",
              "// mounting holes [x, y]",
              "board_holes = [" + ", ".join(f"[{x:.2f}, {y:.2f}]" for _, x, y in holes) + "];",
-             "// features: [ref, kind, x, y, rot, w, h, z]  (x, y = part centre; kinds: rear left front top led cm5 m2 door bottom)",
+             "// features: [ref, kind, x, y, rot, w, h, z]  (x, y = part centre; kinds: rear right top led cm5 m2 lid)",
              "board_features = ["]
     for ref, kind, x, y, rot, w, h, z, note in feats:
         lines.append(f'  ["{ref}", "{kind}", {x:.2f}, {y:.2f}, {rot:.0f}, {w:.2f}, {h:.2f}, {z:.2f}],  // {note}')

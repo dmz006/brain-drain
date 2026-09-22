@@ -32,7 +32,6 @@ DEFAULT_ALLOWED_BRIDGES: frozenset[tuple[str, str]] = frozenset(
 # BCM GPIO numbers, ARCHITECTURE.md §3.7.
 DEFAULT_DIP_GPIOS: tuple[int, ...] = (16, 17, 20, 21, 22, 23, 24, 25)
 DEFAULT_BAY_EN_GPIOS: dict[int, int] = {1: 5, 2: 6, 3: 12, 4: 13}
-DEFAULT_BUZZER_GPIO = 18
 DEFAULT_STATUS_LED_GPIO = 26
 
 MiB = 1024 * 1024
@@ -69,7 +68,6 @@ class Config:
     gpiochip: str = "/dev/gpiochip0"
     dip_gpios: tuple[int, ...] = DEFAULT_DIP_GPIOS
     bay_en_gpios: dict[int, int] = field(default_factory=lambda: dict(DEFAULT_BAY_EN_GPIOS))
-    buzzer_gpio: int = DEFAULT_BUZZER_GPIO
     status_led_gpio: int = DEFAULT_STATUS_LED_GPIO
     oled_driver: str = "ssd1306"  # or "sh1106"
     i2c_port: int = 1
@@ -89,6 +87,14 @@ class Config:
     hal: str = "real"
     headless_dip: str = "00000000"   # policy used by the headless HAL, which has no switches
     display_file: Path | None = None  # last OLED frame as text, for `braindrain status`
+
+    # Wireless and the phone page (C22). The AP key is ephemeral (per boot) and lives only in memory.
+    wifi_iface: str = "wlan0"
+    wifi_file: Path = Path("/var/lib/brain-drain/wifi.json")   # saved station network, if any
+    wifi_join_timeout: float = 45.0
+    ap_ip: str = "10.42.0.1"
+    web_enabled: bool = True
+    web_port: int = 80
 
     # Simulation
     sim_dir: Path | None = None
@@ -122,7 +128,7 @@ class Config:
 
 
     # ------------------------------------------------------------------ file I/O
-    _PATH_FIELDS = ("report_dir", "state_file", "pci_rescan_path", "sim_dir", "display_file")
+    _PATH_FIELDS = ("report_dir", "state_file", "pci_rescan_path", "sim_dir", "display_file", "wifi_file")
 
     @classmethod
     def load(cls, path: Path | str | None = None) -> Config:

@@ -9,11 +9,11 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from braindrain import display  # noqa: E402
-from braindrain.devices import Drive  # noqa: E402
-from braindrain.engine import BayStatus  # noqa: E402
-from braindrain.policy import Media  # noqa: E402
-from braindrain.progress import Progress  # noqa: E402
+from braindrain import display
+from braindrain.devices import Drive
+from braindrain.engine import BayStatus
+from braindrain.policy import Media
+from braindrain.progress import Progress
 
 COLS, ROWS = 21, 8
 SCALE = 6
@@ -32,13 +32,18 @@ def _font(size, mono=False):
         return ImageFont.load_default()
 
 
-def frame_png(lines, path: Path, title: str):
+def frame_png(lines, path: Path, title: str, bitmap=None, scale=2, text_x=0):
     font = _font(8, mono=True)   # ~4.8 px advance: 21 columns in 128 px, like a 6x8 panel font
     small = Image.new("L", (128, 64), 0)
     d = ImageDraw.Draw(small)
+    if bitmap:
+        for y, row in enumerate(bitmap):
+            for x, on in enumerate(row):
+                if on:
+                    d.rectangle((x * scale, y * scale, x * scale + scale - 1, y * scale + scale - 1), fill=255)
     for i, line in enumerate(lines[:ROWS]):
         for j, ch in enumerate(line[:COLS]):
-            d.text((j * 6, i * 8 - 1), ch, fill=255, font=font)
+            d.text((text_x + j * 6, i * 8 - 1), ch, fill=255, font=font)
     big = small.resize((128 * SCALE, 64 * SCALE), Image.NEAREST)
     out = Image.new("RGB", (128 * SCALE + 2 * PAD, 64 * SCALE + 2 * PAD + 44), (16, 18, 22))
     od = ImageDraw.Draw(out)
@@ -85,6 +90,15 @@ def main(out_dir: Path):
     err[3] = status(3, "ABORTED", hdd2, msg="removed")
     frame_png(display.render("3PASS", err, unit, "bay 5: SATA M.2 not supported"), out_dir / "oled-errors.png",
               "Errors: verify failure, drive pulled mid-wipe, SATA M.2 refused; DIP set to legacy 3-pass")
+    # idle on the access point: the Wi-Fi QR code plus the key and address (C22)
+    from braindrain.wifi import WifiState
+    w = WifiState(mode="ap", ssid="brain-drain-7f3a", key="kx7m2pq4", ip="10.42.0.1")
+    f = display.frame("AUTO", {b: status(b, "IDLE") for b in (1, 2, 3, 4, 5)}, unit, "", w)
+    frame_png(f.lines, out_dir / "oled-wifi.png", "Idle on the access point: scan the QR code to join, then open the address; the key also unlocks actions on the phone page",
+              bitmap=f.bitmap, scale=f.bitmap_scale, text_x=f.text_x)
+    w2 = WifiState(mode="station", ssid="shop-wifi", key="kx7m2pq4", ip="192.168.1.77")
+    f2 = display.frame("AUTO", running, unit, "", w2)
+    frame_png(f2.lines, out_dir / "oled-running.png", "Running on the shop network: bay 1 overwriting, bay 2 done (Purge), bay 3 verifying, bay 4 starting, bay 5 NVMe sanitize; key and address on the bottom rows")
 
 
 if __name__ == "__main__":

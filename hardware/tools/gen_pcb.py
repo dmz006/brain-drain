@@ -24,55 +24,56 @@ HW = Path(__file__).resolve().parent.parent
 OUT = HW / "brain-drain.kicad_pcb"
 PLACEMENT = HW / "tools" / "placement.json"
 
-BOARD_W, BOARD_H = 150.0, 98.0   # C21: portable "brain" box, drives on cables
+BOARD_W, BOARD_H = 136.0, 100.0   # C22: brain box with a hinged lid, no Ethernet, CM5 antenna on the left edge
 ORIGIN = (20.0, 20.0)  # board top-left on the sheet
 CORNER_R = 3.0
-# Three board holes plus the CM5's four standoffs and the M.2 standoff. The rear-right corner is
-# taken by bay 4's receptacle and the M.2 column, so there is no hole there.
-HOLES = [(4, 4), (4, BOARD_H - 4), (78.5, BOARD_H - 4)]
+# Two board holes plus the CM5's four standoffs and the M.2 standoff. The rear-right corner holds the
+# lid switch, the front-left the M.2 socket and the front-right the DIN jack, so the holes are
+# rear-left and front-centre-right (between the DIP switch and the DIN).
+HOLES = [(4, 4), (113, BOARD_H - 4)]
 
 # Regions (x0, y0, x1, y1) in board mm, y down from the rear edge (rear edge = y 0).
 # Regions are sized so the parts fit (checked at generation time; ~1.6x the summed part area).
-# Rows: SATA receptacles y 0-8 at 28.5 mm pitch, bridges 8-22, bay switches 22-31. CM5 module
-# (landscape) x 24-79, y 33-73; hubs x 82-104; bucks column x 105-123; M.2 column x 123.5-146.5
-# with the SSD slot in the FRONT wall; front band y 76-98 for the panel parts.
+# Rows from the rear: SATA receptacles y 0-9 at 28.9 mm pitch, bridges 9-22.5, bay switches 22.5-32.5.
+# CM5 (landscape, antenna edge on the LEFT board edge) x 0-55, y 34-74; hubs x 56-79; bucks and input
+# x 80-116; right wall (x = 136): USB-C, microSD, fan header, DIN 12 V. M.2 socket front-left, the 2280
+# module lies along the front (x 8-95, y 75.5-98.5) under the hinged lid. Front-right: DIP switch.
+ANTENNA_STRIP = (0, 33, 8, 75)   # no copper on any layer, no parts on either side (CM5 datasheet 4.1.2)
 BAY_PITCH = 28.9   # 27.94 mm pad span + 0.7 mm pad + 0.15 mm clearance
 BAY_X0 = 22.0
 REGIONS = {
-    "power-input": (82, 76, 95, 98),
-    "power-bucks": (105, 33, 123, 63),
-    "cm5": (12, 76, 34, 90),            # CM5 sheet passives (fan, SD switch, LED resistors) front-left
-    "usb3-hub-A": (91, 33, 104, 53),    # hub QFN anchored at (86, 42); passives pack to its right
-    "usb3-hub-B": (91, 55, 104, 75),    # hub QFN anchored at (86, 64)
-    "m2-nvme": (125, 16, 145, 36),      # M.2 switch and 0402/0603 passives UNDER the SSD (max 1.5 mm tall; L51 is fixed elsewhere)
+    "power-input": (101, 34, 116, 53),
+    "power-bucks": (80, 34, 99, 69),
+    "cm5": (57.5, 78, 70, 96),          # CM5-sheet passives (SD switch, LED resistors) UNDER the SSD too (all < 1.5 mm)
+    "usb3-hub-A": (66, 34, 79, 52),     # hub QFN anchored at (61, 43); passives pack to its right
+    "usb3-hub-B": (66, 54, 79, 72),     # hub QFN anchored at (61, 63)
+    "m2-nvme": (24, 78, 40, 96),        # M.2 switch and 0402/0603 passives UNDER the SSD (max 1.5 mm tall; L51 is fixed elsewhere)
+    # the packed regions under the SSD sit between the socket's 2242/2260/2280 standoff holes (x 42.3, 54.3, 72.3, 92.3)
 }
 for _b in range(4):
     _x = BAY_X0 + _b * BAY_PITCH
     REGIONS[f"bridge-{_b + 1}"] = (_x - 1, 9.3, _x + 13.5, 22.5)       # right of the bridge QFN at (_x - 6, 15.5)
     REGIONS[f"bay-switch-{_b + 1}"] = (_x - 8, 22.5, _x + 15, 32.5)   # right of the bay LED at (_x - 12, 27.5)
-SPILL = (125, 40, 145, 88)   # under the SSD: anything that does not fit its region lands here and is reported
+SPILL = (74, 78, 90, 96)   # under the SSD: anything that does not fit its region lands here and is reported
 # Fixed anchors: reference -> (x, y, rotation) in board mm
 FIXED = {
-    # left wall (x = 0): power in, network, rpiboot USB-C. Faces point -x at these rotations.
-    "J21": (0.3, 43.0, 90),           # DIN jack: body x 0-18, y 34-52
-    "J4": (2.5, 67.2, 90),            # RJ45 magjack, 23 mm deep: x 0-23, y 52-71
-    "J5": (9.2, 82.0, 270),           # USB-C rpiboot: y 77-87, face on the wall
-    "J3": (45.0, 86.0, 0),            # microSD on the FRONT wall, card entry toward +y
-    "J6": (24.0, 93.0, 0), "J7": (29.0, 91.0, 0),     # nRPIBOOT, UART headers on the front edge
-    "D1": (8.5, 95.0, 0), "D2": (13.4, 95.0, 0), "D3": (18.3, 95.0, 0),   # front-edge status LEDs
-    "M1": (75.5, 69.5, 90),           # CM5 landscape: module x 24-79, y 33-73; holes (27.5|75.5, 36.5|69.5)
-    "SW1": (55.5, 84.0, 90),          # DIP under a lid cutout, x 53-76, y 74.5-88
-    "J41": (64.0, 94.0, 90),          # OLED header below the DIP; module is lid-mounted above it
-    "J40": (98.0, 78.0, 0),           # fan header
-    "C20": (101.5, 90.5, 0),          # 12 V bulk cap, front-right
-    "C21": (114.0, 69.0, 0),          # 12 V bulk cap, below the buck column
-    "L51": (121.0, 82.0, 0),          # M.2 3.3 V inductor (1.8 mm tall: not under the SSD)
-    "BZ1": (33.0, 47.0, 0),           # buzzer (THT) on the BOTTOM under the CM5 module, clear of its connector
-    "BT1": (56.0, 52.0, 0),           # CR2032 holder, flipped to the BOTTOM under the CM5 connector (post-process)
-    "J50": (135.0, 9.0, 0),           # M.2 socket at the rear, module runs toward +y: SSD slot in the FRONT wall
-    "D50": (121.0, 94.0, 0), "SW3": (111.5, 91.9, 0),   # M.2 LED and slot microswitch on the front edge, left of the slot
-    # hubs: QFN-56 upstream pins 43-56 on the top side at rot 0 -> rot 90 turns them to face the CM5 (left)
-    "U1": (86.0, 42.0, 90), "U2": (86.0, 64.0, 90),
+    "M1": (3.5, 37.5, 270),           # CM5 landscape, MH1 (antenna) edge on the left board edge: module x 0-55, y 34-74
+    "U1": (61.0, 43.0, 90), "U2": (61.0, 63.0, 90),   # hubs: rot 90 turns the upstream pins toward the CM5
+    "J21": (135.7, 90.5, 270),        # DIN jack on the RIGHT wall (face +x), body x 118-136, y 82-99: all cables leave rear/right
+    "J5": (126.8, 45.0, 90),          # USB-C on the RIGHT wall (face +x)
+    "J3": (127.0, 62.0, 90),          # microSD on the RIGHT wall, card entry +x
+    "J40": (126.6, 75.5, 0),          # fan header (kept for an optional fan; passive cooler by default)
+    "SW1": (99.1, 79.0, 0),           # DIP under a lid slot, x 95.5-108.7, y 76.6-99.2
+    "J41": (72.0, 73.5, 90),          # OLED header between the hubs and the M.2 module
+    "L51": (92.0, 72.0, 0),           # M.2 3.3 V inductor (1.8 mm tall: not under the SSD)
+    "C20": (108.5, 59.5, 0), "C21": (108.5, 71.0, 0),   # 12 V bulk caps below the input block
+    "J50": (14.0, 87.0, 90),          # M.2 socket front-left, module runs toward +x under the lid
+    "D50": (3.5, 79.0, 0),            # M.2 LED and the three status LEDs down the left edge
+    "D1": (3.5, 84.0, 0), "D2": (3.5, 89.0, 0), "D3": (3.5, 94.0, 0),
+    "SW3": (129.9, 16.0, 90),         # lid microswitch, rear-right corner under the lid edge
+    # bottom side under the CM5 module, clear of its connector pads (x 13.5-36.5) and the antenna strip
+    "BT1": (28.0, 58.0, 0),           # CR2032 holder (post-process flip)
+    "J6": (48.5, 46.0, 0), "J7": (48.5, 58.0, 0),     # nRPIBOOT and UART headers, bottom side (service only)
 }
 for _b in range(4):
     _x = BAY_X0 + _b * BAY_PITCH
@@ -81,7 +82,7 @@ for _b in range(4):
     # receptacle; USB pins (13-24, bottom) then face right, toward the hubs
     FIXED[f"U1{_b}"] = (_x - 6, 15.5, 90)
     FIXED[f"D1{_b}"] = (_x - 12, 27.5, 0)           # bay LED at the start of the bay switch row
-BOTTOM = {"BT1", "BZ1"}   # footprints flipped to B.Cu after generation (pcbnew post-process)
+BOTTOM = {"BT1", "J6", "J7"}   # footprints flipped to B.Cu after generation (pcbnew post-process)
 LAYERS = [(0, "F.Cu", "signal"), (1, "In1.Cu", "power"), (2, "In2.Cu", "power"), (31, "B.Cu", "signal"),
           (32, "B.Adhes", "user"), (33, "F.Adhes", "user"), (34, "B.Paste", "user"), (35, "F.Paste", "user"),
           (36, "B.SilkS", "user"), (37, "F.SilkS", "user"), (38, "B.Mask", "user"), (39, "F.Mask", "user"),
@@ -173,7 +174,7 @@ def main():
                      ["mid", sexp.fmt(ox + cx + (sx - cx) * 0.7071 + (ex - cx) * 0.7071), sexp.fmt(oy + cy + (sy - cy) * 0.7071 + (ey - cy) * 0.7071)],
                      ["end", sexp.fmt(ox + ex), sexp.fmt(oy + ey)], ["stroke", ["width", 0.1], ["type", "default"]],
                      ["layer", Str("Edge.Cuts")], ["uuid", Str(new_uuid())]])
-    body.append(["gr_text", Str("brain-drain carrier v1  150x98  rear edge = top"), ["at", sexp.fmt(ox + 2), sexp.fmt(oy - 3), 0],
+    body.append(["gr_text", Str("brain-drain carrier v2  136x100  rear edge = top"), ["at", sexp.fmt(ox + 2), sexp.fmt(oy - 3), 0],
                  ["layer", Str("Cmts.User")], ["uuid", Str(new_uuid())], ["effects", ["font", ["size", 2, 2], ["thickness", 0.3]]]])
     # mounting holes
     for i, (hx, hy) in enumerate(HOLES, start=1):

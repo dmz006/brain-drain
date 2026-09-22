@@ -18,7 +18,20 @@ revisions are noted in the entries.
 - Parametric OpenSCAD enclosure: tray, lid, hinged door, OLED bezel, drive rack.
 - Documentation set, diagrams, renders, logo.
 
+### Added
+- **Wireless (C22):** Wi-Fi access point with an ephemeral key and a QR code on the OLED, the
+  phone page (`webui.py`: status, certificates, log, join a network, Wi-Fi / factory reset with the
+  key), `wifi.py` (nmcli backend, simulated backend), DIP service mode 110, `braindrain wifi-reset`.
+  13 new tests (74 total). Dependency: `qrcode`.
+- `docs/FABRICATION.md`: small-run assembly vendors, cost estimate, order gates and checklist.
+
 ### Changed
+- **v2 outline (C22–C23):** 136 × 100 mm, no Ethernet (magjack and CM5 PHY pins dropped), no
+  buzzer, passive CM5 cooler (fan header kept), CM5 wireless with its antenna edge on the left
+  board edge and a copper-free strip under it; DIN / USB-C / microSD on the right wall; the M.2
+  lies along the front under a lid hinged along the rear with a snap latch (lid microswitch is the
+  bay-5 door). Enclosure about 143 × 107 × 32 mm; scene render of the lid open. Wall panel
+  diagrams now rear and right.
 - **Portable "brain box" (C21, 2026-09-23):** the board is re-laid out at 150 × 98 mm with the four
   SATA receptacles on the rear edge, DIN / RJ45 / USB-C on the left wall, microSD and the M.2 SSD
   slot on the front wall, the CM5 in landscape, CR2032 holder and buzzer on the bottom side. The

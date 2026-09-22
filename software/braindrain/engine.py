@@ -44,8 +44,9 @@ class BayStatus:
 
 
 class Engine:
-    def __init__(self, cfg, watcher, panel, bay_power, disp, unit_line_fn=None):
+    def __init__(self, cfg, watcher, panel, bay_power, disp, unit_line_fn=None, wifi=None):
         self.cfg = cfg
+        self.wifi = wifi   # wifi.WifiManager or None (headless bench)
         self.watcher = watcher
         self.panel = panel
         self.bay_power = bay_power
@@ -60,6 +61,17 @@ class Engine:
     # ------------------------------------------------------------------ lifecycle
 
     def boot(self) -> None:
+        if self.wifi is not None:
+            if self.policy.factory_reset:
+                self.message = "factory reset..."
+                self.draw()
+                self.wifi.factory_reset(wait=True)
+            elif self.policy.mode.name == "SERVICE":
+                self.message = "wifi reset..."
+                self.draw()
+                self.wifi.reset_wifi(wait=True)
+            else:
+                self.wifi.start()
         prior = report.load_state(self.cfg.state_file)
         if prior:
             paths = report.write_interrupted(self.cfg, prior)
@@ -172,7 +184,7 @@ class Engine:
         st.progress = Progress()
         st.message = ""
         st.cancel = threading.Event()
-        if self.policy.maintenance:
+        if self.policy.no_wipe:
             st.state = "IDLE"
             self.message = "MAINT: wipes disabled"
             log.warning("bay %d: %s %s detected but maintenance mode is on", bay, drive.model, drive.serial)
@@ -183,7 +195,6 @@ class Engine:
         log.info("bay %d: detected %s %s %s %d bytes; wiping in %.0fs (mode %s)",
                  bay, drive.model, drive.serial, drive.media.value, drive.size_bytes,
                  self.cfg.grace_seconds, self.policy.label)
-        self.panel.buzz("tick")
 
     def on_remove(self, bay: int) -> None:
         st = self.bays[bay]
@@ -241,9 +252,9 @@ class Engine:
             except OSError as e:
                 blog.error("could not write certificate: %s", e)
             if st.state == "DONE":
-                self.panel.buzz("done")
+                self.panel.set_status("green")
             elif st.state == "ERROR":
-                self.panel.buzz("error")
+                self.panel.set_status("red")
             self._save_state()
 
     def _run_chain(self, st, drive, cert, ctx, blog) -> None:
@@ -334,15 +345,16 @@ class Engine:
             log.error("state save failed: %s", e)
 
     def draw(self) -> None:
-        lines = display.render(self.policy.label, self.bays, self.unit_line_fn(), self.message)
+        wifi = self.wifi.snapshot() if self.wifi is not None else None
+        frame = display.frame(self.policy.label, self.bays, self.unit_line_fn(), self.message, wifi)
         try:
-            self.display.show(lines)
+            self.display.show_frame(frame)
         except Exception as e:  # noqa: BLE001
             log.error("display: %s", e)
         if self.cfg.display_file:
             try:
                 self.cfg.display_file.parent.mkdir(parents=True, exist_ok=True)
-                self.cfg.display_file.write_text("\n".join(lines) + "\n")
+                self.cfg.display_file.write_text("\n".join(frame.lines) + "\n")
             except OSError:
                 pass
 

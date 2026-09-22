@@ -1,15 +1,15 @@
-// brain-drain enclosure v1 ("brain box", C21): tray (bottom), lid (top), M.2 slot door.
-// Board origin: x from the left, y from the REAR edge (the four drive cables), z from the
-// board top surface. Left wall: DIN power, RJ45, USB-C. Front wall: microSD, M.2 SSD slot.
-// Lid: OLED window, DIP slot, LED holes, fan grille. Right wall: vents only.
+// brain-drain enclosure v2 ("brain box", C22): tray (bottom) and a hinged lid (top) that pops
+// open for the M.2 SSD. Board origin: x from the left, y from the REAR edge (the four drive
+// cables), z from the board top surface. Right wall: DIN power, USB-C, microSD. Left wall: the
+// CM5 antenna edge, vents only. Lid: OLED window, DIP slot, LED holes, fan grille (passive cooler,
+// grille for convection). Hinge along the rear top edge, snap latch at the front.
 //   openscad -D part=\"tray\" -o stl/tray.stl shell.scad
 //   openscad -D part=\"lid\"  -o stl/lid.stl  shell.scad
 //   openscad -D part=\"door\" -o stl/door.stl shell.scad
 include <params.scad>
 use <refinements.scad>
 
-part = "all";   // all | tray | lid | door
-hinge = true;   // tray-side knuckles for the hinged door   // all | tray | lid | door
+part = "all";   // all | tray | lid
 $fn = 48;
 
 // --------------------------------------------------------------- helpers
@@ -36,29 +36,10 @@ module rear_cutouts() {
             cube([w, wall + 2, h]);
 }
 
-module left_cutouts() {
-    feature("left") let (y = by($f[3]), w = $f[5] + 2 * cut_clear, h = $f[6] + 2 * cut_clear, z = $f[7])
-        translate([-1, y - w / 2, z_board_top + z - cut_clear])
+module right_cutouts() {
+    feature("right") let (y = by($f[3]), w = $f[5] + 2 * cut_clear, h = $f[6] + 2 * cut_clear, z = $f[7])
+        translate([outer_w - wall - 1, y - w / 2, z_board_top + z - cut_clear])
             cube([wall + 2, w, h]);
-}
-
-module front_cutouts() {
-    feature("front") let (x = bx($f[2]), w = $f[5] + 2 * cut_clear, h = $f[6] + 2 * cut_clear, z = $f[7])
-        translate([x - w / 2, outer_h - wall - 1, z_board_top + z - cut_clear])
-            cube([w, wall + 2, h]);
-}
-
-module door_cutout() {
-    // front wall slot for the M.2 SSD: centred on the M.2 column's x, from the board up
-    feature("m2") let (x = bx($f[2]))
-        translate([x - door_w / 2, outer_h - wall - 1, z_board_top + door_z])
-            cube([door_w, wall + 2, door_h]);
-}
-
-module buzzer_holes() {
-    // ring of sound holes in the floor under the bottom-side buzzer
-    feature("bottom") let (x = bx($f[2]), y = by($f[3]))
-        for (a = [0 : 60 : 300]) translate([x + 3 * cos(a), y + 3 * sin(a), -1]) cylinder(d = 1.6, h = floor_t + 2);
 }
 
 module standoffs() {
@@ -71,12 +52,28 @@ module standoffs() {
 }
 
 module side_vents() {
-    // vent slots in the RIGHT wall (x = outer_w), the only wall with nothing on it; the lid has the fan grille
+    // vent slots in the LEFT wall (the CM5 antenna edge: plastic only, no metal) and the front wall
     n = floor((inner_h - 30) / vent_pitch);
     for (i = [0 : n - 1])
-        translate([outer_w - wall - 1, wall + 15 + i * vent_pitch, z_board_top + 6])
-            cube([wall + 2, vent_w, above_board - 12]);
+        translate([-1, wall + 15 + i * vent_pitch, z_board_top + 6])
+            cube([wall + 2, vent_w, above_board - 10]);
+    m = floor((inner_w - 30) / vent_pitch);
+    for (i = [0 : m - 1])
+        translate([wall + 15 + i * vent_pitch, outer_h - wall - 1, z_board_top + 8])
+            cube([vent_w, wall + 2, above_board - 12]);
 }
+
+// hinge along the rear top edge: tray knuckles at 1/4 and 3/4, lid knuckles between them
+module knuckle(x0, len) {
+    translate([x0, -hinge_knuckle_d / 2, tray_height]) rotate([0, 90, 0]) cylinder(d = hinge_knuckle_d, h = len);
+    translate([x0, -hinge_knuckle_d / 2, tray_height - hinge_knuckle_d / 2]) cube([len, hinge_knuckle_d / 2 + wall, hinge_knuckle_d / 2]);
+}
+module hinge_bore() {
+    translate([-1, -hinge_knuckle_d / 2, tray_height]) rotate([0, 90, 0]) cylinder(d = hinge_pin_d + 0.3, h = outer_w + 2);
+}
+function tray_knuckles() = [[outer_w * 0.25 - hinge_knuckle_l - 0.3, hinge_knuckle_l], [outer_w * 0.25 + 0.3, hinge_knuckle_l],
+                            [outer_w * 0.75 - hinge_knuckle_l - 0.3, hinge_knuckle_l], [outer_w * 0.75 + 0.3, hinge_knuckle_l]];
+
 
 // --------------------------------------------------------------- tray
 module tray() {
@@ -85,12 +82,12 @@ module tray() {
         // cavity
         translate([wall, wall, floor_t]) rounded_box(inner_w, inner_h, tray_height, corner_r - wall + 0.1);
         rear_cutouts();
-        left_cutouts();
-        front_cutouts();
-        door_cutout();
+        right_cutouts();
         side_vents();
-        buzzer_holes();
         feet_pockets();
+        // latch groove inside the front wall's rebate
+        translate([wall + 15, outer_h - wall + fit - latch_bump_d / 2 + 0.2, tray_height - lid_lip + 1.2])
+            rotate([0, 90, 0]) cylinder(d = latch_bump_d + 0.3, h = inner_w - 30);
         // lid seat: a rebate around the top inside edge
         translate([wall - fit, wall - fit, tray_height - lid_lip])
             difference() {
@@ -98,28 +95,36 @@ module tray() {
             }
     }
     standoffs();
-    if (hinge) feature("m2") door_knuckles(bx($f[2]), z_board_top + door_z + door_h + door_lip);
-    // lid screw bosses in the four corners (lid screws come down into these)
-    for (c = [[wall + 3, wall + 3], [outer_w - wall - 3, wall + 3], [wall + 3, outer_h - wall - 3], [outer_w - wall - 3, outer_h - wall - 3]])
-        translate([c[0], c[1], floor_t]) difference() {
-            cylinder(d = 6, h = tray_height - floor_t - lid_lip);
-            translate([0, 0, tray_height - floor_t - lid_lip - insert_h]) cylinder(d = insert_d, h = insert_h + 1);
-        }
+    difference() {
+        for (k = tray_knuckles()) knuckle(k[0], k[1]);
+        hinge_bore();
+    }
 }
 
 // --------------------------------------------------------------- lid
 module lid() {
-    // printed upside down; modelled right way up with z = 0 at the lid's outer top
+    // modelled right way up with z = 0 at the lid's outer top; in the scene it is turned over onto the tray
+    // (rotate 180 about x, translate [0, outer_h, tray_height + lid_t]), so lid-local y = outer_h - tray y.
     difference() {
         union() {
             rounded_box(outer_w, outer_h, lid_t, corner_r);
-            // skirt that drops into the tray rebate
+            // skirt on the front and the two sides (lid-local y = 0 is the tray FRONT); the rear is the hinge
             translate([wall - fit, wall - fit, lid_t - 0.01])
                 difference() {
                     rounded_box(inner_w + 2 * fit - 0.2, inner_h + 2 * fit - 0.2, lid_lip, corner_r - wall);
                     translate([wall, wall, -1]) rounded_box(inner_w - 2 * wall + 2 * fit, inner_h - 2 * wall + 2 * fit, lid_lip + 2, 1);
+                    translate([-1, inner_h + 2 * fit - 0.2 - wall - 1, -1]) cube([outer_w, wall + 3, lid_lip + 2]);   // no rear skirt
+                }
+            // latch bump along the front skirt's outer face
+            translate([wall + 15, wall - fit - latch_bump_d / 2 + 0.2, lid_t + lid_lip - 1.2]) rotate([0, 90, 0]) cylinder(d = latch_bump_d, h = inner_w - 30);
+            // hinge knuckles on the rear edge (lid-local y = outer_h), between the tray's
+            for (x0 = [outer_w * 0.25 - 0.0, outer_w * 0.75 - hinge_knuckle_l])
+                translate([x0 + 0.3, outer_h + hinge_knuckle_d / 2, lid_t]) {
+                    rotate([0, 90, 0]) cylinder(d = hinge_knuckle_d, h = hinge_knuckle_l - 0.6);
+                    translate([0, -hinge_knuckle_d / 2 - wall, -lid_t]) cube([hinge_knuckle_l - 0.6, hinge_knuckle_d / 2 + wall, lid_t]);
                 }
         }
+        translate([-1, outer_h + hinge_knuckle_d / 2, lid_t]) rotate([0, 90, 0]) cylinder(d = hinge_pin_d + 0.3, h = outer_w + 2);   // pin bore
         // OLED window and module recess: at oled_pos, or above J41 when oled_pos is empty
         feature("top") if ($f[0] == "J41") let (x = len(oled_pos) ? bx(oled_pos[0]) : bx($f[2]), y = len(oled_pos) ? by(oled_pos[1]) : by($f[3]) - 5) {
             translate([x - oled_win[0] / 2, y - oled_win[1] / 2, -1]) cube([oled_win[0], oled_win[1], lid_t + 2]);
@@ -131,27 +136,15 @@ module lid() {
             translate([x - (w + 2 * cut_clear) / 2, y - (h + 2 * cut_clear) / 2, -1]) cube([w + 2 * cut_clear, h + 2 * cut_clear, lid_t + 2]);
         // LED holes
         feature("led") translate([bx($f[2]), by($f[3]), -1]) cylinder(d = $f[5], h = lid_t + 2);
-        // fan grille over the CM5 (board.scad gives the module centre)
+        // convection grille over the CM5 cooler (board.scad gives the module centre)
         feature("cm5") let (cx = bx($f[2]), cy = by($f[3]))
             translate([cx, cy, -1]) for (i = [0 : 8]) for (j = [0 : 8])
                 let (px = (i - 4) * 4.5, py = (j - 4) * 4.5) if (px * px + py * py < (fan_grille_d / 2) * (fan_grille_d / 2))
                     translate([px, py, 0]) cylinder(d = 3, h = lid_t + 2);
-        // corner screw holes
-        for (c = [[wall + 3, wall + 3], [outer_w - wall - 3, wall + 3], [wall + 3, outer_h - wall - 3], [outer_w - wall - 3, outer_h - wall - 3]])
-            translate([c[0], c[1], -1]) cylinder(d = screw_d, h = lid_t + lid_lip + 2);
     }
-}
-
-// --------------------------------------------------------------- door plug
-module door() {
-    // snap-in blank for the M.2 opening; replace with a hinged door later
-    cube([door_plug_t, door_w - 2 * fit, door_h - 2 * fit]);
-    translate([door_plug_t, 2, 2]) cube([1.2, door_w - 2 * fit - 4, door_h - 2 * fit - 4]);
 }
 
 // --------------------------------------------------------------- output
 if (part == "tray" || part == "all") tray();
 if (part == "lid") lid();
 if (part == "all") translate([0, outer_h + 15, 0]) lid();
-if (part == "door") door();
-if (part == "all") translate([outer_w + 15, 0, 0]) door();

@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import logging
-import threading
-import time
 
 from ..policy import Dip
 from .base import BayPower, Panel
@@ -31,7 +29,7 @@ class GpioPanel(Panel):
                 tuple(cfg.dip_gpios) + (cfg.m2_door_gpio, cfg.m2_pedet_gpio): gpiod.LineSettings(
                     direction=Direction.INPUT, bias=Bias.PULL_UP
                 ),
-                (cfg.buzzer_gpio, cfg.status_led_gpio): gpiod.LineSettings(
+                (cfg.status_led_gpio,): gpiod.LineSettings(
                     direction=Direction.OUTPUT, output_value=Value.INACTIVE
                 ),
             },
@@ -51,18 +49,6 @@ class GpioPanel(Panel):
     def set_status(self, color: str) -> None:
         self.req.set_value(self.cfg.status_led_gpio, self._Value.ACTIVE if color != "off" else self._Value.INACTIVE)
 
-    def buzz(self, pattern: str) -> None:
-        beeps = {"done": [0.15, 0.1, 0.15], "error": [0.5, 0.2, 0.5, 0.2, 0.5], "tick": [0.03]}.get(pattern, [0.1])
-
-        def run():
-            on = True
-            for d in beeps:
-                self.req.set_value(self.cfg.buzzer_gpio, self._Value.ACTIVE if on else self._Value.INACTIVE)
-                time.sleep(d)
-                on = not on
-            self.req.set_value(self.cfg.buzzer_gpio, self._Value.INACTIVE)
-
-        threading.Thread(target=run, daemon=True).start()
 
     def close(self) -> None:
         self.req.release()

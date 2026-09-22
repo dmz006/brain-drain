@@ -20,9 +20,6 @@ class Panel(abc.ABC):
     def set_status(self, color: str) -> None:  # "off" | "green" | "red" | "amber"
         pass
 
-    def buzz(self, pattern: str) -> None:  # "done" | "error" | "tick"
-        pass
-
     def close(self) -> None:
         pass
 
@@ -47,6 +44,16 @@ class BayPower(abc.ABC):
 class Display(abc.ABC):
     @abc.abstractmethod
     def show(self, lines: list[str]) -> None: ...
+
+    def show_frame(self, frame) -> None:
+        """A display.Frame: text lines plus an optional bitmap (the Wi-Fi QR code) on the left.
+        Text-only displays get the lines followed by the bitmap as text art."""
+        lines = list(frame.lines)
+        if frame.bitmap:
+            from .. import qr
+
+            lines = lines + qr.text_art(frame.bitmap)
+        self.show(lines)
 
     def close(self) -> None:
         pass

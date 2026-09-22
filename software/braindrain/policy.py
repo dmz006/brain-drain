@@ -7,6 +7,9 @@ ARCHITECTURE.md §4.4 and §4.5. The DIP switch is the only control on the unit:
     DIP 5    verification:      ON = sampled,      OFF = full read-back
     DIP 6-7  reserved
     DIP 8    maintenance:       ON = never wipe
+
+    Mode 110 is SERVICE: never wipes, and at boot resets Wi-Fi to the access point;
+    with DIP 8 also ON it does a factory reset (certificates and state deleted).
 """
 
 from __future__ import annotations
@@ -22,7 +25,7 @@ class Mode(Enum):
     LEGACY_3PASS = 3  # 0x00, 0xFF, random
     LEGACY_7PASS = 4  # DoD 5220.22-M ECE style
     CRYPTO_ONLY = 5  # cryptographic erase only, fail if unsupported
-    RESERVED = 6
+    SERVICE = 6  # never wipes; Wi-Fi reset at boot, factory reset with DIP 8 (C22)
     DRY_RUN = 7  # exercise everything, write nothing
 
     @property
@@ -34,7 +37,7 @@ class Mode(Enum):
             Mode.LEGACY_3PASS: "3PASS",
             Mode.LEGACY_7PASS: "7PASS",
             Mode.CRYPTO_ONLY: "CRYPT",
-            Mode.RESERVED: "RSRVD",
+            Mode.SERVICE: "SERVICE",
             Mode.DRY_RUN: "DRY",
         }[self]
 
@@ -93,9 +96,19 @@ class Policy:
 
     @property
     def label(self) -> str:
+        if self.mode is Mode.SERVICE:
+            return "SERVICE"
         if self.maintenance:
             return "MAINT"
         return self.mode.label
+
+    @property
+    def no_wipe(self) -> bool:
+        return self.maintenance or self.mode is Mode.SERVICE
+
+    @property
+    def factory_reset(self) -> bool:
+        return self.mode is Mode.SERVICE and self.maintenance
 
 
 def method_chain(policy: Policy, drive) -> list:
@@ -156,7 +169,7 @@ def method_chain(policy: Policy, drive) -> list:
             return nvme_purge + [one_pass]
         return [one_pass]
 
-    # PURGE (and RESERVED, treated as PURGE)
+    # PURGE (SERVICE never gets here: the engine refuses to wipe in that mode)
     if media is Media.HDD:
         return hdd_purge + [one_pass]
     if media is Media.SSD:

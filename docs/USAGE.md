@@ -71,12 +71,33 @@ kicad-cli pcb drc --format json --severity-all -o routing/drc.json brain-drain.k
 Open `hardware/brain-drain.kicad_pro` in KiCad 9 to inspect or tidy. Hand
 placement survives regeneration if written to `tools/placement.json`.
 
+## The phone page and Wi-Fi
+
+The unit boots into its own access point. On the OLED, idle, you see a QR code
+and the key. Scan the code (or join `brain-drain-xxxx` by hand with the key as
+the password) and open `http://10.42.0.1/`. The page shows the bays, the
+certificates (download one or all as a zip), the log, and two forms that need
+the key from the screen:
+
+* **Join a network**: the unit joins it now and at every boot; the new address
+  shows on the OLED. If the join fails it falls back to the access point.
+* **Reset**: *Wi-Fi reset* forgets the network and starts the access point
+  with a fresh key; *factory reset* also deletes every certificate and the
+  crash-recovery state.
+
+Without a network: set the DIP to mode `110` and power-cycle for a Wi-Fi reset,
+`110` with DIP 8 ON for a factory reset (the unit never wipes in that mode; set
+the policy back afterwards). Over SSH: `braindrain wifi-reset [--factory]`.
+
+In the simulator the page is on `http://127.0.0.1:8080/` (`--web PORT`) and
+the wireless backend is a file in the sim directory.
+
 ## Enclosure
 
 ```
 cd enclosure
-make            # board.scad from the board file, then stl/{tray,lid,door,door_hinged,bezel}.stl
-make renders    # scene STLs (unit, four loose drives, cables) and renders/*.png via tools/stl_preview.py (no display needed)
+make            # board.scad from the board file, then stl/{tray,lid,bezel}.stl
+make renders    # scene STLs (closed unit with four loose drives and cables, lid open) and renders/*.png (no display needed)
 ```
 
 Edit `params.scad` for print parameters; never edit `board.scad`.
@@ -84,6 +105,6 @@ Edit `params.scad` for print parameters; never edit `board.scad`.
 ## Documentation images
 
 ```
-software/.venv/bin/python docs/tools/diagrams.py        # system-block, rear-panel, bay-flow (SVG + PNG)
+software/.venv/bin/python docs/tools/diagrams.py        # system-block, rear/right panels, bay-flow (SVG + PNG)
 software/.venv/bin/python software/tools/oled_mockup.py docs/img
 ```

@@ -12,14 +12,13 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| M1 | 1 | Raspberry Pi CM5002016 | CM5, no wireless, 2 GB RAM, 16 GB eMMC | 92.50 | 2026 list price. Lite CM5002000 ($67.50) works on the same carrier via the microSD socket; 4 GB is $125 |
+| M1 | 1 | Raspberry Pi CM5102016 | CM5 **wireless**, 2 GB RAM, 16 GB eMMC | ~97 | C22: wireless variant (+$5 over CM5002016 at $92.50 2026 list). Lite wireless CM5102000 (~$72) works via the microSD socket; 4 GB about $130 |
 | J1, J2 | 2 | Hirose DF40C-100DS-0.4V(51) | CM5 mating connectors, 100-pin 0.4 mm | 4 | 1.5 mm stack height |
 | J3 | 1 | microSD push-push socket | for CM5 Lite variants | 1 | verify footprint |
-| J4 | 1 | GbE magjack UDE RB1-125B8G1A (1000BASE-T, LEDs) | network for NTP / SSH / cert push | 2.5 | only 1G magjack in the stock KiCad library; alt Hanrun HR911130A |
 | J5 | 1 | USB-C 16-pin receptacle (GCT USB4085-GF-A) | rpiboot + spare USB 2.0 | 1 | USB 2.0 only |
 | J6 | 1 | 2-pin header + jumper | nRPIBOOT | 0.1 | |
 | J7 | 1 | 3-pin header | UART0 debug | 0.1 | |
-| HS1 | 1 | Raspberry Pi CM5 Cooler (or equivalent heatsink + 30 mm fan) | | 6 | mandatory |
+| HS1 | 1 | Raspberry Pi CM5 Cooler (passive) | | 6 | C23: passive; fan header J40 kept for an optional fan |
 | BT1 | 1 | CR2032 holder + cell | CM5 on-module RTC backup | 1 | on CM5 battery pin |
 
 ## B. USB 3.0 hubs (§3.2)
@@ -78,13 +77,12 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
 | SW1 | 1 | 8-way DIP switch, 2.54 mm through-hole, piano style | mode select | 1 | |
-| SW3 | 1 | 6 mm tactile / microswitch | M.2 door sense | 0.2 | |
+| SW3 | 1 | 6 mm tactile / microswitch | lid closed sense (bay 5 "door") | 0.2 | |
 | DS1 | 1 | 0.96" SSD1306 128×64 I2C OLED module (or 1.3" SH1106) | status | 3 | 4-pin header; alt 2.42" SSD1309 |
 | D1 | 1 | 3 mm LED green | power | 0.1 | C14: all panel LEDs 3 mm through-hole |
 | D2 | 1 | 3 mm bicolour LED | status | 0.2 | |
 | D50 | 1 | 3 mm LED blue | M.2 bay activity | 0.1 | |
-| BZ1 | 1 | 5 V magnetic buzzer 12 mm | driven by Q1 (2N7002), D4 1N4148W flyback | 0.5 | |
-| J40 | 1 | 4-pin fan header, Pi pinout | 5 V PWM fan | 0.1 | fan required on CM5 |
+| J40 | 1 | 4-pin fan header, Pi pinout | optional 5 V PWM fan | 0.1 | not populated with a fan by default (C23) |
 | J50 | 1 | TE 2199230-4, M.2 M-key socket, 4.2 mm | NVMe bay 5 on PCIe Gen3 x1 | 1.2 | decided C15/C18: **populated in v1** |
 | MP50 | 3 | M.2 standoff + M2 screw, 2242/2260/2280 positions | | 0.3 | |
 | U50 | 1 | TI TPS22965DSGR load switch, 5.5 V 6 A | switched 3V3 for the M.2 slot, 3 A budget | 0.8 | soft-start; enable from GPIO |
@@ -96,8 +94,8 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 
 | Item | Qty | Description | ~USD | Note |
 |---|---|---|---|---|
-| PCB | 5 | 4-layer 180×110 mm, 1.6 mm, ENIG, JLC04161H-7628 | 70 / 5 | controlled impedance; outline C19 |
-| Assembly | 5 | SMD side assembled, through-hole hand-fitted | 150 / 5 | QFN + 0.4 mm DF40 |
+| PCB | 5 | 4-layer 136×100 mm, 1.6 mm, ENIG, JLC04161H-7628 | 60–90 / 5 | controlled impedance; outline C21–C23 |
+| Assembly | 2 | full assembly, both sides, SMD and through-hole (owner solders nothing on the board) | 80–140 / 2 + parts | see `FABRICATION.md` for vendors and the full estimate |
 
 ## H. Enclosure
 
@@ -106,7 +104,8 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 | Print | 1 | PETG/ASA, ~250 g | 6 |
 | Inserts + screws | 8 | M2.5 heat-set + M2.5×6 | 1 |
 | Feet | 4 | rubber bumpers | 0.5 |
-| Fan | 1 | 40 mm 5 V (optional) | 3 |
+| Hinge pin | 1 | 1.75 mm filament, 140 mm | 0 |
+| Fan | 1 | 40 mm 5 V (optional, not fitted) | 3 |
 
 ## Rough unit cost
 

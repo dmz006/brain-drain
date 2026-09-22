@@ -9319,7 +9319,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "door microswitch"
+		(property "Value" "lid microswitch"
 			(at 143.51 149.058 0)
 			(effects
 				(font

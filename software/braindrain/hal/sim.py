@@ -48,8 +48,6 @@ class SimPanel(Panel):
         except OSError:
             return True
 
-    def buzz(self, pattern: str) -> None:
-        log.info("buzzer: %s", pattern)
 
 
 class SimBayPower(BayPower):

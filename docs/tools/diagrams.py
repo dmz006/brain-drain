@@ -1,6 +1,6 @@
 """Generate the documentation diagrams as SVG (+PNG via cairosvg when available):
    docs/img/system-block.svg   architecture block diagram
-   docs/img/{rear,left,front}-panel.svg   wall elevations with the cutouts, from enclosure/board.scad
+   docs/img/{rear,right}-panel.svg   wall elevations with the cutouts, from enclosure/board.scad
    docs/img/bay-flow.svg       per-bay state machine
 Run from the repo root:  software/.venv/bin/python docs/tools/diagrams.py
 """
@@ -58,9 +58,9 @@ def system_block():
     # CM5 and panel
     b += box(260, 200, 220, 130, "Raspberry Pi CM5", "2 GB / 16 GB eMMC|GbE, USB 2.0, GPIO, I2C|2x USB 3.0, PCIe Gen3 x1", "#e8f6ef")
     b += arrow(170, 290, 260, 265, "5V_SYS")
-    b += box(260, 60, 220, 100, "Panel", "8-way DIP (policy)|128x64 I2C OLED|8 LEDs, buzzer", "#fff9e6")
+    b += box(260, 60, 220, 100, "Panel", "8-way DIP (policy)|128x64 I2C OLED (QR code)|8 LEDs", "#fff9e6")
     b += arrow(370, 200, 370, 160, "GPIO / I2C")
-    b += box(560, 215, 170, 70, "RJ45 GbE, USB-C", "rpiboot, microSD, UART", "#f4f4f4")
+    b += box(560, 215, 170, 70, "Wi-Fi AP + phone page", "USB-C rpiboot, microSD, UART", "#f4f4f4")
     b += arrow(560, 250, 480, 265)
     # hubs
     b += box(560, 90, 170, 70, "USB5744 hub A", "USB 3.0 port 0", "#e8eef7")
@@ -87,10 +87,8 @@ PANELS = {
     # kind: (title, axis, mirrored, names)
     "rear": ("Rear wall (drive cables), viewed from outside", "x", False,
              {"J10": "SATA 1", "J11": "SATA 2", "J12": "SATA 3", "J13": "SATA 4"}),
-    "left": ("Left wall (power, network, rpiboot), viewed from outside; rear edge at the right", "y", True,
-             {"J21": "DIN 12 V", "J4": "RJ45", "J5": "USB-C"}),
-    "front": ("Front wall (microSD, M.2 SSD slot), viewed from outside; left edge at the right", "x", True,
-              {"J3": "microSD", "J50": "M.2 slot"}),
+    "right": ("Right wall (power, rpiboot, microSD), viewed from outside; rear edge at the left", "y", False,
+              {"J21": "DIN 12 V", "J5": "USB-C", "J3": "microSD"}),
 }
 
 
@@ -100,7 +98,7 @@ def panel(kind):
     bw = float(re.search(r"board_w = ([\d.]+)", txt).group(1))
     bh = float(re.search(r"board_h = ([\d.]+)", txt).group(1))
     title, axis, mirrored, names = PANELS[kind]
-    kinds = (kind, "m2") if kind == "front" else (kind,)
+    kinds = (kind,)
     feats = []
     for k in kinds:
         feats += re.findall(r'\["(\w+)", "%s", ([\d.-]+), ([\d.-]+), (-?\d+), ([\d.]+), ([\d.]+), ([\d.]+)\]' % k, txt)
@@ -124,7 +122,7 @@ def panel(kind):
         b += f"<text x='{60 + u * S}' y='{py - 8}' text-anchor='middle' {FONT} font-size='12' font-weight='700' fill='#1f2d3d'>{names.get(ref, ref)}</text>"
         b += f"<text x='{60 + u * S}' y='{y0 + 22}' text-anchor='middle' {FONT} font-size='11' fill='#34495e'>{'x' if axis == 'x' else 'y'}={float(x) if axis == 'x' else float(y):.0f}</text>"
         b += f"<text x='{60 + u * S}' y='{y0 + 36}' text-anchor='middle' {FONT} font-size='10' fill='#7f8c8d'>{w:.0f}x{h:.0f}</text>"
-    b += f"<text x='60' y='{H - 20}' {FONT} font-size='12' fill='#34495e'>Cutout sizes are connector faces before the 0.6 mm print clearance. Board {bw:.0f} x {bh:.0f} mm (C21).</text>"
+    b += f"<text x='60' y='{H - 20}' {FONT} font-size='12' fill='#34495e'>Cutout sizes are connector faces before the 0.6 mm print clearance. Board {bw:.0f} x {bh:.0f} mm (C21-C23); the left wall is the antenna side, the front holds the lid latch.</text>"
     svg(W, H, b, f"{kind}-panel.svg")
 
 

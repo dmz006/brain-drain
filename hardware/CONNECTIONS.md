@@ -5,7 +5,7 @@ component with its symbol, value and footprint, then every net on that sheet wit
 it joins. Nets marked **global** continue on other sheets. Pins listed under *No connect*
 get an explicit no-connect flag.
 
-Totals: 307 components, 275 nets.
+Totals: 299 components, 260 nets.
 
 
 ## Sheet `power-input` — 12 V DIN input, fuse, TVS, reverse-polarity FET, bulk capacitance
@@ -113,14 +113,13 @@ Totals: 307 components, 275 nets.
 * TPS56637 FB: Vref 0.6 V; 73.2k/10k gives 4.99 V. MODE floating = forced CCM (quietest for the CM5 rail).
 * AP63203WU is the fixed 3.3 V variant: FB ties straight to the output. EN tied to VIN (always on).
 
-## Sheet `cm5` — Compute Module 5: power, control, GPIO, microSD, Ethernet, USB-C, UART, RTC cell, fan, DIP, LEDs, buzzer, OLED
+## Sheet `cm5` — Compute Module 5 (wireless): power, control, GPIO, microSD, USB-C, UART, RTC cell, fan, DIP, LEDs, OLED
 
 ### Components
 
 | Ref | Symbol | Value | Footprint | Note |
 |---|---|---|---|---|
 | BT1 | `Device:Battery_Cell` | CR2032 | `Battery:BatteryHolder_Keystone_1060_1x2032` |  |
-| BZ1 | `Device:Buzzer` | 5V magnetic | `Buzzer_Beeper:Buzzer_12x9.5RM7.6` |  |
 | C1 | `Device:C` | 22u 10V | `Capacitor_SMD:C_0805_2012Metric` |  |
 | C2 | `Device:C` | 22u 10V | `Capacitor_SMD:C_0805_2012Metric` |  |
 | C3 | `Device:C` | 10u 10V | `Capacitor_SMD:C_0805_2012Metric` |  |
@@ -128,23 +127,16 @@ Totals: 307 components, 275 nets.
 | D1 | `Device:LED` | green PWR | `LED_THT:LED_D3.0mm` |  |
 | D2 | `Device:LED` | green ACT | `LED_THT:LED_D3.0mm` |  |
 | D3 | `Device:LED` | red STATUS | `LED_THT:LED_D3.0mm` |  |
-| D4 | `Device:D` | 1N4148W | `Diode_SMD:D_SOD-123` |  |
 | J3 | `Connector:Micro_SD_Card` | microSD | `Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5` |  |
-| J4 | `Connector:RJ45_RB1-125B8G1A` | RJ45 GbE magjack UDE RB1-125B8G1A | `Connector_RJ:RJ45_UDE_RB1-125B8G1A` |  |
 | J5 | `Connector:USB_C_Receptacle_USB2.0_16P` | USB-C rpiboot | `Connector_USB:USB_C_Receptacle_GCT_USB4085` |  |
 | J6 | `Connector_Generic:Conn_01x02` | nRPIBOOT | `Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical` |  |
 | J7 | `Connector_Generic:Conn_01x03` | UART0 GND/TX/RX | `Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical` |  |
 | J40 | `Connector_Generic:Conn_01x04` | Fan GND/5V/TACH/PWM | `Connector:FanPinHeader_1x04_P2.54mm_Vertical` |  |
 | J41 | `Connector_Generic:Conn_01x04` | OLED GND/VCC/SCL/SDA | `Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical` |  |
 | M1 (unit 1,2,3,5) | `brain-drain:CM5` | CM5002016 | `brain-drain:Raspberry-Pi-5-Compute-Module` |  |
-| Q1 | `Transistor_FET:2N7002` | 2N7002 | `Package_TO_SOT_SMD:SOT-23` |  |
 | R1 | `Device:R` | 1k | `Resistor_SMD:R_0603_1608Metric` |  |
 | R2 | `Device:R` | 1k | `Resistor_SMD:R_0603_1608Metric` |  |
 | R3 | `Device:R` | 1k | `Resistor_SMD:R_0603_1608Metric` |  |
-| R4 | `Device:R` | 1k | `Resistor_SMD:R_0402_1005Metric` |  |
-| R5 | `Device:R` | 100k | `Resistor_SMD:R_0402_1005Metric` |  |
-| R6 | `Device:R` | 470 | `Resistor_SMD:R_0402_1005Metric` |  |
-| R7 | `Device:R` | 470 | `Resistor_SMD:R_0402_1005Metric` |  |
 | R10 | `Device:R` | 10k | `Resistor_SMD:R_0402_1005Metric` | FAN_PWM pull-up (open-drain output), as on CM5IO |
 | R11 | `Device:R` | 10k | `Resistor_SMD:R_0402_1005Metric` | SD_PWR_ON pull-up |
 | SW1 | `Switch:SW_DIP_x08` | DIP x8 | `Button_Switch_THT:SW_DIP_SPSTx08_Piano_10.8x21.88mm_W7.62mm_P2.54mm` |  |
@@ -158,8 +150,6 @@ Totals: 307 components, 275 nets.
 | `BAY_EN2` | **global** | M1.30 (GPIO6) | bay-switch-2 |
 | `BAY_EN3` | **global** | M1.31 (GPIO12) | bay-switch-3 |
 | `BAY_EN4` | **global** | M1.28 (GPIO13) | bay-switch-4 |
-| `BUZZER` | local | M1.49 (GPIO18), R4.1 |  |
-| `BZ1_N` | local | Q1.3 (D), BZ1.2 (-), D4.2 (A) |  |
 | `CM5_3V3` | local | M1.84 (CM5_3.3V), M1.86 (CM5_3.3V), M1.78 (GPIO_VREF) |  |
 | `D1_A` | local | R1.2, D1.2 (A) |  |
 | `D2_A` | local | R2.2, D2.2 (A) |  |
@@ -172,28 +162,15 @@ Totals: 307 components, 275 nets.
 | `DIP6` | local | M1.47 (GPIO23), SW1.6 |  |
 | `DIP7` | local | M1.45 (GPIO24), SW1.7 |  |
 | `DIP8` | local | M1.41 (GPIO25), SW1.8 |  |
-| `ETH_LED_G_A` | local | R6.2, J4.L1 |  |
-| `ETH_LED_Y_A` | local | R7.2, J4.L3 |  |
-| `ETH_P0_N` | local | M1.10 (Ethernet_Pair0_N), J4.R3 (TD1-) |  |
-| `ETH_P0_P` | local | M1.12 (Ethernet_Pair0_P), J4.R2 (TD1+) |  |
-| `ETH_P1_N` | local | M1.6 (Ethernet_Pair1_N), J4.R5 (TD2-) |  |
-| `ETH_P1_P` | local | M1.4 (Ethernet_Pair1_P), J4.R4 (TD2+) |  |
-| `ETH_P2_N` | local | M1.9 (Ethernet_Pair2_N), J4.R7 (TD3-) |  |
-| `ETH_P2_P` | local | M1.11 (Ethernet_Pair2_P), J4.R6 (TD3+) |  |
-| `ETH_P3_N` | local | M1.5 (Ethernet_Pair3_N), J4.R9 (TD4-) |  |
-| `ETH_P3_P` | local | M1.3 (Ethernet_Pair3_P), J4.R8 (TD4+) |  |
-| `ETH_nLED2` | local | J4.L4, M1.17 (Ethernet_nLED2) |  |
-| `ETH_nLED3` | local | J4.L2, M1.15 (Ethernet_nLED3) |  |
 | `FAN_PWM` | local | M1.19 (Fan_PWM), J40.4 (Pin_4), R10.2 |  |
 | `FAN_TACHO` | local | M1.16 (Fan_Tacho), J40.3 (Pin_3) |  |
-| `GND` | **global** | M1.1 (GND), M1.2 (GND), M1.7 (GND), M1.8 (GND), M1.13 (GND), M1.14 (GND), M1.22 (GND), M1.23 (GND), M1.32 (GND), M1.33 (GND), M1.42 (GND), M1.43 (GND), M1.52 (GND), M1.53 (GND), M1.59 (GND), M1.60 (GND), M1.65 (GND), M1.66 (GND), M1.71 (GND), M1.74 (GND), M1.98 (GND), M1.107 (GND), M1.108 (GND), M1.113 (GND), M1.114 (GND), M1.119 (GND), M1.120 (GND), M1.125 (GND), M1.126 (GND), M1.131 (GND), M1.132 (GND), M1.137 (GND), M1.138 (GND), M1.144 (GND), M1.150 (GND), M1.155 (GND), M1.156 (GND), M1.161 (GND), M1.162 (GND), M1.167 (GND), M1.168 (GND), M1.173 (GND), M1.174 (GND), M1.179 (GND), M1.180 (GND), M1.185 (GND), M1.186 (GND), M1.191 (GND), M1.192 (GND), M1.197 (GND), M1.198 (GND), C1.2, C2.2, BT1.2 (-), J6.2 (Pin_2), J7.1 (Pin_1), J40.1 (Pin_1), D1.1 (K), SW1.16, SW1.15, SW1.14, SW1.13, SW1.12, SW1.11, SW1.10, SW1.9, Q1.2 (S), R5.2, J41.1 (Pin_1), J3.6 (VSS), J3.9 (SHIELD), U52.5 (GND), U52.9 (EP), C3.2, C4.2, J4.SH, J4.R10 (GND), J5.A1 (GND), J5.A12 (GND), J5.B1 (GND), J5.B12 (GND), J5.S1 (SHIELD) | bay-switch-1, bay-switch-2, bay-switch-3, bay-switch-4, bridge-1, bridge-2, bridge-3, bridge-4, m2-nvme, power-bucks, power-input, usb3-hub-A, usb3-hub-B |
+| `GND` | **global** | M1.1 (GND), M1.2 (GND), M1.7 (GND), M1.8 (GND), M1.13 (GND), M1.14 (GND), M1.22 (GND), M1.23 (GND), M1.32 (GND), M1.33 (GND), M1.42 (GND), M1.43 (GND), M1.52 (GND), M1.53 (GND), M1.59 (GND), M1.60 (GND), M1.65 (GND), M1.66 (GND), M1.71 (GND), M1.74 (GND), M1.98 (GND), M1.107 (GND), M1.108 (GND), M1.113 (GND), M1.114 (GND), M1.119 (GND), M1.120 (GND), M1.125 (GND), M1.126 (GND), M1.131 (GND), M1.132 (GND), M1.137 (GND), M1.138 (GND), M1.144 (GND), M1.150 (GND), M1.155 (GND), M1.156 (GND), M1.161 (GND), M1.162 (GND), M1.167 (GND), M1.168 (GND), M1.173 (GND), M1.174 (GND), M1.179 (GND), M1.180 (GND), M1.185 (GND), M1.186 (GND), M1.191 (GND), M1.192 (GND), M1.197 (GND), M1.198 (GND), C1.2, C2.2, BT1.2 (-), J6.2 (Pin_2), J7.1 (Pin_1), J40.1 (Pin_1), D1.1 (K), SW1.16, SW1.15, SW1.14, SW1.13, SW1.12, SW1.11, SW1.10, SW1.9, J41.1 (Pin_1), J3.6 (VSS), J3.9 (SHIELD), U52.5 (GND), U52.9 (EP), C3.2, C4.2, J5.A1 (GND), J5.A12 (GND), J5.B1 (GND), J5.B12 (GND), J5.S1 (SHIELD) | bay-switch-1, bay-switch-2, bay-switch-3, bay-switch-4, bridge-1, bridge-2, bridge-3, bridge-4, m2-nvme, power-bucks, power-input, usb3-hub-A, usb3-hub-B |
 | `I2C1_SCL` | local | M1.56 (GPIO3), J41.3 (Pin_3) |  |
 | `I2C1_SDA` | local | M1.58 (GPIO2), J41.4 (Pin_4) |  |
 | `LED_nACT` | local | D2.1 (K), M1.21 (LED_nACT) |  |
 | `M2_DOOR` | **global** | M1.54 (GPIO4) | m2-nvme |
 | `M2_PEDET` | **global** | M1.26 (GPIO19) | m2-nvme |
 | `M2_PWR_EN` | **global** | M1.48 (GPIO27) | m2-nvme |
-| `Q1_GATE` | local | R4.2, Q1.1 (G), R5.1 |  |
 | `SD_CLK` | local | M1.57 (SD_CLK), J3.5 (CLK) |  |
 | `SD_CMD` | local | M1.62 (SD_CMD), J3.3 (CMD) |  |
 | `SD_DAT0` | local | M1.63 (SD_DAT0), J3.7 (DAT0) |  |
@@ -210,15 +187,14 @@ Totals: 307 components, 275 nets.
 | `USBC_CC1` | local | J5.A5 (CC1), M1.94 (CC1) |  |
 | `USBC_CC2` | local | J5.B5 (CC2), M1.96 (CC2) |  |
 | `VBAT` | local | M1.76 (VBAT), BT1.1 (+) |  |
-| `+3V3` | **global** | R10.1, R1.1, R2.1, R3.1, J41.2 (Pin_2), U52.1 (VIN), U52.2 (VIN), U52.4 (VBIAS), C4.1, R11.1, R6.1, R7.1 | power-bucks, usb3-hub-A, usb3-hub-B |
-| `5V_SYS` | **global** | M1.77 (5V), M1.79 (5V), M1.81 (5V), M1.83 (5V), M1.85 (5V), M1.87 (5V), C1.1, C2.1, J40.2 (Pin_2), BZ1.1 (+), D4.1 (K) | bridge-1, bridge-2, bridge-3, bridge-4, power-bucks |
+| `+3V3` | **global** | R10.1, R1.1, R2.1, R3.1, J41.2 (Pin_2), U52.1 (VIN), U52.2 (VIN), U52.4 (VBIAS), C4.1, R11.1 | power-bucks, usb3-hub-A, usb3-hub-B |
+| `5V_SYS` | **global** | M1.77 (5V), M1.79 (5V), M1.81 (5V), M1.83 (5V), M1.85 (5V), M1.87 (5V), C1.1, C2.1, J40.2 (Pin_2) | bridge-1, bridge-2, bridge-3, bridge-4, power-bucks |
 | `nRPIBOOT` | local | M1.93 (nRPIBOOT), J6.1 (Pin_1) |  |
 
 ### No connect
 
-* J4: R1 (CT)
 * J5: A4 (VBUS), A8 (SBU1), A9 (VBUS), B4 (VBUS), B8 (SBU2), B9 (VBUS)
-* M1: 100 (CAM_GPIO1), 115 (MIPI0_D0_N), 117 (MIPI0_D0_P), 121 (MIPI0_D1_N), 123 (MIPI0_D1_P), 127 (MIPI0_C_N), 129 (MIPI0_C_P), 133 (MIPI0_D2_N), 135 (MIPI0_D2_P), 139 (MIPI0_D3_N), 141 (MIPI0_D3_P), 143 (HDMI1_HOTPLUG), 145 (HDMI1_SDA), 146 (HDMI1_TX2_P), 147 (HDMI1_SCL), 148 (HDMI1_TX2_N), 149 (HDMI1_CEC), 151 (HDMI0_CEC), 152 (HDMI1_TX1_P), 153 (HDMI0_HOTPLUG), 154 (HDMI1_TX1_N), 158 (HDMI1_TX0_P), 160 (HDMI1_TX0_N), 164 (HDMI1_CLK_P), 166 (HDMI1_CLK_N), 170 (HDMI0_TX2_P), 172 (HDMI0_TX2_N), 175 (MIPI1_D0_N), 176 (HDMI0_TX1_P), 177 (MIPI1_D0_P), 178 (HDMI0_TX1_N), 18 (Ethernet_SYNC_OUT), 181 (MIPI1_D1_N), 182 (HDMI0_TX0_P), 183 (MIPI1_D1_P), 184 (HDMI0_TX0_N), 187 (MIPI1_C_N), 188 (HDMI0_CLK_P), 189 (MIPI1_C_P), 190 (HDMI0_CLK_N), 193 (MIPI1_D2_N), 194 (MIPI1_D3_N), 195 (MIPI1_D2_P), 196 (MIPI1_D3_P), 199 (HDMI0_SDA), 20 (EEPROM_nWP), 200 (HDMI0_SCL), 35 (ID_SC), 36 (ID_SD), 37 (GPIO7), 38 (GPIO11), 39 (GPIO8), 40 (GPIO9), 44 (GPIO10), 64 (SD_DAT5), 68 (SD_DAT4), 70 (SD_DAT7), 72 (SD_DAT6), 73 (SD_VDD_OVERRIDE), 80 (SCL0), 82 (SDA0), 88 (CM5_1.8V), 89 (WL_nDisable), 90 (CM5_1.8V), 91 (BT_nDisable), 92 (PWR_Button), 95 (LED_nPWR), 97 (CAM_GPIO0), 99 (PMIC_Enable)
+* M1: 10 (Ethernet_Pair0_N), 100 (CAM_GPIO1), 11 (Ethernet_Pair2_P), 115 (MIPI0_D0_N), 117 (MIPI0_D0_P), 12 (Ethernet_Pair0_P), 121 (MIPI0_D1_N), 123 (MIPI0_D1_P), 127 (MIPI0_C_N), 129 (MIPI0_C_P), 133 (MIPI0_D2_N), 135 (MIPI0_D2_P), 139 (MIPI0_D3_N), 141 (MIPI0_D3_P), 143 (HDMI1_HOTPLUG), 145 (HDMI1_SDA), 146 (HDMI1_TX2_P), 147 (HDMI1_SCL), 148 (HDMI1_TX2_N), 149 (HDMI1_CEC), 15 (Ethernet_nLED3), 151 (HDMI0_CEC), 152 (HDMI1_TX1_P), 153 (HDMI0_HOTPLUG), 154 (HDMI1_TX1_N), 158 (HDMI1_TX0_P), 160 (HDMI1_TX0_N), 164 (HDMI1_CLK_P), 166 (HDMI1_CLK_N), 17 (Ethernet_nLED2), 170 (HDMI0_TX2_P), 172 (HDMI0_TX2_N), 175 (MIPI1_D0_N), 176 (HDMI0_TX1_P), 177 (MIPI1_D0_P), 178 (HDMI0_TX1_N), 18 (Ethernet_SYNC_OUT), 181 (MIPI1_D1_N), 182 (HDMI0_TX0_P), 183 (MIPI1_D1_P), 184 (HDMI0_TX0_N), 187 (MIPI1_C_N), 188 (HDMI0_CLK_P), 189 (MIPI1_C_P), 190 (HDMI0_CLK_N), 193 (MIPI1_D2_N), 194 (MIPI1_D3_N), 195 (MIPI1_D2_P), 196 (MIPI1_D3_P), 199 (HDMI0_SDA), 20 (EEPROM_nWP), 200 (HDMI0_SCL), 3 (Ethernet_Pair3_P), 35 (ID_SC), 36 (ID_SD), 37 (GPIO7), 38 (GPIO11), 39 (GPIO8), 4 (Ethernet_Pair1_P), 40 (GPIO9), 44 (GPIO10), 49 (GPIO18), 5 (Ethernet_Pair3_N), 6 (Ethernet_Pair1_N), 64 (SD_DAT5), 68 (SD_DAT4), 70 (SD_DAT7), 72 (SD_DAT6), 73 (SD_VDD_OVERRIDE), 80 (SCL0), 82 (SDA0), 88 (CM5_1.8V), 89 (WL_nDisable), 9 (Ethernet_Pair2_N), 90 (CM5_1.8V), 91 (BT_nDisable), 92 (PWR_Button), 95 (LED_nPWR), 97 (CAM_GPIO0), 99 (PMIC_Enable)
 * U52: 6 (CT)
 
 ### Notes
@@ -227,8 +203,7 @@ Totals: 307 components, 275 nets.
 * PMIC_Enable and PWR_Button are left floating (internal pull-ups). nRPIBOOT goes to jumper J6.
 * LED_nACT is an open-drain 20 mA output on the CM5: it sinks D2 directly. GPIO26 sinks D3 (software drives it low to light).
 * microSD power goes through U52 so the CM5 can power-cycle the card on reboot via SD_PWR_ON, matching the CM5IO reference (which uses an RT9742).
-* CM5IO reference adds TPD4EUSB30 ESD arrays on the Ethernet pairs; omitted here (indoor appliance), add if the board sees external cabling abuse.
-* Magjack: UDE RB1-125B8G1A (the only 1000BASE-T magjack in the stock library). CM5 pair0..3 -> TD1..TD4; verify pair order and LED anode/cathode (L1..L4) against the UDE drawing. Centre tap left unconnected pending the CM5IO reference schematic.
+* Ethernet dropped (C22). The CM5 wireless variant's PCB antenna is on the short module edge that carries MH1; that edge sits on the board's left edge with an 8 mm copper-free strip under it and no metal within 10 mm (CM5 datasheet 4.1.2).
 * USB-C is a device port (rpiboot / gadget). As on the CM5IO, CC1/CC2 go straight to the CM5, which presents the sink pull-downs itself; VBUS is not connected (the board is powered from 12 V). USB_OTG_ID floats = device.
 
 ## Sheet `usb3-hub-A` — USB5744 hub A on CM5 USB3-0, bays 1 and 2
@@ -916,7 +891,7 @@ Totals: 307 components, 275 nets.
 | R503 | `Device:R` | 0R (cap DNP alt) | `Capacitor_SMD:C_0402_1005Metric` | PERn0 series: 0R populated, 100n alternative |
 | R504 | `Device:R` | 10k | `Resistor_SMD:R_0402_1005Metric` | CLKREQ# pull-up |
 | R505 | `Device:R` | 470 | `Resistor_SMD:R_0402_1005Metric` |  |
-| SW3 | `Switch:SW_Push` | door microswitch | `Button_Switch_THT:SW_PUSH_6mm` |  |
+| SW3 | `Switch:SW_Push` | lid microswitch | `Button_Switch_THT:SW_PUSH_6mm` |  |
 | U50 | `brain-drain:TPS22965` | TPS22965DSGR | `Package_SON:Texas_DSG0008A_WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm` |  |
 | U51 | `Regulator_Switching:AP63203WU` | AP63203WU-7 | `Package_TO_SOT_SMD:TSOT-23-6` |  |
 

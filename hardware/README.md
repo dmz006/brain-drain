@@ -6,10 +6,12 @@ regenerate / route commands.
 
 ![board](renders/board-3d-iso.png)
 
-150 × 98 mm (C21). Rear edge: four SATA 22-pin receptacles (the drive cables). Left
-wall: DIN 12 V, RJ45, USB-C. Front wall: microSD, M.2 SSD slot. Top view with the
-copper and silkscreen: [`renders/board-top.png`](renders/board-top.png); bottom side
-(CR2032 holder, buzzer): [`renders/board-3d-bottom.png`](renders/board-3d-bottom.png).
+136 × 100 mm (C21–C23). Rear edge: four SATA 22-pin receptacles (the drive cables).
+Right wall: DIN 12 V, USB-C, microSD, fan header. Left edge: the CM5 wireless antenna
+edge, copper-free strip under it. M.2 socket front-left, module along the front under
+the hinged lid. Top view with the copper and silkscreen:
+[`renders/board-top.png`](renders/board-top.png); bottom side (CR2032 holder, service
+headers): [`renders/board-3d-bottom.png`](renders/board-3d-bottom.png).
 
 ## Layout
 
@@ -40,6 +42,7 @@ hardware/
 * CM5 boot-order straps: eMMC/SD only; USB and NVMe boot disabled.
 * All bay power switches default **off** (10 k pull-down on each BAY_EN).
 * Both input-jack footprints (barrel J20, DIN J21) on the board; populate one.
+* Antenna strip x 0–8 mm, y 33–75 mm: no copper on any layer, no parts (rule area set by `route.py prepare`).
 
 ## Before fabrication
 

@@ -1,8 +1,7 @@
 ref,qty,mpn,description,block,unit_usd,status,note
-M1,1,CM5002016,Raspberry Pi CM5 2GB/16GB eMMC no wireless,compute,92.5,,2026 list; Lite CM5002000 67.5 also fits
+M1,1,CM5102016,Raspberry Pi CM5 wireless 2GB/16GB eMMC,compute,92.5,,2026 list; Lite CM5002000 67.5 also fits
 J1;J2,2,DF40C-100DS-0.4V(51),Hirose CM5 mating connector,compute,2,,
 J3,1,,microSD push-push socket (CM5 Lite),compute,1,verify,
-J4,1,RB1-125B8G1A,UDE GbE magjack with LEDs,compute,2.5,,alt HR911130A
 J5,1,USB4085-GF-A,USB-C 16-pin receptacle (USB 2.0),compute,1,,rpiboot
 J6,1,,2-pin header + jumper nRPIBOOT,compute,0.1,,
 J7,1,,3-pin header UART0,compute,0.1,,
@@ -40,7 +39,6 @@ SW1,1,,8-way DIP switch 2.54 mm TH,ui,1,,
 DS1,1,,0.96in SSD1306 128x64 I2C OLED module,ui,3,,alt 1.3in SH1106 / 2.42in SSD1309
 D1,1,,3 mm LED green power,ui,0.1,,
 D2,1,,3 mm bicolour LED status,ui,0.2,,
-BZ1,1,,5 V magnetic buzzer + NPN,ui,0.5,,
 J40,1,,4-pin fan header Pi pinout,misc,0.1,,fan required
 J50,1,2199230-4,TE M.2 M-key socket 4.2 mm,m2,1.2,,C15/C18 populated in v1
 MP50,3,,M.2 standoff + M2 screw,m2,0.3,,

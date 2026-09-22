@@ -105,13 +105,24 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
 
     zone("GND", pcbnew.In1_Cu, (0, 0, W, H))
     zone("GND", pcbnew.B_Cu, (0, 0, W, H))
-    # In2 power islands for the 150x98 layout (gen_pcb.py REGIONS): one contiguous polygon per rail,
+    # In2 power islands for the 136x100 layout (gen_pcb.py REGIONS): one contiguous polygon per rail,
     # built from rectangles; a higher priority island wins where they overlap.
-    # bridge row, a link past bay 1's switch region, CM5 + front band: one L-shaped polygon
-    zone("5V_SYS", pcbnew.In2_Cu, [(0, 0), (124, 0), (124, 22), (14, 22), (14, 33), (82, 33), (82, H), (0, H)], 1)
+    # 5V_SYS: bridge row, a link past bay 1's switch region, the CM5 and the M.2/front band
+    zone("5V_SYS", pcbnew.In2_Cu, [(0, 0), (124, 0), (124, 22), (14, 22), (14, 33), (56, 33), (56, 75), (100, 75), (100, H), (0, H)], 1)
     zone("5V_HDD", pcbnew.In2_Cu, (14, 22, 124, 33), 1)      # bay switch row
-    zone("+3V3", pcbnew.In2_Cu, (82, 33, W, H), 2)           # hubs column, M.2 column, right front band
-    zone("+12V", pcbnew.In2_Cu, (96, 33, 124, 87), 3)        # buck column carved out of the 3V3 island
+    zone("+3V3", pcbnew.In2_Cu, (56, 33, 80, 75), 2)         # hubs column
+    zone("+12V", pcbnew.In2_Cu, (80, 33, W, 82), 3)          # bucks, input block, bulk caps, right wall column
+    # CM5 antenna strip: no copper on any layer, nothing routed (CM5 datasheet 4.1.2)
+    ax0, ay0, ax1, ay1 = gen_pcb.ANTENNA_STRIP
+    ka = pcbnew.ZONE(board)
+    ka.SetIsRuleArea(True); ka.SetDoNotAllowTracks(True); ka.SetDoNotAllowVias(True)
+    ka.SetDoNotAllowCopperPour(True); ka.SetDoNotAllowPads(False); ka.SetDoNotAllowFootprints(True)   # the CM5 standoff holes sit in the strip
+    ka.SetLayer(pcbnew.F_Cu); ka.SetLayerSet(pcbnew.LSET.AllCuMask(4))
+    o = ka.Outline(); o.RemoveAllContours(); o.NewOutline()
+    for x, y in ((ax0, ay0), (ax1, ay0), (ax1, ay1), (ax0, ay1)):
+        o.Append(MM(ox + x), MM(oy + y))
+    ka.SetZoneName("keepout_CM5_antenna")
+    board.Add(ka)
     # keep-out areas (no tracks / vias) around the CM5 mounting holes: the DSN export carries no
     # hole clearance, so without these the autorouter runs traces under the standoffs
     m1 = next((f for f in board.GetFootprints() if f.GetReference() == "M1"), None)

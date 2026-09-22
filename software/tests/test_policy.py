@@ -21,7 +21,7 @@ def test_dip_parsing():
 
 @pytest.mark.parametrize("bits,mode", [
     ("000", Mode.AUTO), ("001", Mode.PURGE), ("010", Mode.CLEAR), ("011", Mode.LEGACY_3PASS),
-    ("100", Mode.LEGACY_7PASS), ("101", Mode.CRYPTO_ONLY), ("110", Mode.RESERVED), ("111", Mode.DRY_RUN),
+    ("100", Mode.LEGACY_7PASS), ("101", Mode.CRYPTO_ONLY), ("110", Mode.SERVICE), ("111", Mode.DRY_RUN),
 ])
 def test_mode_index(bits, mode):
     p = Policy.from_dip(Dip.from_string(bits + "00000"))

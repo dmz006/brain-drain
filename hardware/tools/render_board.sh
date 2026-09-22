@@ -12,3 +12,7 @@ kicad-cli pcb render -w 1800 -h 1200 --perspective --rotate '-30,0,35' --zoom 1.
 pdftoppm -r 110 -png -singlefile renders/board-top.pdf renders/board-top
 pdftoppm -r 110 -png -singlefile renders/board-inner.pdf renders/board-inner
 echo "renders written to hardware/renders/"
+# schematic PDF + one PNG per sheet
+kicad-cli sch export pdf -o renders/schematic/brain-drain-schematic.pdf brain-drain.kicad_sch
+rm -f renders/schematic/sheet-*.png
+pdftoppm -r 60 -png renders/schematic/brain-drain-schematic.pdf renders/schematic/sheet

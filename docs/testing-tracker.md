@@ -19,6 +19,10 @@ Validated.
 | Certificates + crash recovery | yes | no | | schema v1 |
 | Bench tool (`bench.py`) | yes, `tests/test_bench.py` | **planned 2026-09-26** | fake hdparm/smartctl | |
 | Config file, headless HAL, setup-bay | yes, `tests/test_config.py` | no | | |
+| Wi-Fi manager (`wifi.py`): AP, join, fallback, resets, key | yes, `tests/test_wifi.py` | no | simulated backend | nmcli backend written from the NetworkManager docs, untested |
+| Phone page (`webui.py`): status, certificates, zip, join, reset, key check | yes, `tests/test_webui.py` | no | real HTTP on a local port | one intermittent failure seen once in a timing-based join test; passed 5/5 afterwards |
+| Service mode (DIP 110): no wipe, Wi-Fi reset at boot, factory with DIP 8 | yes, `tests/test_service_mode.py` | no | | |
+| Wi-Fi QR frame on the OLED | yes (matrix size, layout) | no | `docs/img/oled-wifi.png` from the real renderer | luma drawing untested |
 | Real GPIO HAL (`hal/gpio.py`) | no | no | needs the carrier board | libgpiod v2 API from docs |
 | OLED driver (`hal/oled.py`) | no | no | needs the panel | |
 | systemd unit + install script | no | **planned 2026-09-26** | Raspberry Pi OS Lite on a Pi 5 | |
@@ -29,7 +33,7 @@ Validated.
 |---|---|---|---|---|
 | Netlist (`design.py`) pin coverage | yes, `design.py` check | no | every pin assigned or NC | |
 | Schematic ERC | yes, 0 errors | no | kicad-cli 9.0.8 | 9 lib-cache warnings on 2N7002, 4 placeholder footprints |
-| Board DRC (v1 outline, unrouted) | yes: 0 errors, silkscreen/isolated-copper warnings | no | kicad-cli 9.0.8, `check_place.py` 0 problems | routing to be rerun on the new outline (R16) |
+| Board DRC (v2 outline, unrouted) | yes: 0 errors, silkscreen/isolated-copper warnings | no | kicad-cli 9.0.8, `check_place.py` 0 problems | routing to be rerun on the new outline (R16) |
 | Symbols from datasheet tables | yes | no | CM5 datasheet, USB5744 DS00001855M, ASM1153E Rev 0.4 | |
 | Footprints: KPJX-4S-S, RPA0010A | generated | no | Kycon drawing, TI land pattern | first board proves them |
 | Footprints: CM5 module, M.2 socket | copied from CM5IO rev 2 | no | Raspberry Pi design files | M.2 pegs vs TE drawing pending |
@@ -40,6 +44,6 @@ Validated.
 
 | Item | Tested | Validated | Conditions | Notes |
 |---|---|---|---|---|
-| Tray / lid / door STL export (v1 box) | yes, OpenSCAD 2021.01 | no | no warnings | no print yet |
-| Hinged M.2 slot door, bezel, scene | yes | no | renders in `enclosure/renders/` | |
+| Tray / hinged lid / bezel STL export (v2 box) | yes, OpenSCAD 2021.01 | no | no warnings | no print yet |
+| Hinge, latch, lid-open scene | yes | no | renders in `enclosure/renders/` | hinge pin fit and latch force need a print |
 | Cutout fit against real connectors | no | no | | first print |

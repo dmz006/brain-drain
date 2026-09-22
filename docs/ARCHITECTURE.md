@@ -37,7 +37,7 @@ all three workstreams; change it before changing the hardware.
    └──┬───┬───┬─┬─┘              └─────────────┘              └──────────────┘ │
       │   │   │ └── PCIe Gen3 x1 ──► (free; optional M.2 NVMe bay, see D10)    │
       │   │   └── GPIO ×4 BAY_EN ──► per-bay 12 V / 5 V P-FET switches ────────┘
-      │   └────── GPIO ×8 DIP, ×1 buzzer, ×1 LED
+      │   └────── GPIO ×8 DIP, ×1 LED
       └────────── I2C1 ──► SSD1306 OLED
 ```
 
@@ -202,7 +202,7 @@ and drive presence electrically. v1 detects presence through USB enumeration.
 | 5, 6, 12, 13 | BAY_EN 1–4 | out | active high, 10 k pull-down |
 | 14, 15 | UART0 TX/RX | — | debug console header |
 | 16, 17, 20, 21, 22, 23, 24, 25 | DIP 1–8 | in, pull-up | ON = low |
-| 18 | BUZZER | out (PWM0) | magnetic buzzer via NPN |
+| 18 | (free) | — | buzzer removed (C23) |
 | 26 | STATUS_LED | out | green/red bicolour, front panel |
 | 27 | M2_PWR_EN | out | 3V3_M2 load switch enable, 10 k pull-down |
 | 0, 1 | reserved | — | ID EEPROM per Pi convention, not populated |
@@ -236,15 +236,20 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
 
 ### 3.10 PCB
 
-* **Size:** 150 × 98 mm (decision C21, supersedes C19's 180 × 110). Rear edge:
-  the four SATA receptacles only. Left wall: DIN 12 V, RJ45, USB-C rpiboot. Front
-  wall: microSD and the M.2 SSD slot (the socket sits at the rear of the right
-  column, the 2280 module runs forward). Rows from the rear: receptacles, bridges,
-  bay switches; then the CM5 in landscape (x 24–79, y 33–73), the two hubs and the
-  buck column to its right, the panel parts (DIP, OLED header, fan header, bulk caps)
-  along the front. The CR2032 holder and the buzzer are on the bottom side under the
-  CM5, inside the 6 mm standoff height. Placement is generated (`gen_pcb.py`) and
-  checked for outline and courtyard clashes (`check_place.py`).
+* **Size:** 136 × 100 mm (decisions C21–C23, supersede C19's 180 × 110). Rear
+  edge: the four SATA receptacles only. Right wall: DIN 12 V, USB-C rpiboot,
+  microSD, fan header. Left edge: the CM5 wireless module's antenna edge (the
+  short edge with mounting hole MH1) sits flush with the board edge, with an
+  8 mm copper-free strip on all four layers under it and no metal part within
+  10 mm (CM5 datasheet 4.1.2). Rows from the rear: receptacles, bridges, bay
+  switches; then the CM5 in landscape at the left (x 0–55, y 34–74), the two
+  hubs and the buck / input column to its right; the M.2 socket front-left with
+  the 2280 module lying along the front (its switch and 0402/0603 passives sit
+  under the SSD, under 1.5 mm tall), the DIP switch front-right, the lid
+  microswitch rear-right. The CR2032 holder and the two service headers are on
+  the bottom side under the CM5, inside the 6 mm standoff height. Placement is
+  generated (`gen_pcb.py`) and checked for outline and courtyard clashes
+  (`check_place.py`).
 * **Stack:** 4-layer, 1.6 mm, ENIG. Sig / GND / PWR / Sig. Target the JLCPCB
   JLC04161H-7628 stackup so controlled impedance is free: 90 Ω differential for
   USB 3 SS and SATA pairs, 85 Ω for the PCIe Gen3 pair to the M.2 slot. Length-match
@@ -277,7 +282,10 @@ software/braindrain/
   __init__.py
   config.py        # paths, timings, DIP semantics table
   hal/
-    gpio.py        # BAY_EN, DIP, buzzer, LEDs (real + simulated)
+    gpio.py        # BAY_EN, DIP, LEDs (real + simulated)
+  wifi.py          # access point / station via nmcli, ephemeral key, resets
+  webui.py         # the phone page (stdlib HTTP)
+  qr.py            # Wi-Fi QR matrix for the OLED
     display.py     # OLED rendering (real + terminal simulator)
     bays.py        # bay ↔ USB port-path table, power sequencing
   devices.py       # enumerate candidate drives, identity, safety filter
@@ -369,7 +377,7 @@ Method implementations:
 
 Mode index (DIP 1–3, ON = 1): `000 auto` (HDD → Clear+verify, SSD → Purge),
 `001 purge`, `010 clear`, `011 legacy-3pass`, `100 legacy-7pass`,
-`101 crypto-erase-only`, `110 reserved`, `111 dry-run`.
+`101 crypto-erase-only`, `110 service (never wipes; Wi-Fi reset at boot, factory reset with DIP 8)`, `111 dry-run`.
 
 DIP is read at boot and again each time a drive is detected, and the decoded
 mode is shown on the OLED footer.
@@ -381,7 +389,7 @@ Per bay, independently:
 ```
 IDLE ─(drive add)─► DETECTED (identity, SMART pre-check, grace countdown)
      ─► RUNNING (one worker thread: method chain, then verify)
-     ─► DONE | ERROR (buzzer, LED, certificate written; drive spun down)
+     ─► DONE | ERROR (LED, certificate written; drive spun down)
      ─(drive remove, from any state)─► IDLE
 ```
 
@@ -424,25 +432,41 @@ schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
 * **Tool:** OpenSCAD, everything driven from `enclosure/params.scad`. Connector
   positions are generated from the KiCad PCB by a small script
   (`enclosure/tools/kicad_to_scad.py`) so the shell tracks the board.
-* **Form (C21):** a closed box about 157 × 105 × 39 mm, bottom tray + top lid,
-  board on M2.5 heat-set inserts. Rear wall: 4× SATA 22-pin windows (the drive
-  cables). Left wall: DC input, RJ45, USB-C. Front wall: microSD slot and the M.2
-  SSD slot with a hinged door. Lid: OLED window with a recess for the module (on
-  a 4-wire lead, over the M.2 column), 8-way DIP slot, 8× LED holes, fan grille
-  over the CM5 cooler, corner screws. Right wall: vents. Floor: buzzer holes,
-  feet pockets. No button: the DIP switch is the only control. Nothing carries
-  the drives; they lie on the bench.
+* **Form (C21–C23):** a box about 143 × 107 × 32 mm, bottom tray + a lid hinged
+  along the rear top edge (filament pin) with a snap latch at the front, so it
+  pops open for the M.2 SSD; a lid microswitch is the bay-5 "door". Board on
+  M2.5 heat-set inserts. Rear wall: 4× SATA 22-pin windows (the drive cables).
+  Right wall: DC input, USB-C, microSD. Left wall (antenna side) and front:
+  vent slots, no metal. Lid: OLED window with a recess for the module (on a
+  4-wire lead, over the SSD), 8-way DIP slot, 8× LED holes, convection grille
+  over the passive CM5 cooler. Floor: feet pockets. No button: the DIP switch is
+  the only control. Nothing carries the drives; they lie on the bench.
 * **Print:** PETG or ASA, 0.2 mm layers, no supports required by design
   (chamfered overhangs, lid printed upside down).
-* **Refinements (`enclosure/refinements.scad`):** hinged M.2 slot door with a
-  filament-pin hinge and tray-side knuckles on the front wall, an OLED bezel that
-  clamps the module under the lid window, rubber-feet pockets. Renders of the
-  parts and of the unit on the bench with four loose drives in `enclosure/renders/`.
+* **Refinements (`enclosure/refinements.scad`):** an OLED bezel that clamps the
+  module under the lid window, rubber-feet pockets. Renders of the parts, of the
+  unit on the bench with four loose drives, and of the lid open in
+  `enclosure/renders/`.
 
 ## 6. Cross-cutting
 
 * **Safety fence** (§4.3) is reviewed on every change to `devices.py` or `bays.py`.
-* **Thermal:** CM5 cooler with fan mandatory; ASM1153E, hubs and bucks fine.
+* **Thermal:** passive CM5 cooler (C23); the workload is I/O bound. The fan
+  header stays for a 5 V PWM fan under the lid grille if a summer bench shows
+  throttling. ASM1153E, hubs and bucks are fine.
+* **Wireless and the phone page (C22):** the CM5 wireless variant runs an
+  access point (`nmcli` hotspot, 10.42.0.1/24) with SSID `brain-drain-<4 hex>`
+  and an 8-character key made fresh at every boot. Idle, the OLED shows a Wi-Fi
+  QR code (`WIFI:T:WPA;S:…;P:…;;`) plus the key and address; running, the key
+  and address take the bottom rows. The page (`webui.py`, standard library
+  HTTP on port 80) serves status, certificates (single or zip), the log tail,
+  and two actions that need the key: join a network (saved to
+  `/var/lib/brain-drain/wifi.json`, joined at every boot, falls back to the
+  access point if it fails) and reset (Wi-Fi: forget the network and rotate the
+  key; factory: also delete certificates and state). Without a network, DIP
+  mode 110 at boot does the Wi-Fi reset, and 110 with DIP 8 the factory reset;
+  `braindrain wifi-reset [--factory]` does the same over SSH. The key is the
+  only authorisation: reading the screen is the permission.
 * **Compliance record:** the certificate schema is versioned; the report states
   which 800-88 tier was achieved, and says so honestly when only overwrite was
   possible on an SSD.

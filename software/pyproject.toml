@@ -9,6 +9,7 @@ description = "Four-bay NIST 800-88 disk sanitizer service"
 requires-python = ">=3.11"
 dependencies = [
     "pyudev>=0.24",
+    "qrcode>=7.4",
 ]
 
 [project.optional-dependencies]

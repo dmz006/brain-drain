@@ -1,6 +1,6 @@
 // Assembled scene for the renders (C21, portable use): the closed unit, four loose drives lying
 // on the bench behind it, a 22-pin cable from each rear receptacle to its drive, and the power
-// and network cables leaving the left wall.
+// cable leaving the right wall.
 //   openscad -D group=\"unit\"   -o stl/scene_unit.stl   scene.scad
 //   openscad -D group=\"drives\" -o stl/scene_drives.stl scene.scad
 //   openscad -D group=\"cables\" -o stl/scene_cables.stl scene.scad
@@ -23,6 +23,13 @@ function drive_front(i) = -drive_gap;   // y of the connector face (unit rear wa
 module unit() {
     tray();
     translate([0, outer_h, tray_height + lid_t]) rotate([180, 0, 0]) lid();   // lid turned over onto the tray
+}
+
+module unit_open(angle = 75) {
+    // lid swung up about the hinge axis (rear top edge, y = -knuckle/2, z = tray_height)
+    tray();
+    translate([0, -hinge_knuckle_d / 2, tray_height]) rotate([angle, 0, 0]) translate([0, hinge_knuckle_d / 2, -tray_height])
+        translate([0, outer_h, tray_height + lid_t]) rotate([180, 0, 0]) lid();
 }
 
 module drives() {
@@ -51,11 +58,11 @@ module cables() {
              x0 = wall + clear + f[2], dx = drive_cx(i) + 12, zd = drive_size(i)[2] / 2,
              p0 = [x0, 0, zc], p3 = [dx, drive_front(i) + 1, zd])
             cable(p0, [x0, -25, zc + 6], [dx, drive_front(i) + 30, zd + 4], p3, 9);
-    // power (DIN) and network cables leave the LEFT wall and trail off to -x
-    for (f = board_features) if (f[0] == "J21") let (y0 = wall + clear + f[3]) cable([0, y0, zc + 4], [-40, y0 - 10, 25], [-140, y0 - 60, 10], [-240, y0 - 120, 4], 7);
-    for (f = board_features) if (f[0] == "J4") let (y0 = wall + clear + f[3]) cable([0, y0, zc + 4], [-45, y0 + 10, 22], [-150, y0 + 60, 8], [-250, y0 + 120, 4], 5);
+    // power cable (DIN) leaves the RIGHT wall and trails off to +x
+    for (f = board_features) if (f[0] == "J21") let (y0 = wall + clear + f[3]) cable([outer_w, y0, zc + 4], [outer_w + 40, y0 + 10, 25], [outer_w + 140, y0 + 60, 10], [outer_w + 240, y0 + 120, 4], 7);
 }
 
 if (group == "unit" || group == "all") unit();
+if (group == "open") unit_open();
 if (group == "drives" || group == "all") drives();
 if (group == "cables" || group == "all") cables();

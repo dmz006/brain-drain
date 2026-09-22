@@ -157,7 +157,6 @@ FP = {
     "MICROSD": "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5",
     "RJ45": "Connector_RJ:RJ45_Wuerth_7499111446_Horizontal",
     "CR2032": "Battery:BatteryHolder_Keystone_1060_1x2032",
-    "BUZZER": "Buzzer_Beeper:Buzzer_12x9.5RM7.6",
     "SW_DOOR": "Button_Switch_THT:SW_PUSH_6mm",
 }
 
@@ -167,7 +166,7 @@ def build() -> Design:
 
     d.sheet("power-input", "12 V DIN input, fuse, TVS, reverse-polarity FET, bulk capacitance")
     d.sheet("power-bucks", "5V_SYS and 5V_HDD (TPS56637), +3V3 and 3V3_M2 (AP63203), +1V2 LDO")
-    d.sheet("cm5", "Compute Module 5: power, control, GPIO, microSD, Ethernet, USB-C, UART, RTC cell, fan, DIP, LEDs, buzzer, OLED")
+    d.sheet("cm5", "Compute Module 5 (wireless): power, control, GPIO, microSD, USB-C, UART, RTC cell, fan, DIP, LEDs, OLED")
     d.sheet("usb3-hub-A", "USB5744 hub A on CM5 USB3-0, bays 1 and 2")
     d.sheet("usb3-hub-B", "USB5744 hub B on CM5 USB3-1, bays 3 and 4")
     for b in range(1, 5):
@@ -305,17 +304,8 @@ def build() -> Design:
     for i, g in enumerate((16, 17, 20, 21, 22, 23, 24, 25), start=1):
         d.net(f"DIP{i}", f"M1.GPIO{g}", f"SW1.{i}")
         d.net("GND", f"SW1.{17 - i}")
-    # Buzzer on GPIO18 via 2N7002
-    d.part("BZ1", "Device:Buzzer", "5V magnetic", s, FP["BUZZER"])
-    d.part("Q1", "Transistor_FET:2N7002", "2N7002", s, FP["SOT23"])
-    d.part("R4", "Device:R", "1k", s, FP["R0402"])
-    d.part("R5", "Device:R", "100k", s, FP["R0402"])
-    d.part("D4", "Device:D", "1N4148W", s, "Diode_SMD:D_SOD-123")
-    d.net("BUZZER", "M1.GPIO18", "R4.1")
-    d.net("Q1_GATE", "R4.2", "Q1.G", "R5.1")
-    d.net("GND", "Q1.S", "R5.2")
-    d.net("BZ1_N", "Q1.D", "BZ1.-", "D4.A")
-    d.net("5V_SYS", "BZ1.+", "D4.K")
+    # No buzzer (C23): the phone page, OLED and LEDs carry the done/error signal. GPIO18 stays free.
+    d.nc("M1.GPIO18")
     # OLED header: GND, VCC, SCL, SDA
     d.part("J41", "Connector_Generic:Conn_01x04", "OLED GND/VCC/SCL/SDA", s, FP["HDR1x4"])
     d.net("GND", "J41.1")
@@ -341,27 +331,11 @@ def build() -> Design:
     d.nc("U52.CT", "M1.SD_DAT4", "M1.SD_DAT5", "M1.SD_DAT6", "M1.SD_DAT7")
     d.pwr_flag("SD_VDD")
     d.note(s, "microSD power goes through U52 so the CM5 can power-cycle the card on reboot via SD_PWR_ON, matching the CM5IO reference (which uses an RT9742).")
-    # Ethernet magjack: Wuerth 7499111446 (1000BASE-T with LEDs)
-    d.part("J4", "Connector:RJ45_RB1-125B8G1A", "RJ45 GbE magjack UDE RB1-125B8G1A", s)
-    d.part("R6", "Device:R", "470", s, FP["R0402"])
-    d.part("R7", "Device:R", "470", s, FP["R0402"])
-    d.net("ETH_P0_P", "M1.Ethernet_Pair0_P", "J4.TD1+")
-    d.net("ETH_P0_N", "M1.Ethernet_Pair0_N", "J4.TD1-")
-    d.net("ETH_P1_P", "M1.Ethernet_Pair1_P", "J4.TD2+")
-    d.net("ETH_P1_N", "M1.Ethernet_Pair1_N", "J4.TD2-")
-    d.net("ETH_P2_P", "M1.Ethernet_Pair2_P", "J4.TD3+")
-    d.net("ETH_P2_N", "M1.Ethernet_Pair2_N", "J4.TD3-")
-    d.net("ETH_P3_P", "M1.Ethernet_Pair3_P", "J4.TD4+")
-    d.net("ETH_P3_N", "M1.Ethernet_Pair3_N", "J4.TD4-")
-    d.net("+3V3", "R6.1", "R7.1")
-    d.net("ETH_LED_G_A", "R6.2", "J4.L1")
-    d.net("ETH_nLED3", "J4.L2", "M1.Ethernet_nLED3")
-    d.net("ETH_LED_Y_A", "R7.2", "J4.L3")
-    d.net("ETH_nLED2", "J4.L4", "M1.Ethernet_nLED2")
-    d.net("GND", "J4.SH", "J4.GND")
-    d.nc("J4.CT")
-    d.note(s, "CM5IO reference adds TPD4EUSB30 ESD arrays on the Ethernet pairs; omitted here (indoor appliance), add if the board sees external cabling abuse.")
-    d.note(s, "Magjack: UDE RB1-125B8G1A (the only 1000BASE-T magjack in the stock library). CM5 pair0..3 -> TD1..TD4; verify pair order and LED anode/cathode (L1..L4) against the UDE drawing. Centre tap left unconnected pending the CM5IO reference schematic.")
+    # No Ethernet (C22): standalone appliance, Wi-Fi access point for the phone page. PHY pins unused.
+    d.nc("M1.Ethernet_Pair0_P", "M1.Ethernet_Pair0_N", "M1.Ethernet_Pair1_P", "M1.Ethernet_Pair1_N",
+         "M1.Ethernet_Pair2_P", "M1.Ethernet_Pair2_N", "M1.Ethernet_Pair3_P", "M1.Ethernet_Pair3_N",
+         "M1.Ethernet_nLED2", "M1.Ethernet_nLED3")
+    d.note(s, "Ethernet dropped (C22). The CM5 wireless variant's PCB antenna is on the short module edge that carries MH1; that edge sits on the board's left edge with an 8 mm copper-free strip under it and no metal within 10 mm (CM5 datasheet 4.1.2).")
     # USB-C for rpiboot (device mode; USB_OTG_ID floating)
     d.part("J5", "Connector:USB_C_Receptacle_USB2.0_16P", "USB-C rpiboot", s, FP["USBC16"])
     d.net("USB2_DP", "J5.D+", "M1.USB_P")
@@ -571,7 +545,7 @@ def build() -> Design:
     d.part("R504", "Device:R", "10k", s, FP["R0402"], note="CLKREQ# pull-up")
     d.part("R505", "Device:R", "470", s, FP["R0402"])
     d.part("D50", "Device:LED", "blue M.2 activity", s, FP["LED3"])
-    d.part("SW3", "Switch:SW_Push", "door microswitch", s, FP["SW_DOOR"])
+    d.part("SW3", "Switch:SW_Push", "lid microswitch", s, FP["SW_DOOR"])
     d.net("3V3_M2", "U50.VIN", "U50.VBIAS", "C500.1")
     d.net("3V3_M2_SW", "U50.VOUT", "C501.1", "J50.3V3", "R501.1", "R504.1", "R505.1")
     d.net("GND", "U50.GND", "U50.EP", "C500.2", "C501.2", "C502.2", "R500.2", "J50.GND", "SW3.2",

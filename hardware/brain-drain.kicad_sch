@@ -166,7 +166,7 @@
 			)
 		)
 	)
-	(text "Compute Module 5: power, control, GPIO, microSD, Ethernet, USB-C, UART, RTC cell, fan, DIP, LEDs, buzzer, OLED"
+	(text "Compute Module 5 (wireless): power, control, GPIO, microSD, USB-C, UART, RTC cell, fan, DIP, LEDs, OLED"
 		(exclude_from_sim no)
 		(at 292 33 0)
 		(effects

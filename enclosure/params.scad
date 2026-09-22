@@ -13,8 +13,8 @@ fit        = 0.25;    // lid-to-tray sliding fit per side
 // heights (z = 0 at the board top surface)
 below_board = 6.0;    // standoff height: THT leads, the CR2032 holder and buzzer on the bottom side
 board_t     = 1.6;
-above_board = 26.0;   // CM5 + official cooler (~22), electrolytics (10.5); DIN is on the wall
-lid_lip     = 4.0;    // how far the lid skirt drops over the tray
+above_board = 20.0;   // CM5 (4.9) + passive CM5 cooler (~11) + margin; electrolytics 10.5; DIN on the wall (C22)
+lid_lip     = 3.0;    // skirt on the front and side edges only (the rear edge is the hinge)
 
 // mounting
 insert_d    = 3.5;    // M2.5 heat-set insert hole in the standoffs
@@ -27,17 +27,17 @@ corner_r    = 3.0;
 oled_win    = [24.0, 13.0];   // visible area of a 0.96" 128x64 module
 oled_pcb    = [27.5, 27.5];   // module PCB, sits in a recess under the window
 oled_hole_pitch = [23.0, 23.5];
-oled_pos    = [130, 50];      // window centre in board coordinates (the module is on a 4-wire lead to J41,
-                              // so it sits over the M.2 column where the lid is free); [] = above J41
+oled_pos    = [58, 85];       // window centre in board coordinates: over the M.2 module (6 mm tall) at the
+                              // front, on a 4-wire lead to J41; [] = above J41
 fan_grille_d = 40;
 vent_w      = 2.0;
 vent_pitch  = 5.0;
 
-// M.2 slot door on the FRONT wall (y = board_h side), centred on the M.2 column
-door_w      = 26.0;   // opening width along x
-door_h      = 8.0;    // opening height above board
-door_z      = 0.5;
-door_plug_t = 2.0;
+// hinged lid (C22): knuckles along the rear top edge, snap latch at the front
+hinge_pin_d = 2.0;    // filament pin
+hinge_knuckle_d = 6.0;
+hinge_knuckle_l = 12.0;
+latch_bump_d = 1.6;
 
 // derived
 inner_w = board_w + 2 * clear;
@@ -53,8 +53,5 @@ feet_inset  = 8.0;
 bezel_t     = 1.6;    // OLED bezel plate thickness
 bezel_post_d = 4.5;   // posts for the module's four M2 holes
 bezel_post_h = 4.0;
-hinge_pin_d = 2.0;    // filament pin
-hinge_knuckle_d = 5.0;
-door_lip    = 3.0;    // door overlaps the opening by this much all round
 
 // (the v0 drive rack is gone: drives lie loose on the bench and connect with 22-pin cables, C21)

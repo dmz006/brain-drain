@@ -6,6 +6,7 @@
 | [STATUS.md](STATUS.md) | What is done, what is placeholder, what is blocked, what comes next. |
 | [USAGE.md](USAGE.md) | How to run the simulator, the bench tool, the Pi service, and how to regenerate hardware and enclosure files. |
 | [BOM.md](BOM.md) | Parts list with prices and sourcing notes; machine-readable copy in `hardware/bom/`. |
+| [FABRICATION.md](FABRICATION.md) | Who can fabricate and fully assemble a small run, what it costs, and the gates before ordering. |
 | [DECISIONS.md](DECISIONS.md) | Every decision, open (`D<n>`) or closed (`C<n>`), with reasons. |
 | [decisions/](decisions/) | The longer briefs behind the bigger decisions. |
 | [testing-tracker.md](testing-tracker.md) | Tested vs validated, per interface and part. |
@@ -19,8 +20,8 @@
 | | |
 |---|---|
 | ![system](img/system-block.png) | ![bay flow](img/bay-flow.png) |
-| ![rear panel](img/rear-panel.png) | ![oled](img/oled-running.png) |
-| ![left panel](img/left-panel.png) | ![front panel](img/front-panel.png) |
+| ![rear panel](img/rear-panel.png) | ![right panel](img/right-panel.png) |
+| ![oled wifi](img/oled-wifi.png) | ![oled](img/oled-running.png) |
 
 Renders of the board live in `hardware/renders/`, of the enclosure in
 `enclosure/renders/`.
