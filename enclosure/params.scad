@@ -44,3 +44,23 @@ inner_h = board_h + 2 * clear;
 outer_w = inner_w + 2 * wall;
 outer_h = inner_h + 2 * wall;
 tray_height = floor_t + below_board + board_t + above_board;   // to the top of the tray wall
+
+// --- refinements (v0.2)
+feet_d      = 8.5;    // rubber bumper pocket diameter (3M SJ5012 style, 8 mm)
+feet_depth  = 1.0;
+feet_inset  = 8.0;
+bezel_t     = 1.6;    // OLED bezel plate thickness
+bezel_post_d = 4.5;   // posts for the module's four M2 holes
+bezel_post_h = 4.0;
+hinge_pin_d = 2.0;    // filament pin
+hinge_knuckle_d = 5.0;
+door_lip    = 3.0;    // door overlaps the opening by this much all round
+
+// drive rack: four vertical slots for 3.5" or 2.5" drives beside the unit
+rack_slots  = 4;
+rack_pitch  = 32.0;   // 26.1 mm 3.5" drive + air gap
+rack_slot_w = 27.0;   // 3.5" drive thickness 26.1 + fit
+rack_depth  = 60.0;   // how much of the 147 mm drive length is supported
+rack_height = 40.0;
+rack_wall   = 3.0;
+rack_25_w   = 10.0;   // secondary groove for 2.5" drives (9.5 mm)

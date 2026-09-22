@@ -1,23 +1,77 @@
+<p align="center"><img src="docs/img/logo.png" alt="brain-drain" width="720"></p>
+
 # brain-drain
 
-Standalone four-bay disk sanitizer: Raspberry Pi CM5 carrier board, Python
-sanitizer service, and a 3D-printed enclosure. Wipe methods follow
-NIST SP 800-88 Rev. 2.
+A standalone four-bay (plus one M.2) disk sanitizer: plug a drive in, it gets
+wiped to NIST SP 800-88 Rev. 2 and you get a certificate. No buttons, no
+screen to poke at, no PC. A Raspberry Pi Compute Module 5 on a custom carrier
+board, a Python service, and a 3D-printed enclosure.
 
-**Status: design phase. Nothing has been built or fabricated.**
+> **Status: design phase, nothing fabricated yet.** Schematic, board, software
+> and enclosure all exist as a first version; the first bench test with a real
+> drive is scheduled for 2026-09-26. See [docs/STATUS.md](docs/STATUS.md).
 
-Read `docs/ARCHITECTURE.md` first. `docs/BOM.md` is the parts list,
-`docs/DECISIONS.md` the list of open and closed design decisions.
+<p align="center"><img src="enclosure/renders/assembled-iso.png" alt="assembled unit with four drives on the rack" width="720"></p>
 
-| Directory | Workstream |
-|---|---|
-| `hardware/` | KiCad 9 carrier board: CM5, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, UI |
-| `software/` | `braindrain` Python service: enumerate, policy, wipe, verify, report, OLED |
-| `enclosure/` | OpenSCAD parametric enclosure |
-| `docs/` | architecture, BOM, decisions |
+## What it does
+
+* Four SATA bays over USB 3 bridges, external drives on 22-pin pigtails, plus
+  an M.2 NVMe slot behind a door. Each bay is independent.
+* Set the policy on an 8-way DIP switch. Plug a drive in: it is identified,
+  wiped, verified and reported. Unplug it: the job aborts. That is the whole UI.
+* Methods follow NIST 800-88 Rev. 2: single-pass overwrite with full
+  verification for magnetic drives, firmware Sanitize (crypto or block erase)
+  for SSDs and NVMe, legacy 3-pass and 7-pass available for those who insist.
+* A JSON certificate per drive per job: what was attempted, what worked, how it
+  was verified, and which tier (Clear / Purge) is honestly claimed.
+* A 128×64 OLED shows per-bay progress and ETA.
+
+<p align="center"><img src="docs/img/oled-running.png" alt="OLED while running" width="520"></p>
+
+## Use cases
+
+* IT refresh: wiping a pile of decommissioned laptop and desktop drives
+  unattended, four at a time, with paperwork for each.
+* Reselling or donating hardware where a Purge-level record is wanted.
+* Small MSPs and repair shops that need a repeatable wipe without dedicating a PC.
+
+## Repository layout
+
+| Directory | Workstream | State |
+|---|---|---|
+| [`hardware/`](hardware/README.md) | KiCad 9 carrier board: CM5, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, M.2 | schematic 0 ERC errors, board placed and being routed; SATA footprint pending a drawing |
+| [`software/`](software/README.md) | `braindrain` Python service, simulator, bench tool, Pi deployment | 61 tests, ready for the first bench |
+| [`enclosure/`](enclosure/README.md) | OpenSCAD tray, lid, hinged door, OLED bezel, drive rack | STLs export, not printed |
+| [`docs/`](docs/README.md) | architecture, BOM, decisions, status, usage, diagrams | |
+
+## Quick start
+
+```
+# simulate the appliance on any Linux box
+cd software && python3 -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
+braindrain simulate --grace 2            # terminal 1
+braindrain sim-plug 1 --size 1G --prefill # terminal 2: a drive appears in bay 1 and is wiped
+
+# regenerate the hardware from its source
+cd hardware && python3 tools/symgen.py && python3 tools/gen_sch.py && python3 tools/gen_pcb.py
+
+# export the enclosure
+cd enclosure && make && make preview
+```
+
+More in [docs/USAGE.md](docs/USAGE.md).
+
+## Documentation
+
+* [Architecture](docs/ARCHITECTURE.md) · [System block diagram](docs/img/system-block.png)
+* [Bill of materials](docs/BOM.md) · [Decisions](docs/DECISIONS.md)
+* [Status and remaining work](docs/STATUS.md) · [Testing tracker](docs/testing-tracker.md)
+* [Usage](docs/USAGE.md) · [Bench plan for 2026-09-26](docs/saturday-bench-plan.md)
+* [AGENT.md](AGENT.md) rules for agents and contributors · [CHANGELOG](CHANGELOG.md)
 
 ## Safety
 
-This device destroys data by design. The software's safety fence
-(`docs/ARCHITECTURE.md` §4.3) is the only thing standing between it and the boot
-medium or a workstation's drives when run in development. Do not weaken it.
+This device destroys data by design. The software's safety fence only ever
+targets whole disks behind an allow-listed USB bridge on a configured bay port,
+or the M.2 slot, and never anything mounted or holding the root filesystem.
+Treat every drive that touches a bay as gone.

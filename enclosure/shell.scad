@@ -4,8 +4,10 @@
 //   openscad -D part=\"lid\"  -o stl/lid.stl  shell.scad
 //   openscad -D part=\"door\" -o stl/door.stl shell.scad
 include <params.scad>
+use <refinements.scad>
 
 part = "all";   // all | tray | lid | door
+hinge = true;   // tray-side knuckles for the hinged door   // all | tray | lid | door
 $fn = 48;
 
 // --------------------------------------------------------------- helpers
@@ -73,6 +75,7 @@ module tray() {
         left_cutouts();
         door_cutout();
         side_vents();
+        feet_pockets();
         // lid seat: a rebate around the top inside edge
         translate([wall - fit, wall - fit, tray_height - lid_lip])
             difference() {
@@ -80,6 +83,7 @@ module tray() {
             }
     }
     standoffs();
+    if (hinge) feature("m2") door_knuckles(by($f[3]), z_board_top + door_z + door_h + door_lip);
     // lid screw bosses in the four corners (lid screws come down into these)
     for (c = [[wall + 3, wall + 3], [outer_w - wall - 3, wall + 3], [wall + 3, outer_h - wall - 3], [outer_w - wall - 3, outer_h - wall - 3]])
         translate([c[0], c[1], floor_t]) difference() {

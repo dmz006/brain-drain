@@ -23,3 +23,5 @@ software/.venv/
 hardware/*.kicad_pcb-bak
 hardware/drc.json
 enclosure/stl/*.png
+hardware/tools/freerouting/*.jar
+hardware/tools/freerouting/*.log
