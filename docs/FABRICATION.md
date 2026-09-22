@@ -16,7 +16,7 @@ live quote from the design files before deciding.
 |---|---|---|
 | Layers, size | 4 layers, 136 × 100 mm, 1.6 mm, ENIG | USB 3 / SATA / PCIe pairs on outer layers over solid ground; ENIG for the 0.4 mm connectors |
 | Stack-up | vendor's standard 4-layer with controlled impedance (JLC04161H-7628 or equal) | 90 Ω differential pairs without a custom stack-up fee |
-| Minimum features | 0.15 mm track / 0.15 mm space, 0.3 mm drill (0.6 mm via) | set by the hub and bridge QFN escapes and the CM5's 0.4 mm connectors |
+| Minimum features | 0.13 mm track / 0.125 mm space, 0.2 mm drill in a 0.45 mm via (the Raspberry Pi CM5IO rules); power vias 0.6/0.3 | set by the CM5's 0.4 mm connectors and the 0.5 mm M.2 socket; every vendor above quotes these as standard 4-layer capability |
 | Fine pitch | 0.4 mm pitch (Hirose DF40 for the CM5, QFN-48 / QFN-56 at 0.4–0.5 mm) | needs stencil + reflow, not hand soldering; every vendor below handles it |
 | Through-hole | SATA receptacles (SMT with pegs), DIN jack, DIP switch, LEDs, headers, M.2 standoff | ask for **through-hole assembly** too, or these come loose in a bag |
 | Bottom side | CR2032 holder and two headers | double-sided assembly adds a setup fee; or move them to the top before ordering |
@@ -75,12 +75,12 @@ boards would be about $450–600 for the boards and $120–150 per unit on top.
 | 3 | M.2 socket peg check (R2, B2) | pending |
 | 4 | DIN pinout matched to the chosen brick (R3, B3) | pending |
 | 5 | Vendor part numbers on every BOM line, checked against stock the day of ordering | BOM has families, not all orderable numbers |
-| 6 | Gerbers, drill, pick-and-place and BOM exports from `kicad-cli`, plus the assembly drawing | export script to add to `hardware/tools/` |
+| 6 | Gerbers, drill, pick-and-place and BOM exports from `kicad-cli`, plus the assembly drawings | `hardware/tools/export_fab.sh` writes `hardware/fab/<date>/` (gitignored) |
 | 7 | Bench evidence that the ASM1153E passes Sanitize through (Saturday plan) | 2026-09-26 |
 
 ## Ordering checklist (JLCPCB flow)
 
-1. `kicad-cli pcb export gerbers` and `drill` to a zip; `kicad-cli pcb export pos` for the placement file; BOM CSV with LCSC numbers.
+1. `sh hardware/tools/export_fab.sh`: gerber + drill zip, placement CSV, BOM CSV, assembly PDFs, an errors-only DRC report. Add LCSC numbers to the BOM lines first (gate 5).
 2. Upload the zip, pick 4 layers, 1.6 mm, ENIG, the impedance stack-up, 5 pcs.
 3. Tick "PCB assembly", 2 pcs, both sides, standard tier; upload BOM + placement.
 4. In the parts matcher, confirm every line; for anything out of stock choose an

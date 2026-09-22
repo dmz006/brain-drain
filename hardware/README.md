@@ -36,7 +36,9 @@ hardware/
 ## Board rules
 
 * 4-layer, 1.6 mm, JLC04161H-7628 stackup, ENIG.
-* Diff pairs: USB 3 SS and SATA at 90 Ω, PCIe Gen3 at 85 Ω, USB 2.0 at 90 Ω.
+* Design rules follow the CM5IO reference: 0.13 mm tracks, 0.125 mm clearance, 0.45/0.2 mm vias
+  (power: 0.5 mm tracks, 0.6/0.3 vias). They are written into the project file by `route.py prepare`.
+* Diff pairs: USB 3 SS and SATA at 90 Ω (0.147 mm / 0.253 mm gap on the JLC 7628 stack-up), PCIe Gen3 at 85 Ω, USB 2.0 at 90 Ω.
   Intra-pair length match ±0.15 mm. Keep SS/SATA/PCIe pairs on outer layers
   over solid GND, no layer changes without a stitching via.
 * CM5 boot-order straps: eMMC/SD only; USB and NVMe boot disabled.

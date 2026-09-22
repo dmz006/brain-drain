@@ -253,7 +253,9 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
 * **Stack:** 4-layer, 1.6 mm, ENIG. Sig / GND / PWR / Sig. Target the JLCPCB
   JLC04161H-7628 stackup so controlled impedance is free: 90 Ω differential for
   USB 3 SS and SATA pairs, 85 Ω for the PCIe Gen3 pair to the M.2 slot. Length-match
-  within a pair to ±0.15 mm; USB 2.0 pairs to 90 Ω as well. Gen3 needs short,
+  within a pair to ±0.15 mm; USB 2.0 pairs to 90 Ω as well. Design rules are
+  the CM5IO reference's: 0.13 mm tracks, 0.125 mm clearance, 0.45/0.2 mm vias,
+  because nothing coarser escapes the 0.4 mm-pitch CM5 connector. Gen3 needs short,
   clean routing from the DF40 to the M.2 slot; keep them adjacent.
 * **Fab:** JLCPCB or PCBWay, 5 pcs. USB5744 and ASM1153E are 0.4–0.5 mm QFN, and
   the DF40 connectors are 0.4 mm pitch, so use the fab's assembly service for the

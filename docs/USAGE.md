@@ -66,7 +66,8 @@ java -Djava.awt.headless=true -jar tools/freerouting/freerouting-2.1.0.jar -de r
                                  # (or `route.py all` which runs the whole chain); -oit 2 stops the optimizer looping forever
 python3 tools/route.py import    # session back into the board; bay-net tracks and anything crossing a keep-out stripped; zones filled
 python3 tools/fpgen.py           # project footprints from vendor drawings
-sh tools/render_board.sh         # renders/board-top.png, board-inner.png, board-3d-{top,bottom,iso}.png
+sh tools/render_board.sh         # renders/board-top.png, board-inner.png, board-3d-{top,bottom,iso}.png, schematic PDF + PNGs
+sh tools/export_fab.sh           # fab/<date>/: gerbers + drill zip, placement CSV, BOM CSV, assembly PDFs (order pack)
 kicad-cli pcb drc --format json --severity-all -o routing/drc.json brain-drain.kicad_pcb
 ```
 
