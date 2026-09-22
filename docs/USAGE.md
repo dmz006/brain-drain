@@ -58,8 +58,8 @@ python3 tools/gen_sch.py         # brain-drain.kicad_sch + sheets/, ERC via kica
 python3 tools/gen_connections.py # CONNECTIONS.md
 python3 tools/gen_pcb.py         # brain-drain.kicad_pcb: outline, holes, placed footprints with nets
 python3 tools/route.py prepare   # net classes, diff-pair rules, copper zones
-python3 tools/route.py dsn       # Specctra DSN -> routing/
-java -Djava.awt.headless=true -jar tools/freerouting/freerouting-2.1.0.jar -de routing/brain-drain.dsn -do routing/brain-drain.ses -mp 20
+python3 tools/route.py dsn       # Specctra DSN -> routing/ (full, and lite = no diff pairs / bay nets)
+java -Djava.awt.headless=true -jar tools/freerouting/freerouting-2.1.0.jar -de routing/brain-drain-lite.dsn -do routing/brain-drain-lite.ses -mp 12
 python3 tools/route.py import    # session back into the board, bay nets stripped, zones filled
 python3 tools/fpgen.py           # project footprints from vendor drawings
 ```

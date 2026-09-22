@@ -25,3 +25,6 @@ hardware/drc.json
 enclosure/stl/*.png
 hardware/tools/freerouting/*.jar
 hardware/tools/freerouting/*.log
+hardware/routing/*.dsn
+hardware/routing/*.ses
+hardware/routing/*.log

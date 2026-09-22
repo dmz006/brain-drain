@@ -1,7 +1,7 @@
 """Routing pipeline on KiCad's pcbnew API (KiCad 9):
 
   python3 tools/route.py prepare   net classes, diff-pair rules, copper zones -> brain-drain.kicad_pcb
-  python3 tools/route.py dsn       export Specctra DSN for freerouting
+  python3 tools/route.py dsn       export Specctra DSN (full and "lite": no diff pairs, no bay nets)
   python3 tools/route.py import    import the freerouting session, strip bay-net tracks, fill zones, DRC
   python3 tools/route.py all       prepare + dsn + freerouting + import
 
@@ -116,6 +116,73 @@ def export_dsn(board: pcbnew.BOARD) -> None:
     print("DSN export", "ok" if ok else "FAILED", DSN.relative_to(HW))
 
 
+LITE_DSN = HW / "routing" / "brain-drain-lite.dsn"
+LITE_SES = HW / "routing" / "brain-drain-lite.ses"
+
+
+def filter_dsn(d: design.Design) -> None:
+    """Write a DSN containing only the single-ended, non-bay nets: power, control, GPIO, I2C.
+
+    Differential pairs and the four bay sheets are left for hand routing, so the
+    autorouter gets a problem it can finish. Textual filter: the DSN's
+    (string_quote ") directive defeats a generic s-expression parser."""
+    text = DSN.read_text()
+    skip = bay_nets(d) | diff_pair_nets(d)
+
+    def block_end(i):  # index just past the balanced block starting at text[i] == "("
+        depth = 0; j = i; inq = False
+        while j < len(text):
+            c = text[j]
+            if c == '"':
+                inq = not inq
+            elif not inq:
+                if c == "(":
+                    depth += 1
+                elif c == ")":
+                    depth -= 1
+                    if depth == 0:
+                        return j + 1
+            j += 1
+        return j
+
+    def name_at(i):  # token after "(net " or "(class "
+        j = i
+        while text[j] not in " \n":
+            j += 1
+        j += 1
+        if text[j] == '"':
+            k = text.index('"', j + 1); return text[j + 1:k]
+        k = j
+        while text[k] not in " \n)":
+            k += 1
+        return text[j:k]
+
+    out = []; pos = 0; kept = dropped = 0
+    import re
+    for m in re.finditer(r"\n(\s*)\((net|class) ", text):
+        i = m.start() + 1 + len(m.group(1))
+        if i < pos:
+            continue
+        j = block_end(i)
+        kind = m.group(2)
+        if kind == "net":
+            if name_at(i) in skip:
+                out.append(text[pos:m.start() + 1]); pos = j; dropped += 1
+                # swallow the newline that followed the block
+                if pos < len(text) and text[pos] == "\n":
+                    pos += 1
+            else:
+                kept += 1
+        else:
+            blk = text[i:j]
+            for name in skip:
+                blk = re.sub(r'(?<=[\s(])"?' + re.escape(name) + r'"?(?=[\s)])', "", blk)
+            out.append(text[pos:i]); out.append(blk); pos = j
+    out.append(text[pos:])
+    LITE_DSN.write_text("".join(out))
+    print(f"lite DSN: kept {kept} nets, dropped {dropped} (diff pairs + bay nets) -> {LITE_DSN.relative_to(HW)}")
+
+
 def run_freerouting(passes: int = 30) -> int:
     if JAR is None:
         print("no freerouting jar in tools/freerouting/"); return 1
@@ -128,7 +195,8 @@ def run_freerouting(passes: int = 30) -> int:
 
 
 def import_ses(board: pcbnew.BOARD, d: design.Design) -> None:
-    ok = pcbnew.ImportSpecctraSES(board, str(SES))
+    ses = LITE_SES if LITE_SES.exists() else SES
+    ok = pcbnew.ImportSpecctraSES(board, str(ses))
     print("SES import", "ok" if ok else "FAILED")
     bays = bay_nets(d)
     removed = 0
@@ -155,6 +223,7 @@ def main(cmd: str) -> int:
         pcbnew.SaveBoard(str(PCB), board)
     if cmd in ("dsn", "all"):
         export_dsn(board)
+        filter_dsn(d)
     if cmd == "all":
         if run_freerouting() != 0:
             return 1
