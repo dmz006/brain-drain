@@ -253,16 +253,15 @@ def build() -> Design:
 
     # ---------------------------------------------------------------- CM5
     s = "cm5"
-    d.part("M1", "brain-drain:CM5_J1", "CM5002016 (J1)", s, unit_sheets={1: s, 2: s, 3: s})
-    d.part("M2", "brain-drain:CM5_J2", "CM5002016 (J2)", s, unit_sheets={1: "m2-nvme", 2: s})
+    d.part("M1", "brain-drain:CM5", "CM5002016", s, unit_sheets={1: s, 2: s, 3: s, 4: "m2-nvme", 5: s})
     d.part("C1", "Device:C", "22u 10V", s, FP["C0805"])
     d.part("C2", "Device:C", "22u 10V", s, FP["C0805"])
     d.net("5V_SYS", "M1.5V", "C1.1", "C2.1")
-    d.net("GND", "M1.GND", "M2.GND", "C1.2", "C2.2")
+    d.net("GND", "M1.GND", "C1.2", "C2.2")
     d.net("CM5_3V3", "M1.CM5_3.3V", "M1.GPIO_VREF")
     d.nc("M1.CM5_1.8V", "M1.PWR_Button", "M1.PMIC_Enable", "M1.LED_nPWR", "M1.EEPROM_nWP", "M1.WL_nDisable",
-         "M1.BT_nDisable", "M1.CC1", "M1.CC2", "M1.SCL0", "M1.SDA0", "M1.CAM_GPIO0", "M1.CAM_GPIO1",
-         "M1.SD_VDD_OVERRIDE", "M1.SD_PWR_ON", "M1.Ethernet_SYNC_OUT")
+         "M1.BT_nDisable", "M1.SCL0", "M1.SDA0", "M1.CAM_GPIO0", "M1.CAM_GPIO1",
+         "M1.SD_VDD_OVERRIDE", "M1.Ethernet_SYNC_OUT")
     d.note(s, "GPIO_VREF is tied to the CM5's own 3.3 V output (pins 84/86) for 3.3 V GPIO signalling, per datasheet §4.2.")
     d.note(s, "PMIC_Enable and PWR_Button are left floating (internal pull-ups). nRPIBOOT goes to jumper J6.")
     # RTC cell
@@ -283,7 +282,9 @@ def build() -> Design:
     d.net("GND", "J40.1")
     d.net("5V_SYS", "J40.2")
     d.net("FAN_TACHO", "M1.Fan_Tacho", "J40.3")
-    d.net("FAN_PWM", "M1.Fan_PWM", "J40.4")
+    d.part("R10", "Device:R", "10k", s, FP["R0402"], note="FAN_PWM pull-up (open-drain output), as on CM5IO")
+    d.net("+3V3", "R10.1")
+    d.net("FAN_PWM", "M1.Fan_PWM", "J40.4", "R10.2")
     # Activity + power LEDs
     d.part("D1", "Device:LED", "green PWR", s, FP["LED3"])
     d.part("R1", "Device:R", "1k", s, FP["R0603"])
@@ -329,10 +330,17 @@ def build() -> Design:
     d.net("SD_DAT1", "M1.SD_DAT1", "J3.DAT1")
     d.net("SD_DAT2", "M1.SD_DAT2", "J3.DAT2")
     d.net("SD_DAT3", "M1.SD_DAT3", "J3.DAT3/CD")
-    d.net("+3V3", "J3.VDD")
-    d.net("GND", "J3.VSS", "J3.SHIELD")
-    d.nc("M1.SD_DAT4", "M1.SD_DAT5", "M1.SD_DAT6", "M1.SD_DAT7")
-    d.note(s, "microSD is powered from +3V3 directly; SD_PWR_ON (a power-switch control on the CM5IO board) is not used.")
+    d.part("U52", "brain-drain:TPS22965", "TPS22965DSGR", s, note="microSD power switch, driven by SD_PWR_ON (as CM5IO does with an RT9742)")
+    d.part("R11", "Device:R", "10k", s, FP["R0402"], note="SD_PWR_ON pull-up")
+    d.part("C3", "Device:C", "10u 10V", s, FP["C0805"])
+    d.part("C4", "Device:C", "1u 10V", s, FP["C0402"])
+    d.net("+3V3", "U52.VIN", "U52.VBIAS", "C4.1", "R11.1")
+    d.net("SD_PWR_ON", "M1.SD_PWR_ON", "U52.ON", "R11.2")
+    d.net("SD_VDD", "U52.VOUT", "J3.VDD", "C3.1")
+    d.net("GND", "J3.VSS", "J3.SHIELD", "U52.GND", "U52.EP", "C3.2", "C4.2")
+    d.nc("U52.CT", "M1.SD_DAT4", "M1.SD_DAT5", "M1.SD_DAT6", "M1.SD_DAT7")
+    d.pwr_flag("SD_VDD")
+    d.note(s, "microSD power goes through U52 so the CM5 can power-cycle the card on reboot via SD_PWR_ON, matching the CM5IO reference (which uses an RT9742).")
     # Ethernet magjack: Wuerth 7499111446 (1000BASE-T with LEDs)
     d.part("J4", "Connector:RJ45_RB1-125B8G1A", "RJ45 GbE magjack UDE RB1-125B8G1A", s)
     d.part("R6", "Device:R", "470", s, FP["R0402"])
@@ -352,18 +360,17 @@ def build() -> Design:
     d.net("ETH_nLED2", "J4.L4", "M1.Ethernet_nLED2")
     d.net("GND", "J4.SH", "J4.GND")
     d.nc("J4.CT")
+    d.note(s, "CM5IO reference adds TPD4EUSB30 ESD arrays on the Ethernet pairs; omitted here (indoor appliance), add if the board sees external cabling abuse.")
     d.note(s, "Magjack: UDE RB1-125B8G1A (the only 1000BASE-T magjack in the stock library). CM5 pair0..3 -> TD1..TD4; verify pair order and LED anode/cathode (L1..L4) against the UDE drawing. Centre tap left unconnected pending the CM5IO reference schematic.")
     # USB-C for rpiboot (device mode; USB_OTG_ID floating)
     d.part("J5", "Connector:USB_C_Receptacle_USB2.0_16P", "USB-C rpiboot", s, FP["USBC16"])
-    d.part("R8", "Device:R", "5.1k", s, FP["R0402"])
-    d.part("R9", "Device:R", "5.1k", s, FP["R0402"])
-    d.net("USB2_DP", "J5.D+", "M2.USB_P")
-    d.net("USB2_DM", "J5.D-", "M2.USB_N")
-    d.net("USBC_CC1", "J5.CC1", "R8.1")
-    d.net("USBC_CC2", "J5.CC2", "R9.1")
-    d.net("GND", "R8.2", "R9.2", "J5.GND", "J5.SHIELD")
-    d.nc("J5.VBUS", "J5.SBU1", "J5.SBU2", "M2.USB_OTG_ID", "M2.VBUS_EN")
-    d.note(s, "USB-C is a device port (rpiboot / gadget): VBUS is not connected, CC pins have 5.1 k pull-downs so a host sees a UFP. USB_OTG_ID floats = device.")
+    d.net("USB2_DP", "J5.D+", "M1.USB_P")
+    d.net("USB2_DM", "J5.D-", "M1.USB_N")
+    d.net("USBC_CC1", "J5.CC1", "M1.CC1")
+    d.net("USBC_CC2", "J5.CC2", "M1.CC2")
+    d.net("GND", "J5.GND", "J5.SHIELD")
+    d.nc("J5.VBUS", "J5.SBU1", "J5.SBU2", "M1.USB_OTG_ID", "M1.VBUS_EN")
+    d.note(s, "USB-C is a device port (rpiboot / gadget). As on the CM5IO, CC1/CC2 go straight to the CM5, which presents the sink pull-downs itself; VBUS is not connected (the board is powered from 12 V). USB_OTG_ID floats = device.")
     # bay enables and M.2 controls from GPIO
     for b, g in ((1, 5), (2, 6), (3, 12), (4, 13)):
         d.net(f"BAY_EN{b}", f"M1.GPIO{g}")
@@ -372,9 +379,9 @@ def build() -> Design:
     d.net("M2_PEDET", "M1.GPIO19")
     d.nc("M1.ID_SD", "M1.ID_SC", "M1.GPIO7", "M1.GPIO8", "M1.GPIO9", "M1.GPIO10", "M1.GPIO11")
     # unused high-speed / video pins on M2 unit 2
-    for p in kilib.get("brain-drain:CM5_J2").pins:
-        if p.unit == 2:
-            d.nc(f"M2.{p.number}")
+    for p in kilib.get("brain-drain:CM5").pins:
+        if p.unit == 5:
+            d.nc(f"M1.{p.number}")
 
     # ---------------------------------------------------------------- hubs
     for hub, port, bays in (("A", 0, (1, 2)), ("B", 1, (3, 4))):
@@ -409,14 +416,14 @@ def build() -> Design:
         d.net(f"{u}_XTALI", f"{u}.XTALI/CLK_IN", f"Y{n}.1", f"C{n}00.1")
         d.net(f"{u}_XTALO", f"{u}.XTALO", f"Y{n}.3", f"C{n}01.1")
         # upstream to CM5 USB3-port (CM5 TX has its AC caps on the module)
-        d.net(f"USB3_{port}_TX_P", f"M2.USB3-{port}-TX_P", f"{u}.USB3UP_RXDP")
-        d.net(f"USB3_{port}_TX_N", f"M2.USB3-{port}-TX_N", f"{u}.USB3UP_RXDM")
+        d.net(f"USB3_{port}_TX_P", f"M1.USB3-{port}-TX_P", f"{u}.USB3UP_RXDP")
+        d.net(f"USB3_{port}_TX_N", f"M1.USB3-{port}-TX_N", f"{u}.USB3UP_RXDM")
         d.net(f"{u}_UP_TXDP", f"{u}.USB3UP_TXDP", f"C{n}40.1")
         d.net(f"{u}_UP_TXDM", f"{u}.USB3UP_TXDM", f"C{n}41.1")
-        d.net(f"USB3_{port}_RX_P", f"C{n}40.2", f"M2.USB3-{port}-RX_P")
-        d.net(f"USB3_{port}_RX_N", f"C{n}41.2", f"M2.USB3-{port}-RX_N")
-        d.net(f"USB3_{port}_DP", f"M2.USB3-{port}-DP", f"{u}.USB2UP_DP")
-        d.net(f"USB3_{port}_DM", f"M2.USB3-{port}-DM", f"{u}.USB2UP_DM")
+        d.net(f"USB3_{port}_RX_P", f"C{n}40.2", f"M1.USB3-{port}-RX_P")
+        d.net(f"USB3_{port}_RX_N", f"C{n}41.2", f"M1.USB3-{port}-RX_N")
+        d.net(f"USB3_{port}_DP", f"M1.USB3-{port}-DP", f"{u}.USB2UP_DP")
+        d.net(f"USB3_{port}_DM", f"M1.USB3-{port}-DM", f"{u}.USB2UP_DM")
         # downstream ports 1 and 2 -> bays; ports 3 and 4 disabled via straps
         for pi, bay in zip((1, 2), bays):
             d.part(f"C{n}5{pi}", "Device:C", "100n", s, FP["C0402"], note=f"USB3 DN{pi} TX AC coupling")
@@ -567,23 +574,24 @@ def build() -> Design:
     d.part("SW3", "Switch:SW_Push", "door microswitch", s, FP["SW_DOOR"])
     d.net("3V3_M2", "U50.VIN", "U50.VBIAS", "C500.1")
     d.net("3V3_M2_SW", "U50.VOUT", "C501.1", "J50.3V3", "R501.1", "R504.1", "R505.1")
-    d.net("GND", "U50.GND", "U50.EP", "C500.2", "C501.2", "C502.2", "R500.2", "J50.GND", "SW3.2")
+    d.net("GND", "U50.GND", "U50.EP", "C500.2", "C501.2", "C502.2", "R500.2", "J50.GND", "SW3.2",
+          "J50.S1", "J50.S2", "J50.M3", "J50.M4")
     d.net("U50_CT", "U50.CT", "C502.1")
     d.net("M2_PWR_EN", "U50.ON", "R500.1")
     d.pwr_flag("3V3_M2_SW")
     # PCIe lane 0: CM5 TX (caps on module) -> PET; PER -> series 0R -> CM5 RX
-    d.net("PCIE_TX_P", "M2.PCIe_TX_P", "J50.PETp0")
-    d.net("PCIE_TX_N", "M2.PCIe_TX_N", "J50.PETn0")
+    d.net("PCIE_TX_P", "M1.PCIe_TX_P", "J50.PETp0")
+    d.net("PCIE_TX_N", "M1.PCIe_TX_N", "J50.PETn0")
     d.net("M2_PERp0", "J50.PERp0", "R502.1")
     d.net("M2_PERn0", "J50.PERn0", "R503.1")
-    d.net("PCIE_RX_P", "R502.2", "M2.PCIe_RX_P")
-    d.net("PCIE_RX_N", "R503.2", "M2.PCIe_RX_N")
-    d.net("PCIE_CLK_P", "M2.PCIe_CLK_P", "J50.REFCLKp")
-    d.net("PCIE_CLK_N", "M2.PCIe_CLK_N", "J50.REFCLKn")
-    d.net("PCIE_nRST", "M2.PCIe_nRST", "J50.PERST#")
-    d.net("PCIE_CLKREQ", "M2.PCIe_CLK_nREQ", "J50.CLKREQ#", "R504.2")
-    d.net("PCIE_nWAKE", "M2.PCIE_nWAKE", "J50.PEWAKE#")
-    d.nc("M2.PCIE_PWR_EN")
+    d.net("PCIE_RX_P", "R502.2", "M1.PCIe_RX_P")
+    d.net("PCIE_RX_N", "R503.2", "M1.PCIe_RX_N")
+    d.net("PCIE_CLK_P", "M1.PCIe_CLK_P", "J50.REFCLKp")
+    d.net("PCIE_CLK_N", "M1.PCIe_CLK_N", "J50.REFCLKn")
+    d.net("PCIE_nRST", "M1.PCIe_nRST", "J50.PERST#")
+    d.net("PCIE_CLKREQ", "M1.PCIe_CLK_nREQ", "J50.CLKREQ#", "R504.2")
+    d.net("PCIE_nWAKE", "M1.PCIE_nWAKE", "J50.PEWAKE#")
+    d.nc("M1.PCIE_PWR_EN")
     d.net("M2_PEDET", "J50.CONFIG_1/PEDET", "R501.2")
     d.net("M2_LED_A", "R505.2", "D50.A")
     d.net("M2_DAS", "D50.K", "J50.DAS/DSS#")
@@ -592,6 +600,7 @@ def build() -> Design:
     for p in kilib.get("brain-drain:M2_MKEY").pins:
         if p.name == "NC" or p.name.startswith(("PER", "PET")) and p.name[-1] != "0":
             d.nc(f"J50.{p.number}")
+    d.note(s, "Polarity: CM5 TX_P -> PETp0 (49), TX_N -> PETn0 (47), PERp0 (43) -> RX_P, PERn0 (41) -> RX_N. The CM5IO reference wires both pairs inverted (TX_P to 47, RX_P to 41), which PCIe link training tolerates; either works.")
     d.note(s, "Only PCIe lane 0 is wired (x1). PET = host transmit (CM5 TX, AC caps on the module). PER = host receive: per the M.2 spec the SSD carries its own TX caps, so R502/R503 are 0R; the same 0402 pads take 100n if a module without caps turns up.")
     d.note(s, "PEDET (pin 69) is pulled up and read by GPIO19: an M.2 SATA module grounds it, and the software refuses the bay instead of trying PCIe.")
     d.note(s, "Door switch SW3 to GPIO4 (software pull-up): closed = low = door shut. Software powers the slot (M2_PWR_EN, GPIO27 -> U50) and rescans PCIe.")

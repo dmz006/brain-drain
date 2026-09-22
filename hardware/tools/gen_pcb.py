@@ -27,17 +27,17 @@ PLACEMENT = HW / "tools" / "placement.json"
 BOARD_W, BOARD_H = 180.0, 110.0
 ORIGIN = (20.0, 20.0)  # board top-left on the sheet
 CORNER_R = 3.0
-HOLES = [(4, 4), (BOARD_W - 4, 4), (4, BOARD_H - 4), (BOARD_W - 4, BOARD_H - 4), (BOARD_W / 2, BOARD_H / 2 + 22)]
+HOLES = [(4, 4), (BOARD_W - 4, 4), (4, BOARD_H - 4), (BOARD_W - 4, BOARD_H - 4)]  # CM5 brings its own four
 
 # Regions (x0, y0, x1, y1) in board mm, y down from the rear edge (rear edge = y 0).
 REGIONS = {
     "power-input": (0, 0, 22, 45),
     "power-bucks": (0, 45, 40, 80),
-    "cm5": (40, 40, 120, 95),
+    "cm5": (100, 28, 120, 85),
     "usb3-hub-A": (60, 18, 90, 40),
     "usb3-hub-B": (120, 40, 150, 62),
     "bridge-1": (60, 8, 88, 18), "bridge-2": (90, 8, 118, 18), "bridge-3": (120, 8, 148, 18), "bridge-4": (150, 8, 178, 18),
-    "bay-switch-1": (60, 18, 88, 30), "bay-switch-2": (90, 18, 118, 30), "bay-switch-3": (120, 18, 148, 30), "bay-switch-4": (150, 18, 178, 30),
+    "bay-switch-1": (60, 18, 88, 27), "bay-switch-2": (90, 18, 118, 27), "bay-switch-3": (120, 18, 148, 27), "bay-switch-4": (150, 18, 178, 27),
     "m2-nvme": (120, 62, 178, 108),
 }
 # Fixed anchors: reference -> (x, y, rotation) in board mm
@@ -48,8 +48,8 @@ FIXED = {
     "J7": (56.0, 12.0, 90),           # UART header
     "J6": (52.0, 12.0, 90),           # nRPIBOOT
     "J10": (74.0, 3.0, 0), "J11": (104.0, 3.0, 0), "J12": (134.0, 3.0, 0), "J13": (164.0, 3.0, 0),   # SATA, 30 mm pitch
-    "M1": (70.0, 60.0, 0), "M2": (70.0, 60.0, 0),  # CM5 connectors: J1 and J2 sit 33 mm apart on the module; placed in the GUI
-    "J50": (140.0, 100.0, 0),         # M.2 socket, module extends toward -x along the front edge
+    "M1": (62.0, 80.0, 0),           # CM5: footprint origin is mounting hole MH1; module spans x 58.5-98.5, y 28.5-83.5
+    "J50": (140.0, 97.0, 270),        # M.2 socket; the footprint extends toward local +y, rotated so the module runs toward -x
     "J3": (6.0, 92.0, 90),            # microSD on the left edge
     "J41": (100.0, 104.0, 0), "SW1": (60.0, 104.0, 0), "J40": (30.0, 100.0, 0),
     "D1": (110.0, 106.0, 0), "D2": (114.0, 106.0, 0), "D3": (118.0, 106.0, 0),
@@ -63,7 +63,7 @@ LAYERS = [(0, "F.Cu", "signal"), (1, "In1.Cu", "power"), (2, "In2.Cu", "power"),
           (40, "Dwgs.User", "user"), (41, "Cmts.User", "user"), (44, "Edge.Cuts", "user"), (45, "Margin", "user"),
           (46, "B.CrtYd", "user"), (47, "F.CrtYd", "user"), (48, "B.Fab", "user"), (49, "F.Fab", "user")]
 
-PLACEHOLDER_SIZES = {"brain-drain:SATA_22pin_Receptacle_RA": (27.5, 8.0), "brain-drain:M2_Socket3_MKey_4.2mm": (22.0, 9.0)}
+PLACEHOLDER_SIZES = {"brain-drain:SATA_22pin_Receptacle_RA": (27.5, 8.0)}
 
 
 def footprint_node(comp: design.Comp):

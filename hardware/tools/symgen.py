@@ -145,40 +145,33 @@ def cm5_symbols():
 
     def P(n):
         sig, _ = t[n]
-        return Pin(str(n if n <= 100 else n - 100), _clean(sig), _etype_cm5(sig))
+        return Pin(str(n), _clean(sig), _etype_cm5(sig))
 
     def group(nums):
         return [P(n) for n in nums]
 
-    j1_gnd = [n for n in range(1, 101) if t[n][0] == "GND"]
-    j2_gnd = [n for n in range(101, 201) if t[n][0] == "GND"]
-    pwr = Unit("PWR / CTRL (pins 1-100)",
+    gnd = [n for n in range(1, 201) if t[n][0] == "GND"]
+    pwr = Unit("PWR / CTRL",
                left=group([77, 79, 81, 83, 85, 87, 84, 86, 88, 90, 78, 76, 92, 99, 93, 95, 21, 20, 89, 91, 16, 19]),
-               right=group([94, 96, 80, 82, 97, 100, 73, 75, 18]) + group(j1_gnd))
+               right=group([94, 96, 80, 82, 97, 100, 73, 75, 18]) + group(gnd[:26]))
     gpio_order = {0: 36, 1: 35, 2: 58, 3: 56, 4: 54, 5: 34, 6: 30, 7: 37, 8: 39, 9: 40, 10: 44, 11: 38, 12: 31,
                   13: 28, 14: 55, 15: 51, 16: 29, 17: 50, 18: 49, 19: 26, 20: 27, 21: 25, 22: 46, 23: 47, 24: 45,
                   25: 41, 26: 24, 27: 48}
-    gpio = Unit("GPIO / SD (pins 1-100)",
+    gpio = Unit("GPIO / SD",
                 left=group([gpio_order[i] for i in range(0, 28)]),
-                right=group([57, 62, 63, 67, 69, 61, 68, 64, 72, 70]))
-    eth = Unit("ETHERNET (pins 1-100)",
-               left=group([12, 10, 4, 6, 11, 9, 3, 5]),
-               right=group([17, 15]))
-    j1 = Symbol("CM5_J1", "M", "CM5_J1", "Connector_Hirose_DF40:Hirose_DF40C-100DS-0.4V_2x50_P0.4mm",
-                "Raspberry Pi Compute Module 5, connector J1 (CM5 pins 1-100)", [pwr, gpio, eth],
-                datasheet="https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf", keywords="raspberry pi cm5")
-    hs = Unit("USB / PCIe (pins 101-200, number = pin-100)",
-              left=group([101, 103, 105, 111, 128, 130, 134, 136, 140, 142, 157, 159, 163, 165, 169, 171]),
-              right=group([102, 104, 106, 109, 110, 112, 116, 118, 122, 124]) + group(j2_gnd))
-    rest = [n for n in range(101, 201) if t[n][0] != "GND" and n not in
-            {101, 103, 105, 111, 128, 130, 134, 136, 140, 142, 157, 159, 163, 165, 169, 171,
-             102, 104, 106, 109, 110, 112, 116, 118, 122, 124}]
+                right=group([57, 62, 63, 67, 69, 61, 68, 64, 72, 70]) + group(gnd[26:]))
+    eth = Unit("ETHERNET", left=group([12, 10, 4, 6, 11, 9, 3, 5]), right=group([17, 15]))
+    hs_l = [101, 103, 105, 111, 128, 130, 134, 136, 140, 142, 157, 159, 163, 165, 169, 171]
+    hs_r = [102, 104, 106, 109, 110, 112, 116, 118, 122, 124]
+    hs = Unit("USB / PCIe", left=group(hs_l), right=group(hs_r))
+    rest = [n for n in range(101, 201) if t[n][0] != "GND" and n not in set(hs_l + hs_r)]
     half = (len(rest) + 1) // 2
-    video = Unit("HDMI / MIPI, unused (pins 101-200)", left=group(rest[:half]), right=group(rest[half:]))
-    j2 = Symbol("CM5_J2", "M", "CM5_J2", "Connector_Hirose_DF40:Hirose_DF40C-100DS-0.4V_2x50_P0.4mm",
-                "Raspberry Pi Compute Module 5, connector J2 (CM5 pins 101-200)", [hs, video],
-                datasheet="https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf", keywords="raspberry pi cm5")
-    return [j1, j2]
+    video = Unit("HDMI / MIPI, unused", left=group(rest[:half]), right=group(rest[half:]))
+    cm5 = Symbol("CM5", "M", "CM5002016", "brain-drain:Raspberry-Pi-5-Compute-Module",
+                 "Raspberry Pi Compute Module 5 (both DF40 connectors; footprint from the official CM5IO design files)",
+                 [pwr, gpio, eth, hs, video],
+                 datasheet="https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf", keywords="raspberry pi cm5")
+    return [cm5]
 
 
 def usb5744_symbol():
@@ -285,7 +278,9 @@ def m2_symbol():
 
     odd = [P(n) for n in sorted(t) if n % 2 == 1]
     even = [P(n) for n in sorted(t) if n % 2 == 0]
-    return Symbol("M2_MKEY", "J", "M.2_M-Key_Socket", "brain-drain:M2_Socket3_MKey_4.2mm",
+    even += [Pin("S1", "SHIELD1", "passive"), Pin("S2", "SHIELD2", "passive"),
+             Pin("M3", "GND2260", "passive"), Pin("M4", "GND2280", "passive")]
+    return Symbol("M2_MKEY", "J", "M.2_M-Key_Socket", "brain-drain:M2_Socket3_MKey_CM5IO",
                   "M.2 Socket 3, M key, host side (PCIe x1 used); pins 59-66 are the key notch",
                   [Unit("M.2 M-KEY", odd, even)], keywords="m.2 nvme")
 

@@ -7,7 +7,6 @@
   (lib (name "Capacitor_SMD")(type "KiCad")(uri "${KICAD9_FOOTPRINT_DIR}/Capacitor_SMD.pretty")(options "")(descr ""))
   (lib (name "Connector")(type "KiCad")(uri "${KICAD9_FOOTPRINT_DIR}/Connector.pretty")(options "")(descr ""))
   (lib (name "Connector_Card")(type "KiCad")(uri "${KICAD9_FOOTPRINT_DIR}/Connector_Card.pretty")(options "")(descr ""))
-  (lib (name "Connector_Hirose_DF40")(type "KiCad")(uri "${KICAD9_FOOTPRINT_DIR}/Connector_Hirose_DF40.pretty")(options "")(descr ""))
   (lib (name "Connector_PinHeader_2.54mm")(type "KiCad")(uri "${KICAD9_FOOTPRINT_DIR}/Connector_PinHeader_2.54mm.pretty")(options "")(descr ""))
   (lib (name "Connector_RJ")(type "KiCad")(uri "${KICAD9_FOOTPRINT_DIR}/Connector_RJ.pretty")(options "")(descr ""))
   (lib (name "Connector_USB")(type "KiCad")(uri "${KICAD9_FOOTPRINT_DIR}/Connector_USB.pretty")(options "")(descr ""))
