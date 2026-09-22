@@ -33,7 +33,7 @@ Validated.
 |---|---|---|---|---|
 | Netlist (`design.py`) pin coverage | yes, `design.py` check | no | every pin assigned or NC | |
 | Schematic ERC | yes, 0 errors | no | kicad-cli 9.0.8 | 9 lib-cache warnings on 2N7002, 4 placeholder footprints |
-| Board DRC (v2 outline, unrouted) | yes: 0 errors, silkscreen/isolated-copper warnings | no | kicad-cli 9.0.8, `check_place.py` 0 problems | routing to be rerun on the new outline (R16) |
+| Board DRC (v2 outline, signal nets routed) | yes: 1 error (starved thermal, J5 A1, known), silkscreen warnings only | no | kicad-cli 9.0.8, `check_place.py` 0 problems, freerouting 2.1.0 reported 0 clearance violations | 75/75 signal nets connected; planes, rails, bays and pairs by hand (R4) |
 | Symbols from datasheet tables | yes | no | CM5 datasheet, USB5744 DS00001855M, ASM1153E Rev 0.4 | |
 | Footprints: KPJX-4S-S, RPA0010A | generated | no | Kycon drawing, TI land pattern | first board proves them |
 | Footprints: CM5 module, M.2 socket | copied from CM5IO rev 2 | no | Raspberry Pi design files | M.2 pegs vs TE drawing pending |

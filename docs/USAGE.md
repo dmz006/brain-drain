@@ -58,18 +58,26 @@ python3 tools/gen_sch.py         # brain-drain.kicad_sch + sheets/, ERC via kica
 python3 tools/gen_connections.py # CONNECTIONS.md
 python3 tools/gen_pcb.py         # brain-drain.kicad_pcb: outline, holes, placed footprints with nets
 python3 tools/check_place.py     # every courtyard inside the outline, no clashes (-v lists positions)
-python3 tools/route.py prepare   # net classes, diff-pair rules, copper zones, CM5 hole keep-outs
+python3 tools/route.py prepare   # net classes (written into brain-drain.kicad_pro, which is where KiCad keeps them),
+                                 # diff-pair rules, copper zones, CM5 hole and antenna keep-outs (zones only on a fresh board)
 python3 tools/route.py fanout    # via + stub next to every SMD pad on a plane net (small parts only)
 python3 tools/route.py dsn       # Specctra DSN -> routing/ (full, and lite = no diff pairs / bay nets)
-java -Djava.awt.headless=true -jar tools/freerouting/freerouting-2.1.0.jar -de routing/brain-drain-lite.dsn -do routing/brain-drain-lite.ses -mp 12
-python3 tools/route.py import    # session back into the board, bay nets stripped, zones filled
+java -Djava.awt.headless=true -jar tools/freerouting/freerouting-2.1.0.jar -de routing/brain-drain-lite.dsn -do routing/brain-drain-lite.ses -mp 8 -oit 2
+                                 # (or `route.py all` which runs the whole chain); -oit 2 stops the optimizer looping forever
+python3 tools/route.py import    # session back into the board; bay-net tracks and anything crossing a keep-out stripped; zones filled
 python3 tools/fpgen.py           # project footprints from vendor drawings
 sh tools/render_board.sh         # renders/board-top.png, board-inner.png, board-3d-{top,bottom,iso}.png
 kicad-cli pcb drc --format json --severity-all -o routing/drc.json brain-drain.kicad_pcb
 ```
 
 Open `hardware/brain-drain.kicad_pro` in KiCad 9 to inspect or tidy. Hand
-placement survives regeneration if written to `tools/placement.json`.
+placement survives regeneration if written to `tools/placement.json`. Check the
+DSN before a long router run: its `(rule` block must say `clearance 150` and
+the `(class` list must have four classes; a DSN exported without the project's
+net classes carries KiCad's 0.2 mm default, which makes every 0.4 mm-pitch pad
+a violation and the router routes nothing. Freerouting reads its own limits from
+`/tmp/freerouting/freerouting.json` (`router.max_passes`, default 9999): the run
+ends when the optimizer gives up, which took about 12 minutes here.
 
 ## The phone page and Wi-Fi
 

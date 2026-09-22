@@ -263,7 +263,15 @@ def write_project(root_uuid: str, sheet_uuids: dict[str, str]):
         "sheets": [[root_uuid, "Root"]] + [[u, n] for n, u in sheet_uuids.items()],
         "text_variables": {},
     }
-    (HW / f"{PROJECT}.kicad_pro").write_text(json.dumps(pro, indent=2) + "\n")
+    old = HW / f"{PROJECT}.kicad_pro"
+    if old.exists():   # keep the net classes route.py prepare wrote (the project is their only home)
+        try:
+            prev = json.loads(old.read_text())
+            if len(prev.get("net_settings", {}).get("classes", [])) > 1:
+                pro["net_settings"] = prev["net_settings"]
+        except ValueError:
+            pass
+    old.write_text(json.dumps(pro, indent=2) + "\n")
     used_syms = sorted({c.lib_id.split(":")[0] for c in design.build().comps.values()} | {"power"})
     rows = ['  (lib (name "brain-drain")(type "KiCad")(uri "${KIPRJMOD}/lib/brain-drain.kicad_sym")(options "")(descr "brain-drain project symbols"))']
     rows += [f'  (lib (name "{n}")(type "KiCad")(uri "${{KICAD9_SYMBOL_DIR}}/{n}.kicad_sym")(options "")(descr ""))'

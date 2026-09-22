@@ -48,7 +48,36 @@ def diff_pair_nets(d: design.Design) -> set[str]:
     return out
 
 
+NETCLASSES = {   # name: (track width, clearance, diff-pair gap or None) in mm; vias 0.6/0.3 everywhere
+    "Default": (0.2, 0.15, None), "Power": (0.6, 0.15, None), "DiffPair90": (0.15, 0.15, 0.15), "Bay": (0.25, 0.15, None),
+}
+
+
+def write_project_netclasses(assignments: dict[str, str]) -> None:
+    """Net classes live in the .kicad_pro, not the board: kicad-cli DRC and the DSN export read them from
+    there, and gen_sch.py rewrites the project. So prepare() writes them into the project file itself."""
+    import json
+    pro = HW / "brain-drain.kicad_pro"
+    data = json.loads(pro.read_text()) if pro.exists() else {}
+    classes = []
+    for name, (w, c, gap) in NETCLASSES.items():
+        entry = {"name": name, "clearance": c, "track_width": w, "via_diameter": 0.6, "via_drill": 0.3,
+                 "microvia_diameter": 0.3, "microvia_drill": 0.1, "bus_width": 12, "wire_width": 6,
+                 "line_style": 0, "pcb_color": "rgba(0, 0, 0, 0.000)", "schematic_color": "rgba(0, 0, 0, 0.000)",
+                 "priority": 2147483647 if name == "Default" else list(NETCLASSES).index(name)}
+        if gap:
+            entry["diff_pair_width"] = w; entry["diff_pair_gap"] = gap; entry["diff_pair_via_gap"] = 0.25
+        classes.append(entry)
+    data["net_settings"] = {"classes": classes, "meta": {"version": 4},
+                            "netclass_assignments": None,
+                            "netclass_patterns": [{"netclass": cls, "pattern": net} for net, cls in sorted(assignments.items())]}
+    pro.write_text(json.dumps(data, indent=2) + "\n")
+    print(f"project net classes written: {len(classes)} classes, {len(assignments)} patterns")
+
+
 def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
+    # net codes first: after the net-class edits below, pcbnew's Python net lookups come back untyped
+    codes = {n: board.FindNet(n).GetNetCode() for n in ("GND", "5V_SYS", "5V_HDD", "+3V3", "+12V")}
     ds = board.GetDesignSettings()
     ds.m_SolderMaskMinWidth = 0
     ds.m_SolderMaskExpansion = MM(0.05)
@@ -76,14 +105,18 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
             assignments[net] = "Bay"
     for net, cls in assignments.items():
         ncs.SetNetclassPatternAssignment(net, cls)
-    # copper zones: GND on In1, power islands on In2, GND on B.Cu
-    for z in list(board.Zones()):
-        board.Remove(z)
+    write_project_netclasses(assignments)
+    # copper zones: GND on In1, power islands on In2, GND on B.Cu. Only on a board that has none yet
+    # (gen_pcb.py writes none): removing filled zones that fanout vias connect to corrupts the
+    # Python bindings for the rest of the process, so prepare() never deletes zones.
+    if any(not z.GetIsRuleArea() for z in board.Zones()):
+        print("zones already present; net classes refreshed, zones left as they are")
+        return
     import gen_pcb
     ox, oy = gen_pcb.ORIGIN
     W, H = gen_pcb.BOARD_W, gen_pcb.BOARD_H
     def zone(net_name, layer, rect, priority=0):
-        net = board.GetNetcodeFromNetname(net_name)
+        net = codes[net_name]
         z = pcbnew.ZONE(board)
         z.SetLayer(layer); z.SetNetCode(net)
         z.SetAssignedPriority(priority)
@@ -173,7 +206,7 @@ def fanout(board: pcbnew.BOARD) -> None:
             net = pad.GetNetname()
             if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD or net not in zones_by_net:
                 continue
-            if not any(z.GetBoundingBox().Contains(pad.GetPosition()) for z in zones_by_net[net]):
+            if not any(z.Outline().Contains(pad.GetPosition()) for z in zones_by_net[net]):   # polygon, not bbox: the 5V island is L-shaped
                 continue
             ppos = pad.GetPosition(); px, py = int(ppos.x), int(ppos.y)   # plain ints: SWIG hands back mutable refs
             sz = pad.GetSize(); half = max(int(sz.x), int(sz.y)) / 2
@@ -188,7 +221,7 @@ def fanout(board: pcbnew.BOARD) -> None:
                                    pcbnew.VECTOR2I(via_d + 2 * MM(0.15), via_d + 2 * MM(0.15)))
                 if any(o.Intersects(box) and not o.Contains(pcbnew.VECTOR2I(px, py)) for o in occupied):
                     continue
-                if not any(z.GetBoundingBox().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
+                if not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
                     continue
                 v = pcbnew.PCB_VIA(board)
                 v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
@@ -281,13 +314,17 @@ def filter_dsn(d: design.Design) -> None:
 
 
 def run_freerouting(passes: int = 30) -> int:
+    """Route the lite DSN (single-ended, non-bay nets). The optimizer loops forever without -oit;
+    -mp is ignored by 2.1.0 but kept for newer builds."""
     if JAR is None:
         print("no freerouting jar in tools/freerouting/"); return 1
-    cmd = ["java", "-Djava.awt.headless=true", "-jar", str(JAR), "-de", str(DSN), "-do", str(SES), "-mp", str(passes)]
+    LITE_SES.unlink(missing_ok=True)
+    cmd = ["java", "-Djava.awt.headless=true", "-jar", str(JAR), "-de", str(LITE_DSN), "-do", str(LITE_SES),
+           "-mp", str(passes), "-oit", "2"]
     print(" ".join(cmd))
-    cp = subprocess.run(cmd, capture_output=True, text=True, timeout=3600, stdin=subprocess.DEVNULL)
-    (HW / "routing" / "freerouting.log").write_text(cp.stdout + cp.stderr)
-    print("freerouting rc", cp.returncode, "->", SES.exists())
+    cp = subprocess.run(cmd, capture_output=True, text=True, timeout=7200, stdin=subprocess.DEVNULL)
+    (HW / "routing" / "freerouting-lite.log").write_text(cp.stdout + cp.stderr)
+    print("freerouting rc", cp.returncode, "->", LITE_SES.exists())
     return cp.returncode
 
 
@@ -301,6 +338,25 @@ def import_ses(board: pcbnew.BOARD, d: design.Design) -> None:
         if t.GetNetname() in bays:
             board.Remove(t); removed += 1
     print(f"removed {removed} bay-net track segments/vias (rerouted after the SATA footprint lands)")
+    # the DSN carries no rule areas, so the router may cross the CM5 standoff and antenna keep-outs:
+    # drop those segments and report their nets for hand routing
+    areas = [z for z in board.Zones() if z.GetIsRuleArea() and z.GetDoNotAllowTracks()]
+    cleared = {}
+    for t in list(board.GetTracks()):
+        hit = False
+        for z in areas:
+            outline = z.Outline()
+            if t.GetClass() == "PCB_VIA":
+                hit = outline.Collide(t.GetPosition(), t.GetWidth(pcbnew.F_Cu) // 2)
+            else:
+                hit = outline.Collide(pcbnew.SEG(t.GetStart(), t.GetEnd()), t.GetWidth() // 2)
+            if hit:
+                break
+        if hit:
+            cleared[t.GetNetname()] = cleared.get(t.GetNetname(), 0) + 1
+            board.Remove(t)
+    if cleared:
+        print(f"removed {sum(cleared.values())} segments/vias crossing keep-outs; hand-route: {', '.join(sorted(cleared))}")
     filler = pcbnew.ZONE_FILLER(board)
     filler.Fill(board.Zones())
 
@@ -321,6 +377,8 @@ def main(cmd: str) -> int:
     if cmd in ("fanout", "all"):
         fanout(board)
         pcbnew.SaveBoard(str(PCB), board)
+    if cmd == "dsn":
+        prepare(board, d)   # the export reads the classes from this process's board, so set them again
     if cmd in ("dsn", "all"):
         export_dsn(board)
         filter_dsn(d)

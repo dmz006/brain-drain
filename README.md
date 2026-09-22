@@ -51,7 +51,7 @@ board, a Python service, and a 3D-printed enclosure.
 
 | Directory | Workstream | State |
 |---|---|---|
-| [`hardware/`](hardware/README.md) | KiCad 9 carrier board, 136 × 100 mm: CM5 wireless, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, M.2 | schematic 0 ERC errors; v2 outline placed and DRC-clean, routing to be rerun on it; SATA footprint pending a drawing |
+| [`hardware/`](hardware/README.md) | KiCad 9 carrier board, 136 × 100 mm: CM5 wireless, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, M.2 | schematic 0 ERC errors; v2 outline placed, all 75 signal nets autorouted, planes and high-speed pairs by hand next; SATA footprint pending a drawing |
 | [`software/`](software/README.md) | `braindrain` Python service, simulator, bench tool, Wi-Fi access point + phone page, Pi deployment | 74 tests, ready for the first bench |
 | [`enclosure/`](enclosure/README.md) | OpenSCAD "brain box": tray, hinged lid with snap latch, OLED bezel; about 143 × 107 × 32 mm | STLs export, renders, not printed |
 | [`docs/`](docs/README.md) | architecture, BOM, decisions, status, usage, diagrams | |
