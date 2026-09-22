@@ -130,12 +130,14 @@ def method_chain(policy: Policy, drive) -> list:
         ata.AtaSanitize("crypto"),
         ata.AtaSanitize("block"),
         ata.AtaSecurityErase(enhanced=True),
+        simfw.SimSanitize("crypto"),
         simfw.SimSanitize("block"),
     ]
     nvme_purge = [
         nvme.NvmeSanitize("crypto"),
         nvme.NvmeSanitize("block"),
         nvme.NvmeFormat(ses=1),
+        simfw.SimSanitize("crypto"),
         simfw.SimSanitize("block"),
     ]
     hdd_purge = [

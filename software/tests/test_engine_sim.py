@@ -62,7 +62,7 @@ def test_ssd_uses_simulated_firmware_and_canaries(runner):
     runner.wait_state(4, "DONE", 30)
     c = read(certs(cfg)[0])
     assert c["outcome"] == "sanitized" and c["tier_claimed"] == "purge"
-    assert c["method_used"] == "sim-sanitize-block"
+    assert c["method_used"] == "sim-sanitize-crypto"  # crypto scramble is preferred over block erase
     assert c["verification"]["kind"] == "canary" and c["verification"]["ok"]
     skipped = [a["method"] for a in c["attempts"] if not a["supported"]]
     assert "ata-sanitize-crypto" in skipped  # real firmware methods refuse a sim drive

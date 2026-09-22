@@ -72,11 +72,27 @@ class Config:
     i2c_port: int = 1
     oled_address: int = 0x3C
 
+    # Bay 5: M.2 NVMe slot on the CM5 PCIe lane (ARCHITECTURE.md §3.3, decision C15)
+    m2_bay: int | None = 5
+    m2_door_gpio: int = 4       # microswitch, closed = low
+    m2_pedet_gpio: int = 19     # M.2 pin 69, pulled up; a SATA module grounds it
+    m2_power_gpio: int = 27     # TPS22965 enable for 3V3_M2
+    m2_settle_seconds: float = 1.0   # power-on to PCIe rescan
+    m2_appear_seconds: float = 10.0  # rescan to block device, else power off and retry on next door cycle
+    pci_rescan_path: Path = Path("/sys/bus/pci/rescan")
+
     # Simulation
     sim_dir: Path | None = None
 
     @property
     def bays(self) -> list[int]:
+        bays = sorted(self.bay_ports)
+        if self.m2_bay is not None:
+            bays.append(self.m2_bay)
+        return bays
+
+    @property
+    def usb_bays(self) -> list[int]:
         return sorted(self.bay_ports)
 
     @classmethod

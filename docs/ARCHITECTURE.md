@@ -377,6 +377,15 @@ IDLE ─(drive add)─► DETECTED (identity, SMART pre-check, grace countdown)
      ─(drive remove, from any state)─► IDLE
 ```
 
+Bay 5 (the M.2 slot) adds a slot state in front of this: the slot is unpowered
+until its door switch reads closed and PEDET reads PCIe; the service then
+powers the slot, waits one second, rescans the PCIe bus, and the NVMe device
+that appears enters the same IDLE → DETECTED → RUNNING flow as a USB bay. If
+nothing enumerates within ten seconds the slot is powered off and latched until
+the door is opened again. Opening the door at any point aborts the job,
+detaches the PCIe device, and cuts slot power. A SATA M.2 module (PEDET low) is
+refused with a message on the OLED.
+
 A remove event while RUNNING cancels the worker and writes an `aborted`
 certificate. A drive that re-enumerates in a DONE bay with the same serial
 within 30 s (a bridge glitch) stays DONE rather than being wiped again. Power

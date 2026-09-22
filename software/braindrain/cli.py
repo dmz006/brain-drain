@@ -3,6 +3,8 @@
   braindrain simulate [--sim-dir D] [--grace S] [--display term|log|none]
   braindrain sim-plug BAY --size 256M [--media hdd|ssd|nvme] [--fw crypto,block] [--throttle 20M]
   braindrain sim-unplug BAY
+  braindrain sim-door open|closed  bay 5 access door (M.2 slot powers only while closed)
+  braindrain sim-pedet pcie|sata   M.2 PEDET pin; a SATA module is refused
   braindrain dip 00000000          decode a DIP setting
   braindrain list                  real enumeration + safety-fence verdicts (needs pyudev)
   braindrain run                   the appliance service (real HAL)
@@ -45,10 +47,15 @@ def cmd_simulate(a) -> int:
     dip = sim_dir / "dip"
     if not dip.exists():
         dip.write_text("00000000\n")
+    for name, default in (("door", "closed"), ("pedet", "pcie")):
+        if not (sim_dir / name).exists():
+            (sim_dir / name).write_text(default + "\n")
     cfg = Config.for_simulation(sim_dir, grace_seconds=a.grace, block_size=a.block_size)
     panel, power, _ = make_hal(cfg)
     disp = SimDisplay(a.display, sim_dir)
-    eng = Engine(cfg, SimWatcher(cfg), panel, power, disp, _unit_line(cfg))
+    watcher = SimWatcher(cfg)
+    eng = Engine(cfg, watcher, panel, power, disp, _unit_line(cfg))
+    watcher.visible = eng.m2_visible
     signal.signal(signal.SIGINT, lambda *_: eng.stop.set())
     signal.signal(signal.SIGTERM, lambda *_: eng.stop.set())
     logging.getLogger().info("simulating in %s; plug drives with `braindrain sim-plug`", sim_dir)
@@ -75,6 +82,18 @@ def cmd_sim_unplug(a) -> int:
 
     unplug(Path(a.sim_dir), a.bay)
     print(f"unplugged bay {a.bay}")
+    return 0
+
+
+def cmd_sim_door(a) -> int:
+    (Path(a.sim_dir) / "door").write_text(a.state + "\n")
+    print(f"bay 5 door {a.state}")
+    return 0
+
+
+def cmd_sim_pedet(a) -> int:
+    (Path(a.sim_dir) / "pedet").write_text(a.kind + "\n")
+    print(f"bay 5 PEDET = {a.kind}")
     return 0
 
 
@@ -166,6 +185,16 @@ def main(argv=None) -> int:
     s.add_argument("bay", type=int)
     s.add_argument("--sim-dir", default=str(DEFAULT_SIM_DIR))
     s.set_defaults(fn=cmd_sim_unplug)
+
+    s = sub.add_parser("sim-door", help="open or close the simulated bay 5 door")
+    s.add_argument("state", choices=["open", "closed"])
+    s.add_argument("--sim-dir", default=str(DEFAULT_SIM_DIR))
+    s.set_defaults(fn=cmd_sim_door)
+
+    s = sub.add_parser("sim-pedet", help="simulate the M.2 PEDET pin: pcie (normal) or sata (refused)")
+    s.add_argument("kind", choices=["pcie", "sata"])
+    s.add_argument("--sim-dir", default=str(DEFAULT_SIM_DIR))
+    s.set_defaults(fn=cmd_sim_pedet)
 
     s = sub.add_parser("dip", help="decode a DIP switch setting")
     s.add_argument("bits")

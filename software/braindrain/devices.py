@@ -109,6 +109,9 @@ def classify(info: DevInfo, cfg) -> tuple[int | None, str]:
     if info.size_bytes <= 0:
         return None, "zero capacity (no medium)"
     if info.usb_port is None:
+        name = os.path.basename(info.dev_path)
+        if name.startswith("nvme") and getattr(cfg, "m2_bay", None) is not None:
+            return cfg.m2_bay, "ok (native NVMe, M.2 bay)"
         return None, "not behind a USB port"
     if (info.bridge_vid, info.bridge_pid) not in cfg.allowed_bridges:
         return None, f"bridge {info.bridge_vid}:{info.bridge_pid} not on allow-list"

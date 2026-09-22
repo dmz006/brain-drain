@@ -1,8 +1,8 @@
 # software — `braindrain` sanitizer service
 
 Python 3.11+. Design in `../docs/ARCHITECTURE.md` §4. Status: engine, policy,
-safety fence, host overwrite, verification, certificates and the simulated HAL
-are implemented and tested. The ATA/NVMe firmware wrappers, real GPIO and OLED
+safety fence, host overwrite, verification, certificates, the bay 5 M.2 slot
+controller and the simulated HAL are implemented and tested. The ATA/NVMe firmware wrappers, real GPIO and OLED
 drivers are written but **untested on hardware**.
 
 ## Develop on a workstation (simulation)
@@ -21,6 +21,10 @@ braindrain sim-plug 1 --size 512M --media hdd --prefill          # host overwrit
 braindrain sim-plug 3 --size 256M --media ssd --fw crypto,block  # simulated firmware sanitize + canaries
 braindrain sim-plug 2 --size 2G --throttle 50M                   # slow enough to watch % and ETA
 braindrain sim-unplug 2                                          # aborts bay 2
+braindrain sim-plug 5 --size 256M --media nvme --fw crypto,block # NVMe in the M.2 slot (bay 5)
+braindrain sim-door closed                                       # shut the bay 5 door: slot powers, rescans, wipe starts
+braindrain sim-door open                                         # aborts bay 5 and cuts slot power
+braindrain sim-pedet sata                                        # pretend a SATA M.2 module: refused
 echo 01100000 > ~/.brain-drain-sim/dip                           # switch to legacy 3-pass (DIP 1-3 = 011)
 braindrain dip 01100000                                          # decode a DIP setting
 ```

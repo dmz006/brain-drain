@@ -38,6 +38,9 @@ class BayStatus:
     thread: threading.Thread | None = None
     cert: report.Certificate | None = None
     cert_path: str | None = None
+    # bay 5 only
+    slot: str = "OFF"          # OFF | POWERING | ON | LATCHED (timed out, wait for a door cycle)
+    slot_since: float = 0.0
 
 
 class Engine:
@@ -62,7 +65,9 @@ class Engine:
             paths = report.write_interrupted(self.cfg, prior)
             log.warning("previous session was interrupted; wrote %d certificate(s)", len(paths))
             report.save_state(self.cfg.state_file, {})
-        for i, bay in enumerate(self.cfg.bays):
+        if self.cfg.m2_bay is not None:
+            self.bay_power.set(self.cfg.m2_bay, False)  # the M.2 slot stays dark until its door is shut
+        for i, bay in enumerate(self.cfg.usb_bays):
             if i and self.cfg.stagger_seconds > 0:
                 self.message = f"powering bay {bay}..."
                 self.draw()
@@ -99,12 +104,56 @@ class Engine:
             else:
                 self.on_remove(ev.bay)
         now = time.monotonic()
+        if self.cfg.m2_bay is not None:
+            self.step_m2(now)
         for st in self.bays.values():
             if st.state == "DETECTED":
                 remaining = self.cfg.grace_seconds - (now - st.detected_at)
                 st.countdown = max(0, int(remaining + 0.999))
                 if remaining <= 0:
                     self.start_job(st)
+
+    # ------------------------------------------------------------------- bay 5
+
+    def step_m2(self, now: float) -> None:
+        """Door shut + PCIe module -> power the slot and rescan; door open -> abort, detach, power off."""
+        bay = self.cfg.m2_bay
+        st = self.bays[bay]
+        closed = self.panel.m2_door_closed()
+        if not closed:
+            if st.slot != "OFF":
+                log.info("bay %d: door opened", bay)
+                if st.state in ("DETECTED", "RUNNING", "DONE", "ERROR", "ABORTED"):
+                    dev = st.drive.sysfs_path if st.drive else ""
+                    self.on_remove(bay)
+                    if dev:
+                        self.bay_power.pci_remove(dev)
+                self.bay_power.set(bay, False)
+                st.slot = "OFF"
+            st.message = ""
+            return
+        if st.slot == "LATCHED":
+            return
+        if st.slot == "OFF":
+            if not self.panel.m2_pedet_pcie():
+                if self.message != "bay 5: SATA M.2 not supported":
+                    log.warning("bay %d: PEDET low, M.2 SATA module refused", bay)
+                self.message = "bay 5: SATA M.2 not supported"
+                return
+            self.bay_power.set(bay, True)
+            st.slot, st.slot_since = "POWERING", now
+            self.message = ""
+            return
+        if st.slot == "POWERING" and now - st.slot_since >= self.cfg.m2_settle_seconds:
+            self.bay_power.pci_rescan()
+            st.slot, st.slot_since = "ON", now
+            return
+        if st.slot == "ON" and st.state == "IDLE" and now - st.slot_since > self.cfg.m2_appear_seconds:
+            # nothing enumerated: power down and wait for the next door cycle
+            log.warning("bay %d: no NVMe device appeared within %.0fs; powering slot off", bay, self.cfg.m2_appear_seconds)
+            self.bay_power.set(bay, False)
+            st.slot = "LATCHED"
+            self.message = "bay 5: no NVMe found, reopen door"
 
     # --------------------------------------------------------------------- events
 
@@ -293,3 +342,9 @@ class Engine:
 
     def bay_states(self) -> dict[int, str]:
         return {b: st.state for b, st in self.bays.items()}
+
+    def m2_visible(self, bay: int) -> bool:
+        """For the simulated watcher: the M.2 bay only enumerates while its slot is powered and rescanned."""
+        if bay != self.cfg.m2_bay:
+            return True
+        return self.bays[bay].slot == "ON"

@@ -23,6 +23,13 @@ def bay_line(bay: int, st) -> str:
     """st is an engine.BayStatus-like object with .state, .drive, .progress, .message."""
     state = st.state
     if state == "IDLE":
+        slot = getattr(st, "slot", None)
+        if slot == "OFF" and bay == 5:
+            return fit(f"{bay} ---- door open")
+        if slot in ("POWERING", "ON") and bay == 5:
+            return fit(f"{bay} ---- scanning")
+        if slot == "LATCHED" and bay == 5:
+            return fit(f"{bay} ---- no NVMe")
         return fit(f"{bay} ----")
     d = st.drive
     if state == "DETECTED":

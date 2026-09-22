@@ -2,6 +2,8 @@
 
 DIP: the file <sim_dir>/dip holds 8 characters of 0/1 (DIP1 first). Edit it
 any time; it is re-read whenever the engine needs it. Missing file = all OFF.
+Bay 5: <sim_dir>/door holds "closed" or "open" (missing = open), <sim_dir>/pedet
+holds "pcie" or "sata" (missing = pcie).
 Display: "term" redraws the 8 OLED lines in place, "log" prints on change,
 "none" is silent (tests). The latest frame is always in <sim_dir>/display.txt.
 """
@@ -34,6 +36,18 @@ class SimPanel(Panel):
             log.info("status LED -> %s", color)
             self.status = color
 
+    def m2_door_closed(self) -> bool:
+        try:
+            return (self.path.parent / "door").read_text().strip().lower() == "closed"
+        except OSError:
+            return False
+
+    def m2_pedet_pcie(self) -> bool:
+        try:
+            return (self.path.parent / "pedet").read_text().strip().lower() != "sata"
+        except OSError:
+            return True
+
     def buzz(self, pattern: str) -> None:
         log.info("buzzer: %s", pattern)
 
@@ -46,6 +60,15 @@ class SimBayPower(BayPower):
         if self.state.get(bay) != on:
             log.info("bay %d power %s", bay, "ON" if on else "OFF")
         self.state[bay] = on
+
+    def is_on(self, bay: int) -> bool:
+        return self.state.get(bay, False)
+
+    def pci_rescan(self) -> None:
+        log.info("pci rescan (simulated)")
+
+    def pci_remove(self, sysfs_path: str) -> None:
+        log.info("pci remove %s (simulated)", sysfs_path)
 
 
 class SimDisplay(Display):

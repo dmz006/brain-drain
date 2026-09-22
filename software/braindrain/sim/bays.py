@@ -80,10 +80,11 @@ class SimEvent:
 class SimWatcher:
     """Polls the bay directories and yields add/remove events like udev would."""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, visible=None):
         self.cfg = cfg
         self.sim_dir = Path(cfg.sim_dir)
         self.present: dict[int, str] = {}  # bay -> serial
+        self.visible = visible or (lambda bay: True)  # bay 5 only enumerates while powered
 
     def poll(self) -> list[SimEvent]:
         events: list[SimEvent] = []
@@ -91,7 +92,7 @@ class SimWatcher:
             d = bay_dir(self.sim_dir, bay)
             meta = d / "drive.json"
             img = d / "drive.img"
-            here = meta.exists() and img.exists()
+            here = meta.exists() and img.exists() and self.visible(bay)
             if here and bay not in self.present:
                 try:
                     data = json.loads(meta.read_text())
