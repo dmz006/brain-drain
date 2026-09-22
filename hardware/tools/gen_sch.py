@@ -184,6 +184,7 @@ def place_sheet(d: design.Design, sheet: str) -> list[Placed]:
 
 
 def render_sheet(d: design.Design, sheet: str, root_uuid: str, sheet_uuid: str, pin_net, needs_flag):
+    sexp._counter[0] = 100000 * (1 + [n for n, _ in d.sheets].index(sheet))
     placed = place_sheet(d, sheet)
     body = []
     libs: dict[str, list] = {}

@@ -76,8 +76,17 @@ def find_all(node, tag):
     return [c for c in node if isinstance(c, list) and c and c[0] == tag]
 
 
+_counter = [0]
+
+
 def new_uuid() -> str:
-    return str(_uuid.uuid4())
+    """Deterministic UUIDs (sequence-based uuid5) so regenerated files diff cleanly."""
+    _counter[0] += 1
+    return str(_uuid.uuid5(_uuid.NAMESPACE_URL, f"brain-drain/{_counter[0]}"))
+
+
+def reset_uuids(seed: str = "") -> None:
+    _counter[0] = hash(seed) % 1000 if seed else 0
 
 
 def fmt(x: float) -> str:
