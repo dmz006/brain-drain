@@ -7,7 +7,10 @@
   braindrain sim-pedet pcie|sata   M.2 PEDET pin; a SATA module is refused
   braindrain dip 00000000          decode a DIP setting
   braindrain list                  real enumeration + safety-fence verdicts (needs pyudev)
-  braindrain run                   the appliance service (real HAL)
+  braindrain run [--config F]      the appliance service (real or headless HAL per the config)
+  braindrain status [--config F]   last display frame and bay states
+  braindrain config-init [--headless] [--config F]   write a starting config file
+  braindrain setup-bay BAY /dev/sdX [--config F]     map the dock behind /dev/sdX to a bay
   braindrain bench /dev/sdX        USB-SATA bridge passthrough tests (see bench.py)
 """
 
@@ -20,7 +23,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .config import Config
+from .config import DEFAULT_CONFIG_PATH, Config
 from .policy import Dip, Policy
 
 DEFAULT_SIM_DIR = Path.home() / ".brain-drain-sim"
@@ -107,7 +110,7 @@ def cmd_dip(a) -> int:
 def cmd_list(a) -> int:
     from .devices import collect_real
 
-    cfg = Config()
+    cfg = Config.load(a.config)
     rows = collect_real(cfg)
     for info, bay, reason in rows:
         tag = f"BAY {bay}" if bay else "skip "
@@ -140,12 +143,64 @@ def cmd_bench(a) -> int:
     return 1 if fails else 0
 
 
+def cmd_config_init(a) -> int:
+    cfg = Config()
+    cfg.display_file = Path("/var/lib/brain-drain/display.txt")
+    if a.headless:
+        cfg.hal = "headless"
+        cfg.m2_bay = None
+        cfg.bay_ports = {}
+    path = cfg.save(a.config)
+    print(f"wrote {path} (hal={cfg.hal}); edit bay_ports / allowed_bridges or use `braindrain setup-bay`")
+    return 0
+
+
+def cmd_setup_bay(a) -> int:
+    from .devices import describe_device
+
+    cfg = Config.load(a.config)
+    info = describe_device(a.device)
+    if info is None:
+        print(f"{a.device}: not found")
+        return 1
+    if info.usb_port is None:
+        print(f"{a.device}: not behind a USB port (internal disk?) - refusing")
+        return 1
+    if info.is_system:
+        print(f"{a.device}: holds a mounted filesystem, root or swap - refusing")
+        return 1
+    cfg.bay_ports[a.bay] = info.usb_port
+    bridge = (info.bridge_vid, info.bridge_pid)
+    if bridge not in cfg.allowed_bridges:
+        cfg.allowed_bridges = frozenset(cfg.allowed_bridges | {bridge})
+        print(f"added bridge {info.bridge_vid}:{info.bridge_pid} to the allow-list")
+    cfg.save(a.config)
+    print(f"bay {a.bay} = USB port {info.usb_port} ({info.bridge_vid}:{info.bridge_pid}) -> {a.config}")
+    print("note: the mapping is by USB *port*; any drive plugged into that dock is now a wipe target")
+    return 0
+
+
+def cmd_status(a) -> int:
+    cfg = Config.load(a.config)
+    if cfg.display_file and Path(cfg.display_file).exists():
+        print(Path(cfg.display_file).read_text(), end="")
+    else:
+        print("no display file yet (is the service running?)")
+    st = Path(cfg.state_file)
+    if st.exists():
+        print("state:", st.read_text().strip()[:400])
+    return 0
+
+
 def cmd_run(a) -> int:
     from .engine import Engine
     from .hal import make_hal
     from .sim.udev import UdevWatcher
 
-    cfg = Config()
+    cfg = Config.load(a.config)
+    if cfg.hal == "real" and not cfg.bay_ports:
+        print("config has no bay_ports; run `braindrain setup-bay` first", file=sys.stderr)
+        return 2
     panel, power, disp = make_hal(cfg)
     eng = Engine(cfg, UdevWatcher(cfg), panel, power, disp, _unit_line(cfg))
     signal.signal(signal.SIGTERM, lambda *_: eng.stop.set())
@@ -201,7 +256,23 @@ def main(argv=None) -> int:
     s.set_defaults(fn=cmd_dip)
 
     s = sub.add_parser("list", help="enumerate real disks and show fence verdicts")
+    s.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
     s.set_defaults(fn=cmd_list)
+
+    s = sub.add_parser("status", help="show the last display frame and state")
+    s.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    s.set_defaults(fn=cmd_status)
+
+    s = sub.add_parser("config-init", help="write a starting config file")
+    s.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    s.add_argument("--headless", action="store_true", help="Pi + USB docks, no carrier board")
+    s.set_defaults(fn=cmd_config_init)
+
+    s = sub.add_parser("setup-bay", help="map the USB dock behind a block device to a bay number")
+    s.add_argument("bay", type=int)
+    s.add_argument("device", help="/dev/sdX currently attached through the dock")
+    s.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    s.set_defaults(fn=cmd_setup_bay)
 
     s = sub.add_parser("bench", help="test ATA passthrough through a USB-SATA bridge")
     s.add_argument("device", help="/dev/sdX of the drive behind the bridge")
@@ -213,6 +284,7 @@ def main(argv=None) -> int:
     s.set_defaults(fn=cmd_bench)
 
     s = sub.add_parser("run", help="run the appliance service on real hardware")
+    s.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
     s.set_defaults(fn=cmd_run)
 
     a = ap.parse_args(argv)

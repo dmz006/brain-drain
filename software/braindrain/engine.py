@@ -339,6 +339,12 @@ class Engine:
             self.display.show(lines)
         except Exception as e:  # noqa: BLE001
             log.error("display: %s", e)
+        if self.cfg.display_file:
+            try:
+                self.cfg.display_file.parent.mkdir(parents=True, exist_ok=True)
+                self.cfg.display_file.write_text("\n".join(lines) + "\n")
+            except OSError:
+                pass
 
     def bay_states(self) -> dict[int, str]:
         return {b: st.state for b, st in self.bays.items()}

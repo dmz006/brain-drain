@@ -1,0 +1,18 @@
+[Unit]
+Description=brain-drain disk sanitizer
+After=network-online.target systemd-udevd.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/brain-drain/venv/bin/braindrain run --config /etc/brain-drain/config.json
+Restart=always
+RestartSec=3
+User=root
+Environment=PYTHONUNBUFFERED=1
+StateDirectory=brain-drain
+# raw block access, udev, gpio, i2c
+SupplementaryGroups=disk gpio i2c
+
+[Install]
+WantedBy=multi-user.target

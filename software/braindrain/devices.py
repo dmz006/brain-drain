@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import blockio
+from .config import Config
 from .policy import Media
 
 log = logging.getLogger(__name__)
@@ -194,6 +195,14 @@ def collect_real(cfg) -> list[tuple[DevInfo, int | None, str]]:
         bay, reason = classify(info, cfg)
         out.append((info, bay, reason))
     return out
+
+
+def describe_device(dev_path: str) -> DevInfo | None:
+    """DevInfo for one block device (pyudev), or None if it does not exist."""
+    for info, _bay, _reason in collect_real(Config()):
+        if info.dev_path == dev_path:
+            return info
+    return None
 
 
 # ------------------------------------------------------------------------ identity
