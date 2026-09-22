@@ -32,8 +32,8 @@ def rot(view):
         "bottom": np.diag([1, -1, -1.0]),
         "iso": rx(60) @ rz(-30),
         "iso2": rx(60) @ rz(35),
-        "front": rx(90) @ rz(180),      # looking at the +y (front) face
-        "rear": rx(90),                 # looking at the -y (rear, cables) face
+        "front": rx(90),                # looking at the +y (front, vents) face
+        "rear": rx(90) @ rz(180),       # looking at the -y (rear, cables) face
         "left": rx(90) @ rz(90),
     }[view]
 

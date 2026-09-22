@@ -12,6 +12,7 @@ PY = ../software/.venv/bin/python
 preview: stl/tray.stl stl/lid.stl
 	$(PY) tools/stl_preview.py stl/tray.stl stl/tray-iso.png --view iso
 	$(PY) tools/stl_preview.py stl/lid.stl stl/lid-inside.png --view top
+	# side (front/rear/left) views are not reliable with this painter renderer; use the isometric views
 clean:
 	rm -f stl/*.stl stl/*.png
 .PHONY: all clean preview
