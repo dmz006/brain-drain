@@ -127,7 +127,7 @@ def filter_dsn(d: design.Design) -> None:
     autorouter gets a problem it can finish. Textual filter: the DSN's
     (string_quote ") directive defeats a generic s-expression parser."""
     text = DSN.read_text()
-    skip = bay_nets(d) | diff_pair_nets(d)
+    skip = bay_nets(d) | diff_pair_nets(d) | POWER_NETS | {n for n in d.nets if n.startswith(('12V_BAY', '5V_BAY'))}
 
     def block_end(i):  # index just past the balanced block starting at text[i] == "("
         depth = 0; j = i; inq = False
@@ -180,7 +180,7 @@ def filter_dsn(d: design.Design) -> None:
             out.append(text[pos:i]); out.append(blk); pos = j
     out.append(text[pos:])
     LITE_DSN.write_text("".join(out))
-    print(f"lite DSN: kept {kept} nets, dropped {dropped} (diff pairs + bay nets) -> {LITE_DSN.relative_to(HW)}")
+    print(f"lite DSN: kept {kept} nets, dropped {dropped} (diff pairs, bay nets, power nets carried by zones) -> {LITE_DSN.relative_to(HW)}")
 
 
 def run_freerouting(passes: int = 30) -> int:

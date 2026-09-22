@@ -19,7 +19,7 @@ blocked lists with stable ids (never reused).
 | R1 | SATA 22-pin footprint from Molex drawing SD-47018-001 | B1 | then regenerate board, reroute the four bays |
 | R2 | Verify the M.2 socket footprint pegs against the TE 2199230-4 drawing | B2 | footprint currently from CM5IO (different vendor, same land pattern) |
 | R3 | Wire the DIN jack pins to the chosen 12 V brick's pinout | B3 | `design.py` J21 note |
-| R4 | Finish routing: review the autoroute, hand-route USB 3 / SATA / PCIe pairs, length-match, DRC clean | R1 | in KiCad GUI; net classes and zones are set |
+| R4 | Route the board in the KiCad GUI: power first, then USB 3 / SATA / PCIe pairs with length matching, DRC clean | R1 | net classes and copper zones are set by `route.py prepare`. Autorouting was tried on 2026-09-23 with freerouting 2.1.0: the full board stalled at 646 unrouted after 35 passes, a reduced net set at 443 (logs in `hardware/routing/*-attempt.log`, gitignored). Likely causes: ground/power pins routed as tracks instead of via zones, tight 0.15 mm pair rules, placeholder SATA pads, auto-placement overlaps. Treat autorouting as not viable for this board |
 | R5 | Bench: bridge Sanitize / Security Erase passthrough, hot-plug behaviour, hdparm status parser fixture | Saturday 2026-09-26 | closes C12 with evidence; may reorder `policy.py` chains |
 | R6 | Identify the ASM1153E LED GPIO (assumed GPIO0) | first board | |
 | R7 | Confirm USB5744 port-disable strap resistor value and crystal load caps | datasheet re-read | notes in `CONNECTIONS.md` |
