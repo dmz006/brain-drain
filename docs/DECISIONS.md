@@ -33,3 +33,4 @@ chosen and why, so nobody re-litigates them later.
 | C17 | SATA bay receptacle | **Molex 47018-4001**, right-angle SMT 22-pin host receptacle | industry standard, precise sales drawing SD-47018-001, easy small-quantity sourcing | 2026-09-23 |
 | C18 | M.2 socket | **TE 2199230-4**, 4.2 mm M-key | most common small-run M.2 socket, stocked at distributors and JLCPCB | 2026-09-23 |
 | C19 | Board outline | **Option A: 180 × 110 mm**, all cables on the rear edge (DIN, RJ45, USB-C/UART, 4× SATA), CM5 centred, M.2 along the front with its door on a side wall | one enclosure wall with cutouts, single cable exit, M.2 door away from cables, fits a 220 mm print bed | 2026-09-23 |
+| C20 | Licence | **Polyform Noncommercial 1.0.0** for hardware, software and enclosure | matches the owner's datawatch project; source-available, noncommercial | 2026-09-23 |

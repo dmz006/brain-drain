@@ -40,7 +40,7 @@ blocked lists with stable ids (never reused).
 | B2 | TE 2199230-4 customer drawing | owner downloads | same |
 | B3 | 12 V / 10 A brick selection and its DIN pinout | owner chooses | same |
 | B4 | Bench results 2026-09-26 (JSON under `hardware/ref/bench/`) | bench day | `docs/saturday-bench-plan.md` |
-| B5 | Repository licence and visibility | owner decides | needed before the first push |
+| B5 | Repository visibility and GitHub auth | owner decides; licence chosen (Polyform Noncommercial, C20) | needed before the first push |
 
 ## What is verified vs. assumed
 

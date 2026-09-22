@@ -422,7 +422,10 @@ schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
   holes. No button: the DIP switch is the only control. Sides: vents. Fan grille over the CM5 cooler.
 * **Print:** PETG or ASA, 0.2 mm layers, no supports required by design
   (chamfered overhangs, lid printed upside down).
-* **Later:** a matching 4-slot drive rack that keeps the pigtails tidy.
+* **Refinements (`enclosure/refinements.scad`):** hinged M.2 door with a
+  filament-pin hinge and tray-side knuckles, an OLED bezel that clamps the module
+  under the lid window, rubber-feet pockets, and a four-slot drive rack with a
+  2.5" groove and pigtail notches. Renders in `enclosure/renders/`.
 
 ## 6. Cross-cutting
 

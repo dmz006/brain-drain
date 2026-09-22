@@ -75,3 +75,9 @@ This device destroys data by design. The software's safety fence only ever
 targets whole disks behind an allow-listed USB bridge on a configured bay port,
 or the M.2 slot, and never anything mounted or holding the root filesystem.
 Treat every drive that touches a bay as gone.
+
+## Licence
+
+[Polyform Noncommercial 1.0.0](LICENSE): you may use, modify and share this
+project for noncommercial purposes. Commercial use needs permission from the
+author. Applies to the hardware sources, the software and the enclosure alike.
