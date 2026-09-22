@@ -6,6 +6,7 @@
   braindrain dip 00000000          decode a DIP setting
   braindrain list                  real enumeration + safety-fence verdicts (needs pyudev)
   braindrain run                   the appliance service (real HAL)
+  braindrain bench /dev/sdX        USB-SATA bridge passthrough tests (see bench.py)
 """
 
 from __future__ import annotations
@@ -98,6 +99,28 @@ def cmd_list(a) -> int:
     return 0
 
 
+def cmd_bench(a) -> int:
+    from .bench import Bench, confirm_destructive
+
+    b = Bench(a.device, destructive=a.destructive, sanitize=a.sanitize, io_bytes=a.io_mib << 20)
+    if a.destructive:
+        b.bridge()
+        b.identify()
+        if not b.ident:
+            return 1
+        if not a.yes and not confirm_destructive(b.ident["serial"], b.ident["model"]):
+            print("aborted")
+            return 1
+        b.report.checks.clear()
+    rep = b.run_all()
+    path = b.save(Path(a.out_dir))
+    fails = [c.name for c in rep.checks if c.ok is False]
+    passes = len([c for c in rep.checks if c.ok])
+    print(f"\n{rep.bridge_name} ({rep.bridge_id}) with {rep.drive.get('model')}: "
+          f"{passes} pass, {len(fails)} fail -> {path}")
+    return 1 if fails else 0
+
+
 def cmd_run(a) -> int:
     from .engine import Engine
     from .hal import make_hal
@@ -150,6 +173,15 @@ def main(argv=None) -> int:
 
     s = sub.add_parser("list", help="enumerate real disks and show fence verdicts")
     s.set_defaults(fn=cmd_list)
+
+    s = sub.add_parser("bench", help="test ATA passthrough through a USB-SATA bridge")
+    s.add_argument("device", help="/dev/sdX of the drive behind the bridge")
+    s.add_argument("--destructive", action="store_true", help="also run write test and SECURITY ERASE")
+    s.add_argument("--sanitize", action="store_true", help="also run SANITIZE (hours on an HDD)")
+    s.add_argument("--yes", action="store_true", help="skip the serial-number confirmation")
+    s.add_argument("--io-mib", type=int, default=1024, help="MiB for read/write speed tests")
+    s.add_argument("--out-dir", default=".", help="where to write bench-*.json")
+    s.set_defaults(fn=cmd_bench)
 
     s = sub.add_parser("run", help="run the appliance service on real hardware")
     s.set_defaults(fn=cmd_run)
