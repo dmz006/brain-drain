@@ -70,7 +70,7 @@ boards would be about $450–600 for the boards and $120–150 per unit on top.
 
 | # | Gate | Status |
 |---|---|---|
-| 1 | Routing finished and DRC-clean (STATUS R4, R22, D7) | 81 % autorouted, copper DRC-clean; pairs and the last supply pins need a designer or another iteration |
+| 1 | Routing finished and DRC-clean (STATUS R4, R22, D7, D8) | 83 % autorouted, copper DRC-clean; the QFN supply pins (D8) and pair matching remain |
 | 2 | SATA receptacle footprint from the Molex drawing (R1, B1) | placeholder |
 | 3 | M.2 socket peg check (R2, B2) | pending |
 | 4 | DIN pinout matched to the chosen brick (R3, B3) | pending |

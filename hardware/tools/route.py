@@ -679,6 +679,8 @@ def fanout_conn(board: pcbnew.BOARD) -> None:
         layer = pcbnew.B_Cu if f.IsFlipped() else pcbnew.F_Cu
         fcx, fcy = f.GetPosition().x, f.GetPosition().y
         eps = [p for p in pads if min(pad_size(p)) >= MM(1.2) or not str(p.GetNumber())]   # exposed pads, incl. split ones
+        if eps and ref.startswith("U"):
+            continue   # QFNs: a via ring outside 0.4 mm pin rows blocks the neighbours' escapes; the router does these
         ep_keys = {(str(e.GetNumber()), int(e.GetPosition().x), int(e.GetPosition().y)) for e in eps}
         # rows: pads with the same orientation sharing the coordinate along their long axis
         rows = {}

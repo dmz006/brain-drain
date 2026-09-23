@@ -26,6 +26,10 @@ revisions are noted in the entries.
 - `docs/FABRICATION.md`: small-run assembly vendors, cost estimate, order gates and checklist.
 
 ### Changed
+- Board v3 (D7 option B): 150 × 112 mm, 2.5 mm around every QFN, hubs under the CM5 USB 3 pins, M.2
+  front-right; pipeline rerun: 733 / 884 connections (83 %), 3300 segments, 738 vias, DRC copper-clean,
+  21 of 48 pairs routed (unmatched). The connector fanout no longer touches QFNs (its via ring blocked
+  the neighbouring pins); D8 proposes 0.3/0.15 mm vias for the QFN supply pins as the next lever.
 - Staged autorouting completed as far as the tools go (2026-09-23): 719 / 884 connections (81 %), 3175
   segments, 658 vias, DRC copper-clean. Tooling: staged runs with locked routes (`stage1/2/3`), `-inc`
   class ignoring, `BD_ROUTER=2.4.1` / `BD_PASSES` for the newer bounded router, `drc-clean`, geometry-aware
