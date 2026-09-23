@@ -1,6 +1,6 @@
 # enclosure — parametric OpenSCAD "brain box"
 
-The unit is a printed box (about 143 × 107 × 32 mm outside) that goes in a
+The unit is a printed box (about 157 × 119 × 32 mm outside) that goes in a
 backpack with its 12 V brick and four 22-pin cables; drives lie loose on the
 bench while they are wiped (decisions C21–C23). The lid is hinged along the rear
 edge and snaps shut at the front: open it to fit an M.2 SSD. Printed parts are

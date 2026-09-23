@@ -236,22 +236,24 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
 
 ### 3.10 PCB
 
-* **Size:** 136 × 100 mm (decisions C21–C23, supersede C19's 180 × 110). Rear
-  edge: the four SATA receptacles only. Right wall: DIN 12 V, USB-C rpiboot,
-  microSD, fan header. Left edge: the CM5 wireless module's antenna edge (the
-  short edge with mounting hole MH1) sits flush with the board edge, with an
-  8 mm copper-free strip on all four layers under it and no metal part within
-  10 mm (CM5 datasheet 4.1.2). Rows from the rear: the receptacles; behind each
-  one its power-switch block directly behind the power pads and the bridge QFN
-  behind the data pads, with the bridge passives in the band below (so the 12 V
-  and 5 V bay tracks never cross the bridge); then the CM5 in landscape at the left (x 0–55, y 34–74), the two
-  hubs and the buck / input column to its right; the M.2 socket front-left with
-  the 2280 module lying along the front (its switch and 0402/0603 passives sit
-  under the SSD, under 1.5 mm tall), the DIP switch front-right, the lid
-  microswitch rear-right. The CR2032 holder and the two service headers are on
-  the bottom side under the CM5, inside the 6 mm standoff height. Placement is
-  generated (`gen_pcb.py`) and checked for outline and courtyard clashes
-  (`check_place.py`).
+* **Size:** 150 × 112 mm (v3, decision D7 option B, 2026-09-23; v2 was
+  136 × 100, C19 was 180 × 110). Rear edge: the four SATA receptacles only.
+  Right wall: USB-C rpiboot, microSD, DIN 12 V. Left edge: the CM5 wireless
+  module's antenna edge (the short edge with mounting hole MH1) sits flush with
+  the board edge, with an 8 mm copper-free strip on all four layers under it and
+  no metal part within 10 mm (CM5 datasheet 4.1.2). Rows from the rear: the
+  receptacles; behind each one its power-switch block directly behind the power
+  pads and the bridge QFN behind the data pads, the bridge passives in the band
+  below, every QFN with at least 2.5 mm of free board around it. Then the CM5 in
+  landscape at the left (x 0–55, y 39–79). Its USB 3 and PCIe pins are on the
+  connector row nearest the front, so the two hubs sit in the front-left corner
+  right under them, and the M.2 socket is front-right with the 2280 module lying
+  toward the middle (its switch and 0402/0603 passives sit under the SSD, under
+  1.5 mm tall). Buck and input column right of the CM5, DIP switch and fan header
+  in the right column, lid microswitch rear-right. The CR2032 holder and the two
+  service headers are on the bottom side under the CM5, inside the 6 mm standoff
+  height. Placement is generated (`gen_pcb.py`) and checked for outline and
+  courtyard clashes (`check_place.py`).
 * **Stack:** 4-layer, 1.6 mm, ENIG. Sig / GND / PWR / Sig. Target the JLCPCB
   JLC04161H-7628 stackup so controlled impedance is free: 90 Ω differential for
   USB 3 SS and SATA pairs, 85 Ω for the PCIe Gen3 pair to the M.2 slot. Length-match
@@ -436,7 +438,7 @@ schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
 * **Tool:** OpenSCAD, everything driven from `enclosure/params.scad`. Connector
   positions are generated from the KiCad PCB by a small script
   (`enclosure/tools/kicad_to_scad.py`) so the shell tracks the board.
-* **Form (C21–C23):** a box about 143 × 107 × 32 mm, bottom tray + a lid hinged
+* **Form (C21–C23):** a box about 157 × 119 × 32 mm, bottom tray + a lid hinged
   along the rear top edge (filament pin) with a snap latch at the front, so it
   pops open for the M.2 SSD; a lid microswitch is the bay-5 "door". Board on
   M2.5 heat-set inserts. Rear wall: 4× SATA 22-pin windows (the drive cables).

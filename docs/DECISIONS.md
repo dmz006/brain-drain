@@ -8,7 +8,7 @@ chosen and why, so nobody re-litigates them later.
 | # | Decision | Options | Recommendation | Blocks |
 |---|---|---|---|---|
 | D5 | OLED | 0.96"/1.3" 4-pin I2C vs 2.42" SSD1309 | 0.96"/1.3" for v1 | enclosure |
-| D7 | Finishing the board | (a) a board designer finishes the last 19 % (pairs + congested supply pins) in the KiCad GUI, about 1–2 days; (b) a placement iteration for the router: about 150 × 110 mm with 2.5 mm around every QFN and the hubs next to the CM5's USB 3 pins, then rerun the pipeline; (c) finer fab rules (0.1 mm track / 0.1 mm space, 0.3/0.15 vias, still standard at JLCPCB for a small upcharge) and rerun | owner's call; (a) is the usual path, (b) trades the "brain box" size the owner chose, (c) is cheap to try | routing |
+| D7 | Finishing the board | **(b) chosen 2026-09-23** ("try b, size can increase some if it helps"): board v3 at 150 × 112 mm, 2.5 mm around every QFN, hubs under the CM5's USB 3 pins, M.2 front-right; pipeline rerun. Alternatives kept: (a) a board designer finishes the rest in the KiCad GUI; (c) finer fab rules (0.1 / 0.1 mm, 0.3/0.15 vias) | owner's call | routing |
 | D6 | Option B: bridges move into the cables | board = CM5 + hubs + 4× USB-A + switched 12 V/5 V outputs, about 90 × 70 mm; commercial USB 3 to SATA cables | parked by the owner on 2026-09-23 as a later study; A (C21) is being built | nothing now |
 | D8 | Build order | software-sim first / schematic first / enclosure first | software-sim first (ARCHITECTURE §8) | everything |
 

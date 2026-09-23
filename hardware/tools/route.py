@@ -166,13 +166,11 @@ def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
 
     zone("GND", pcbnew.In1_Cu, (0, 0, W, H))
     zone("GND", pcbnew.B_Cu, (0, 0, W, H))
-    # In2 power islands for the 136x100 layout (gen_pcb.py REGIONS): one contiguous polygon per rail,
-    # built from rectangles; a higher priority island wins where they overlap.
-    # 5V_SYS: bridge row, a link past bay 1's switch region, the CM5 and the M.2/front band
-    zone("5V_SYS", pcbnew.In2_Cu, [(0, 0), (124, 0), (124, 22), (14, 22), (14, 33), (56, 33), (56, 75), (100, 75), (100, H), (0, H)], 1)
-    zone("5V_HDD", pcbnew.In2_Cu, (14, 22, 124, 33), 1)      # bay switch row
-    zone("+3V3", pcbnew.In2_Cu, (56, 33, 80, 75), 2)         # hubs column
-    zone("+12V", pcbnew.In2_Cu, (80, 33, W, 82), 3)          # bucks, input block, bulk caps, right wall column
+    # In2 power islands for the 150x112 layout (gen_pcb.py REGIONS); a higher priority island wins overlaps
+    zone("5V_SYS", pcbnew.In2_Cu, [(0, 0), (126, 0), (126, 38), (150, 38), (150, 62), (100, 62), (100, 80), (56, 80), (56, 112), (0, 112), (0, 38)], 1)
+    zone("5V_HDD", pcbnew.In2_Cu, (0, 9, 126, 23), 2)          # bay switch blocks
+    zone("+3V3", pcbnew.In2_Cu, (8, 82, 56, 112), 2)           # hub corner
+    zone("+12V", pcbnew.In2_Cu, (56, 39, 100, 80), 3)          # buck column, input block, bulk caps
     # CM5 antenna strip: no copper on any layer, nothing routed (CM5 datasheet 4.1.2)
     ax0, ay0, ax1, ay1 = gen_pcb.ANTENNA_STRIP
     ka = pcbnew.ZONE(board)

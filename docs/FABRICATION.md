@@ -3,7 +3,7 @@
 The owner wants the board fabricated **and fully assembled** (every SMD part and
 every connector) by a small-run service, with at most minimal soldering at home
 (the OLED lead, heat-set inserts, the CM5 itself which just presses on). This
-page lists who can do that for a 4-layer 136 × 100 mm board in quantities of
+page lists who can do that for a 4-layer 150 × 112 mm board in quantities of
 2–10, what it costs, and what the design needs before the order can be placed.
 
 Prices are estimates from the vendors' public calculators and 2025–2026 price
@@ -14,7 +14,7 @@ live quote from the design files before deciding.
 
 | Item | Requirement | Why |
 |---|---|---|
-| Layers, size | 4 layers, 136 × 100 mm, 1.6 mm, ENIG | USB 3 / SATA / PCIe pairs on outer layers over solid ground; ENIG for the 0.4 mm connectors |
+| Layers, size | 4 layers, 150 × 112 mm, 1.6 mm, ENIG | USB 3 / SATA / PCIe pairs on outer layers over solid ground; ENIG for the 0.4 mm connectors |
 | Stack-up | vendor's standard 4-layer with controlled impedance (JLC04161H-7628 or equal) | 90 Ω differential pairs without a custom stack-up fee |
 | Minimum features | 0.13 mm track / 0.125 mm space, 0.2 mm drill in a 0.45 mm via (the Raspberry Pi CM5IO rules); power vias 0.6/0.3 | set by the CM5's 0.4 mm connectors and the 0.5 mm M.2 socket; every vendor above quotes these as standard 4-layer capability |
 | Fine pitch | 0.4 mm pitch (Hirose DF40 for the CM5, QFN-48 / QFN-56 at 0.4–0.5 mm) | needs stencil + reflow, not hand soldering; every vendor below handles it |
@@ -48,7 +48,7 @@ Two assembled units plus three bare spares, at JLCPCB-class pricing.
 
 | Item | Estimate (USD) | Basis |
 |---|---|---|
-| 5 × bare 4-layer 136 × 100 mm, ENIG, impedance stack-up | 60–90 | calculator: 4-layer, 100 × 136 mm, ENIG, 5 pcs |
+| 5 × bare 4-layer 150 × 112 mm, ENIG, impedance stack-up | 70–100 | calculator: 4-layer, 112 × 150 mm, ENIG, 5 pcs |
 | Assembly setup + stencil, both sides | 50–80 | SMT setup fee, through-hole setup, extended-parts fees (a few dollars per unique part) |
 | Assembly labour, 2 boards, ~300 placements each | 30–60 | per-joint pricing, 0402 heavy |
 | Board-mounted parts, per board | 55–70 | BOM section B–F: hubs 2 × 2.44, bridges 4 × 3, bucks, switches, PTCs, crystals, connectors, passives |

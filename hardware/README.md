@@ -6,10 +6,10 @@ regenerate / route commands.
 
 ![board](renders/board-3d-iso.png)
 
-136 × 100 mm (C21–C23). Rear edge: four SATA 22-pin receptacles (the drive cables).
-Right wall: DIN 12 V, USB-C, microSD, fan header. Left edge: the CM5 wireless antenna
-edge, copper-free strip under it. M.2 socket front-left, module along the front under
-the hinged lid. Top view with the copper and silkscreen:
+150 × 112 mm (v3, D7 option B). Rear edge: four SATA 22-pin receptacles (the drive
+cables). Right wall: USB-C, microSD, DIN 12 V. Left edge: the CM5 wireless antenna
+edge, copper-free strip under it. Hubs front-left under the CM5's USB 3 pins, M.2
+socket front-right with the module lying toward the middle under the hinged lid. Top view with the copper and silkscreen:
 [`renders/board-top.png`](renders/board-top.png); bottom side (CR2032 holder, service
 headers): [`renders/board-3d-bottom.png`](renders/board-3d-bottom.png).
 

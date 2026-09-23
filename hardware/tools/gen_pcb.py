@@ -24,69 +24,61 @@ HW = Path(__file__).resolve().parent.parent
 OUT = HW / "brain-drain.kicad_pcb"
 PLACEMENT = HW / "tools" / "placement.json"
 
-BOARD_W, BOARD_H = 136.0, 100.0   # C22: brain box with a hinged lid, no Ethernet, CM5 antenna on the left edge
+BOARD_W, BOARD_H = 150.0, 112.0   # v3 (D7 option B): room for the router, hubs at the CM5's USB 3 pins
 ORIGIN = (20.0, 20.0)  # board top-left on the sheet
 CORNER_R = 3.0
-# Two board holes plus the CM5's four standoffs and the M.2 standoff. The rear-right corner holds the
-# lid switch, the front-left the M.2 socket and the front-right the DIN jack, so the holes are
-# rear-left and front-centre-right (between the DIP switch and the DIN).
-HOLES = [(4, 4), (113, BOARD_H - 4)]
+HOLES = [(4, 4), (4, BOARD_H - 4), (140, BOARD_H - 4)]
 
-# Regions (x0, y0, x1, y1) in board mm, y down from the rear edge (rear edge = y 0).
-# Regions are sized so the parts fit (checked at generation time; ~1.6x the summed part area).
-# Rows from the rear: SATA receptacles y 0-9 at 28.9 mm pitch; per bay a switch block and the bridge QFN
-# side by side (y 9.3-21), bridge passives 21.5-33.
-# CM5 (landscape, antenna edge on the LEFT board edge) x 0-55, y 34-74; hubs x 56-79; bucks and input
-# x 80-116; right wall (x = 136): USB-C, microSD, fan header, DIN 12 V. M.2 socket front-left, the 2280
-# module lies along the front (x 8-95, y 75.5-98.5) under the hinged lid. Front-right: DIP switch.
-ANTENNA_STRIP = (0, 33, 8, 75)   # no copper on any layer, no parts on either side (CM5 datasheet 4.1.2)
-BAY_PITCH = 28.9   # 27.94 mm pad span + 0.7 mm pad + 0.15 mm clearance
+# Rows from the rear: SATA receptacles y 0-9 at 29.5 mm pitch; per bay a switch block behind the power
+# pads and the bridge QFN behind the data pads (y 9.3-22), bridge passives 24.5-36.5 (2.5 mm from the
+# QFN). CM5 landscape at the LEFT edge (antenna edge out) x 0-55, y 39-79; its USB 3 and PCIe pins are on
+# the front row (y ~70-73, x 21-35), so the two hubs sit in the front-left corner right under them and
+# the M.2 socket is front-right with the 2280 module lying toward the middle (its small parts under it).
+# Buck / input column right of the CM5; right wall (x = 150): USB-C, microSD, DIN. Every QFN has
+# >= 2.5 mm of free board around it.
+ANTENNA_STRIP = (0, 38, 8, 80)   # no copper on any layer, no parts on either side (CM5 datasheet 4.1.2)
+BAY_PITCH = 29.5
 BAY_X0 = 22.0
 REGIONS = {
-    "power-input": (101, 34, 116, 53),
-    "power-bucks": (80, 34, 99, 69),
-    "cm5": (57.5, 78, 70, 96),          # CM5-sheet passives (SD switch, LED resistors) UNDER the SSD too (all < 1.5 mm)
-    "usb3-hub-A": (66, 34, 79, 52),     # hub QFN anchored at (61, 43); passives pack to its right
-    "usb3-hub-B": (66, 54, 79, 72),     # hub QFN anchored at (61, 63)
-    "m2-nvme": (24, 78, 40, 96),        # M.2 switch and 0402/0603 passives UNDER the SSD (max 1.5 mm tall; L51 is fixed elsewhere)
-    # the packed regions under the SSD sit between the socket's 2242/2260/2280 standoff holes (x 42.3, 54.3, 72.3, 92.3)
+    "power-bucks": (58, 39, 78, 75),
+    "power-input": (80, 39, 97, 54),
+    "cm5": (100, 39, 117, 51),          # CM5-sheet passives (SD switch, LED resistors)
+    "usb3-hub-A": (29, 84, 44, 96),     # hub QFN anchored at (22, 90); passives 3 mm to its right
+    "usb3-hub-B": (29, 98, 44, 110),    # hub QFN anchored at (22, 104)
+    "m2-nvme": (52, 88, 65, 108),       # M.2 switch and 0402/0603 passives UNDER the SSD, between its standoff holes
 }
-# Per bay (receptacle centre _x, power pads P1-P15 on its left half, data pads S1-S7 on its right):
-# the power switch block sits directly behind the power pads (y 9.3-21) so its 12 V / 5 V tracks
-# never cross the bridge; the bridge QFN sits behind the data pads at (_x + 9, 14.5) and its
-# passives fill the band below both (y 21.5-33). Bay LED at the left end of that band.
 for _b in range(4):
     _x = BAY_X0 + _b * BAY_PITCH
-    REGIONS[f"bay-switch-{_b + 1}"] = (_x - 14, 9.3, _x + 3.5, 21.5)
-    REGIONS[f"bridge-{_b + 1}"] = (_x - 8, 22, _x + 14.5, 33)
-SPILL = (74, 78, 90, 96)   # under the SSD: anything that does not fit its region lands here and is reported
+    REGIONS[f"bay-switch-{_b + 1}"] = (_x - 14.5, 9.3, _x + 3.5, 23)
+    REGIONS[f"bridge-{_b + 1}"] = (_x - 9, 24.5, _x + 15.5, 36.5)
+SPILL = (72, 88, 83, 108)   # under the SSD, between standoff holes: overflow lands here and is reported
 # Fixed anchors: reference -> (x, y, rotation) in board mm
 FIXED = {
-    "M1": (3.5, 37.5, 270),           # CM5 landscape, MH1 (antenna) edge on the left board edge: module x 0-55, y 34-74
-    "U1": (61.0, 43.0, 90), "U2": (61.0, 63.0, 90),   # hubs: rot 90 turns the upstream pins toward the CM5
-    "J21": (135.7, 90.5, 270),        # DIN jack on the RIGHT wall (face +x), body x 118-136, y 82-99: all cables leave rear/right
-    "J5": (126.8, 45.0, 90),          # USB-C on the RIGHT wall (face +x)
-    "J3": (127.0, 62.0, 90),          # microSD on the RIGHT wall, card entry +x
-    "J40": (126.6, 75.5, 0),          # fan header (kept for an optional fan; passive cooler by default)
-    "SW1": (99.1, 79.0, 0),           # DIP under a lid slot, x 95.5-108.7, y 76.6-99.2
-    "J41": (72.0, 73.5, 90),          # OLED header between the hubs and the M.2 module
-    "L51": (92.0, 72.0, 0),           # M.2 3.3 V inductor (1.8 mm tall: not under the SSD)
-    "C20": (108.5, 59.5, 0), "C21": (108.5, 71.0, 0),   # 12 V bulk caps below the input block
-    "J50": (14.0, 87.0, 90),          # M.2 socket front-left, module runs toward +x under the lid
-    "D50": (3.5, 79.0, 0),            # M.2 LED and the three status LEDs down the left edge
-    "D1": (3.5, 84.0, 0), "D2": (3.5, 89.0, 0), "D3": (3.5, 94.0, 0),
-    "SW3": (129.9, 16.0, 90),         # lid microswitch, rear-right corner under the lid edge
+    "M1": (3.5, 42.5, 270),           # CM5 landscape, MH1 (antenna) edge on the left board edge: module x 0-55, y 39-79
+    "U1": (22.0, 90.0, 90), "U2": (22.0, 104.0, 90),   # hubs under the CM5's USB 3 pins (x 21-30 at y 70-73)
+    "J21": (149.7, 76.0, 270),        # DIN jack on the RIGHT wall (face +x), body x 132-150, y 67.5-84.5
+    "J5": (140.8, 45.0, 90),          # USB-C on the RIGHT wall (face +x)
+    "J3": (141.0, 58.0, 90),          # microSD on the RIGHT wall, card entry +x
+    "J40": (125.0, 45.0, 0),          # fan header (optional fan; passive cooler by default)
+    "SW1": (110.0, 60.0, 90),         # DIP under a lid slot, x 98.7-121.3, y 53.4-66.6
+    "J41": (66.0, 84.0, 90),          # OLED header between the buck column and the SSD
+    "L51": (104.0, 82.0, 0),          # M.2 3.3 V inductor (1.8 mm tall: not under the SSD)
+    "C20": (88.5, 62.0, 0), "C21": (88.5, 74.0, 0),   # 12 V bulk caps below the input block
+    "J50": (127.0, 98.0, 270),        # M.2 socket front-right, module runs toward -x under the lid (x 46-128)
+    "D50": (3.5, 84.0, 0),            # M.2 LED and the three status LEDs down the left edge
+    "D1": (3.5, 89.0, 0), "D2": (3.5, 94.0, 0), "D3": (3.5, 99.0, 0),
+    "SW3": (143.9, 16.0, 90),         # lid microswitch, rear-right corner under the lid edge
     # bottom side under the CM5 module, clear of its connector pads (x 13.5-36.5) and the antenna strip
-    "BT1": (28.0, 58.0, 0),           # CR2032 holder (post-process flip)
-    "J6": (48.5, 46.0, 0), "J7": (48.5, 58.0, 0),     # nRPIBOOT and UART headers, bottom side (service only)
+    "BT1": (28.0, 63.0, 0),           # CR2032 holder (post-process flip)
+    "J6": (48.5, 51.0, 0), "J7": (48.5, 63.0, 0),     # nRPIBOOT and UART headers, bottom side (service only)
 }
 for _b in range(4):
     _x = BAY_X0 + _b * BAY_PITCH
     FIXED[f"J1{_b}"] = (_x, 4.5, 0)                 # SATA 22-pin receptacle on the rear edge
     # bridges: QFN-48 pins 25-36 (SATA) on the right side at rot 0 -> rot 90 turns them to face the rear
     # receptacle; USB pins (13-24, bottom) then face right, toward the hubs
-    FIXED[f"U1{_b}"] = (_x + 9, 14.5, 90)
-    FIXED[f"D1{_b}"] = (_x - 12.5, 24.5, 0)         # bay LED at the left end of the bridge band
+    FIXED[f"U1{_b}"] = (_x + 9.5, 15.0, 90)
+    FIXED[f"D1{_b}"] = (_x - 13.0, 27.0, 0)         # bay LED at the left end of the bridge band
 BOTTOM = {"BT1", "J6", "J7"}   # footprints flipped to B.Cu after generation (pcbnew post-process)
 LAYERS = [(0, "F.Cu", "signal"), (1, "In1.Cu", "power"), (2, "In2.Cu", "power"), (31, "B.Cu", "signal"),
           (32, "B.Adhes", "user"), (33, "F.Adhes", "user"), (34, "B.Paste", "user"), (35, "F.Paste", "user"),
@@ -179,7 +171,7 @@ def main():
                      ["mid", sexp.fmt(ox + cx + (sx - cx) * 0.7071 + (ex - cx) * 0.7071), sexp.fmt(oy + cy + (sy - cy) * 0.7071 + (ey - cy) * 0.7071)],
                      ["end", sexp.fmt(ox + ex), sexp.fmt(oy + ey)], ["stroke", ["width", 0.1], ["type", "default"]],
                      ["layer", Str("Edge.Cuts")], ["uuid", Str(new_uuid())]])
-    body.append(["gr_text", Str("brain-drain carrier v2  136x100  rear edge = top"), ["at", sexp.fmt(ox + 2), sexp.fmt(oy - 3), 0],
+    body.append(["gr_text", Str("brain-drain carrier v3  150x112  rear edge = top"), ["at", sexp.fmt(ox + 2), sexp.fmt(oy - 3), 0],
                  ["layer", Str("Cmts.User")], ["uuid", Str(new_uuid())], ["effects", ["font", ["size", 2, 2], ["thickness", 0.3]]]])
     # mounting holes
     for i, (hx, hy) in enumerate(HOLES, start=1):

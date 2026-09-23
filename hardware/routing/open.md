@@ -1,43 +1,43 @@
-# Open connections: 165
+# Open connections: 417
 
 | group | open |
 |---|---|
-| plane (needs a via to its plane) | 75 |
-| differential pair | 65 |
-| bay power / control | 25 |
+| bay power / control | 193 |
+| plane (needs a via to its plane) | 124 |
+| differential pair | 100 |
 
 | net | open |
 |---|---|
-| GND | 16 |
-| +3V3 | 15 |
-| 5V_SYS | 13 |
-| +1V2 | 11 |
-| 5V_HDD | 8 |
-| +12V | 7 |
-| 3V3_M2_SW | 3 |
-| U12_VCCO | 3 |
-| U12_VDD_CORE | 3 |
-| 3V3_M2 | 2 |
-| BAY1_SATA_B_P | 2 |
-| BAY1_SATA_A_N | 2 |
-| BAY1_SATA_A_P | 2 |
-| U10_VCCO | 2 |
-| U11_VDD_CORE | 2 |
+| +1V2 | 27 |
+| +12V | 23 |
+| +3V3 | 18 |
+| 5V_SYS | 14 |
+| U10_VCCO | 13 |
+| U11_VCCO | 13 |
+| U12_VCCO | 13 |
+| U13_VCCO | 13 |
+| U11_VDD_CORE | 10 |
+| 5V_HDD | 10 |
+| GND | 10 |
+| U10_VDD_CORE | 9 |
+| U12_VDD_CORE | 9 |
+| U13_VDD_CORE | 9 |
+| 3V3_M2_SW | 8 |
 
 | part | open pins |
 |---|---|
-| U1 | 22 |
-| U12 | 19 |
-| U11 | 17 |
-| U2 | 16 |
-| U10 | 14 |
-| U13 | 13 |
-| M1 | 9 |
-| J10 | 7 |
-| C121 | 4 |
-| C122 | 4 |
-| C211 | 4 |
-| C212 | 3 |
-| U50 | 3 |
-| Q31 | 2 |
-| C2100 | 2 |
+| U10 | 42 |
+| U13 | 42 |
+| U11 | 40 |
+| U12 | 40 |
+| U1 | 35 |
+| U2 | 35 |
+| M1 | 24 |
+| U20 | 20 |
+| J13 | 18 |
+| U50 | 13 |
+| U52 | 12 |
+| L11 | 11 |
+| R310 | 6 |
+| R320 | 6 |
+| R330 | 6 |
