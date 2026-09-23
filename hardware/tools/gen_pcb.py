@@ -34,7 +34,8 @@ HOLES = [(4, 4), (113, BOARD_H - 4)]
 
 # Regions (x0, y0, x1, y1) in board mm, y down from the rear edge (rear edge = y 0).
 # Regions are sized so the parts fit (checked at generation time; ~1.6x the summed part area).
-# Rows from the rear: SATA receptacles y 0-9 at 28.9 mm pitch, bridges 9-22.5, bay switches 22.5-32.5.
+# Rows from the rear: SATA receptacles y 0-9 at 28.9 mm pitch; per bay a switch block and the bridge QFN
+# side by side (y 9.3-21), bridge passives 21.5-33.
 # CM5 (landscape, antenna edge on the LEFT board edge) x 0-55, y 34-74; hubs x 56-79; bucks and input
 # x 80-116; right wall (x = 136): USB-C, microSD, fan header, DIN 12 V. M.2 socket front-left, the 2280
 # module lies along the front (x 8-95, y 75.5-98.5) under the hinged lid. Front-right: DIP switch.
@@ -50,10 +51,14 @@ REGIONS = {
     "m2-nvme": (24, 78, 40, 96),        # M.2 switch and 0402/0603 passives UNDER the SSD (max 1.5 mm tall; L51 is fixed elsewhere)
     # the packed regions under the SSD sit between the socket's 2242/2260/2280 standoff holes (x 42.3, 54.3, 72.3, 92.3)
 }
+# Per bay (receptacle centre _x, power pads P1-P15 on its left half, data pads S1-S7 on its right):
+# the power switch block sits directly behind the power pads (y 9.3-21) so its 12 V / 5 V tracks
+# never cross the bridge; the bridge QFN sits behind the data pads at (_x + 9, 14.5) and its
+# passives fill the band below both (y 21.5-33). Bay LED at the left end of that band.
 for _b in range(4):
     _x = BAY_X0 + _b * BAY_PITCH
-    REGIONS[f"bridge-{_b + 1}"] = (_x - 1, 9.3, _x + 13.5, 22.5)       # right of the bridge QFN at (_x - 6, 15.5)
-    REGIONS[f"bay-switch-{_b + 1}"] = (_x - 8, 22.5, _x + 15, 32.5)   # right of the bay LED at (_x - 12, 27.5)
+    REGIONS[f"bay-switch-{_b + 1}"] = (_x - 14, 9.3, _x + 3.5, 21.5)
+    REGIONS[f"bridge-{_b + 1}"] = (_x - 8, 22, _x + 14.5, 33)
 SPILL = (74, 78, 90, 96)   # under the SSD: anything that does not fit its region lands here and is reported
 # Fixed anchors: reference -> (x, y, rotation) in board mm
 FIXED = {
@@ -80,8 +85,8 @@ for _b in range(4):
     FIXED[f"J1{_b}"] = (_x, 4.5, 0)                 # SATA 22-pin receptacle on the rear edge
     # bridges: QFN-48 pins 25-36 (SATA) on the right side at rot 0 -> rot 90 turns them to face the rear
     # receptacle; USB pins (13-24, bottom) then face right, toward the hubs
-    FIXED[f"U1{_b}"] = (_x - 6, 15.5, 90)
-    FIXED[f"D1{_b}"] = (_x - 12, 27.5, 0)           # bay LED at the start of the bay switch row
+    FIXED[f"U1{_b}"] = (_x + 9, 14.5, 90)
+    FIXED[f"D1{_b}"] = (_x - 12.5, 24.5, 0)         # bay LED at the left end of the bridge band
 BOTTOM = {"BT1", "J6", "J7"}   # footprints flipped to B.Cu after generation (pcbnew post-process)
 LAYERS = [(0, "F.Cu", "signal"), (1, "In1.Cu", "power"), (2, "In2.Cu", "power"), (31, "B.Cu", "signal"),
           (32, "B.Adhes", "user"), (33, "F.Adhes", "user"), (34, "B.Paste", "user"), (35, "F.Paste", "user"),

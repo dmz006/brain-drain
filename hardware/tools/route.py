@@ -53,9 +53,9 @@ def diff_pair_nets(d: design.Design) -> set[str]:
 # name: (track width, clearance, diff-pair gap or None, via diameter, via drill) in mm
 NETCLASSES = {
     "Default": (0.13, 0.125, None, 0.45, 0.2),
-    "Power": (0.5, 0.13, None, 0.6, 0.3),
-    "DiffPair90": (0.147, 0.13, 0.253, 0.45, 0.2),
-    "Bay": (0.2, 0.13, None, 0.45, 0.2),
+    "Power": (0.3, 0.125, None, 0.6, 0.3),         # 0.3: a 0.5 track cannot leave a 0.65 mm-pitch DFN pin; planes carry the current
+    "DiffPair90": (0.147, 0.125, 0.253, 0.45, 0.2),   # of two classes, the router only knows its own
+    "Bay": (0.2, 0.125, None, 0.45, 0.2),
 }
 MIN_RULES = {"min_clearance": 0.125, "min_track_width": 0.1, "min_via_diameter": 0.45, "min_through_hole_diameter": 0.2,
              "min_via_annular_width": 0.1, "min_copper_edge_clearance": 0.3}
@@ -86,11 +86,28 @@ def write_project_netclasses(assignments: dict[str, str]) -> None:
 
 
 def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
-    # net codes first: after the net-class edits below, pcbnew's Python net lookups come back untyped
-    codes = {n: board.FindNet(n).GetNetCode() for n in ("GND", "5V_SYS", "5V_HDD", "+3V3", "+12V")}
     ds = board.GetDesignSettings()
     ds.m_SolderMaskMinWidth = 0
     ds.m_SolderMaskExpansion = MM(0.05)
+    bays = bay_nets(d)
+    pairs = diff_pair_nets(d)
+    assignments = {}
+    for net in d.nets:
+        if net in POWER_NETS or net.startswith(("12V_BAY", "5V_BAY")):
+            assignments[net] = "Power"
+        elif net in pairs:
+            assignments[net] = "DiffPair90"
+        elif net in bays:
+            assignments[net] = "Bay"
+    import json
+    pro = HW / "brain-drain.kicad_pro"
+    have = {c.get("name") for c in json.loads(pro.read_text()).get("net_settings", {}).get("classes", [])} if pro.exists() else set()
+    if set(NETCLASSES) <= have:
+        # the board was loaded with the classes from the project: touching them again through the API
+        # corrupts NET_SETTINGS (zone filler bad_alloc, untyped SWIG proxies), so only refresh the file
+        write_project_netclasses(assignments)
+        print(f"net classes come from the project file ({len(assignments)} patterns)")
+        return _zones(board, d)
     ncs = ds.m_NetSettings  # NET_SETTINGS
     # net classes
     w, c, _, vd, vh = NETCLASSES["Default"]
@@ -108,19 +125,15 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
         ncs.SetNetclass(name, nc)
     ds.m_MinClearance = MM(MIN_RULES["min_clearance"]); ds.m_TrackMinWidth = MM(MIN_RULES["min_track_width"])
     ds.m_ViasMinSize = MM(MIN_RULES["min_via_diameter"]); ds.m_MinThroughDrill = MM(MIN_RULES["min_through_hole_diameter"])
-    bays = bay_nets(d)
-    pairs = diff_pair_nets(d)
-    assignments = {}
-    for net in d.nets:
-        if net in POWER_NETS or net.startswith(("12V_BAY", "5V_BAY")):
-            assignments[net] = "Power"
-        elif net in pairs:
-            assignments[net] = "DiffPair90"
-        elif net in bays:
-            assignments[net] = "Bay"
     for net, cls in assignments.items():
         ncs.SetNetclassPatternAssignment(net, cls)
     write_project_netclasses(assignments)
+    print(f"net classes set through the API; {len(assignments)} nets assigned")
+    return _zones(board, d)
+
+
+def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
+    codes = {n: board.FindNet(n).GetNetCode() for n in ("GND", "5V_SYS", "5V_HDD", "+3V3", "+12V")}
     # copper zones: GND on In1, power islands on In2, GND on B.Cu. Only on a board that has none yet
     # (gen_pcb.py writes none): removing filled zones that fanout vias connect to corrupts the
     # Python bindings for the rest of the process, so prepare() never deletes zones.
@@ -192,8 +205,7 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
                 board.Add(z)
     filler = pcbnew.ZONE_FILLER(board)
     filler.Fill(board.Zones())
-    print(f"net classes set; {len(assignments)} nets assigned ({sum(v == 'Bay' for v in assignments.values())} bay, "
-          f"{sum(v == 'DiffPair90' for v in assignments.values())} diff-pair); zones filled")
+    print("zones and keep-outs created and filled")
 
 
 def fanout(board: pcbnew.BOARD) -> None:
@@ -529,6 +541,112 @@ def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
     print(f"pairs: {len(pairs)}, {bad} beyond the 0.15 mm match, report routing/pairs.md")
 
 
+def fanout_conn(board: pcbnew.BOARD) -> None:
+    """Plane vias for the fine-pitch connectors, fitted to their row geometry: the CM5's four DF40 rows
+    (0.4 mm pitch, vias in the 2.4 mm gap between a connector's two rows, or outward as fallback), the
+    M.2 socket's two rows (0.5 mm pitch, vias outward), the SATA receptacles (1.27 mm pitch, vias toward
+    the board edge under the housing). Adjacent same-net pins are bridged pad-to-pad and share one via,
+    so vias in a row are never closer than two pitches."""
+    zones_by_net = {}
+    for z in board.Zones():
+        if not z.GetIsRuleArea():
+            zones_by_net.setdefault(z.GetNetname(), []).append(z)
+    done_pads = connected_pads(board)
+    via_d, via_drill, stub_w = MM(0.45), MM(0.2), MM(0.13)
+    occupied = [pad.GetBoundingBox() for f in board.GetFootprints() for pad in f.Pads()]
+    occupied += [t.GetBoundingBox() for t in board.GetTracks()]
+    placed = skipped = bridged = 0
+
+    def free(vx, vy, own):
+        box = pcbnew.BOX2I(pcbnew.VECTOR2I(vx - via_d // 2 - MM(0.13), vy - via_d // 2 - MM(0.13)),
+                           pcbnew.VECTOR2I(via_d + 2 * MM(0.13), via_d + 2 * MM(0.13)))
+        return not any(o.Intersects(box) and not any(o.Contains(pcbnew.VECTOR2I(*p)) for p in own) for o in occupied)
+
+    def add(px, py, vx, vy, net, layer):
+        v = pcbnew.PCB_VIA(board)
+        v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
+        v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetNetCode(net); board.Add(v)
+        tr = pcbnew.PCB_TRACK(board)
+        tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
+        tr.SetWidth(stub_w); tr.SetLayer(layer); tr.SetNetCode(net); board.Add(tr)
+        occupied.append(v.GetBoundingBox()); occupied.append(tr.GetBoundingBox())
+
+    def link(p1, p2, net, layer):
+        tr = pcbnew.PCB_TRACK(board)
+        tr.SetStart(pcbnew.VECTOR2I(*p1)); tr.SetEnd(pcbnew.VECTOR2I(*p2))
+        tr.SetWidth(stub_w); tr.SetLayer(layer); tr.SetNetCode(net); board.Add(tr)
+        occupied.append(tr.GetBoundingBox())
+
+    for f in board.GetFootprints():
+        ref = f.GetReference()
+        pads = [p for p in f.Pads() if p.GetAttribute() == pcbnew.PAD_ATTRIB_SMD]
+        if len(pads) < 20:
+            continue
+        layer = pcbnew.B_Cu if f.IsFlipped() else pcbnew.F_Cu
+        # rows: pads sharing the coordinate along their long axis; the row axis is the other one
+        sz = pads[0].GetSize(); along_x = sz.x < sz.y   # pads longer in y -> the row runs along x
+        rows = {}
+        for p in pads:
+            pos = p.GetPosition()
+            key = int(round((pos.y if along_x else pos.x) / 1e4))   # 0.01 mm bins
+            rows.setdefault(key, []).append(p)
+        rows = {k: sorted(v, key=lambda p: p.GetPosition().x if along_x else p.GetPosition().y) for k, v in rows.items() if len(v) >= 8}
+        keys = sorted(rows)
+        fcx, fcy = f.GetPosition().x, f.GetPosition().y
+        for k in keys:
+            row = rows[k]
+            pos0 = row[0].GetPosition()
+            # candidate directions perpendicular to the row: toward the footprint centre first (the gap
+            # between paired rows), then away from it
+            coord = pos0.y if along_x else pos0.x
+            centre = fcy if along_x else fcx
+            inward = 1 if centre > coord else -1
+            # a row's partner (the other row of the same connector) is the nearest other row
+            others = [kk for kk in keys if kk != k]
+            partner = min(others, key=lambda kk: abs(kk - k)) if others else None
+            gap = abs(partner - k) * 1e4 if partner is not None else 0
+            pad_len = max(sz.x, sz.y)
+            d_in = pad_len / 2 + MM(0.13) + via_d / 2 + MM(0.05)
+            dists = []
+            if partner is not None and gap and gap / 2 > d_in + via_d / 2 + MM(0.2):
+                # both rows fit their via line inside the gap: this row's line sits d_in from its pads
+                dists.append(inward * d_in)
+            dists.append(-inward * d_in)              # outward
+            dists.append(inward * (d_in + MM(0.6)))   # deeper inward
+            dists.append(-inward * (d_in + MM(0.6)))  # further outward
+            # group consecutive same-net plane pins
+            i = 0
+            while i < len(row):
+                p = row[i]; net = p.GetNetname()
+                if net not in zones_by_net or (ref, p.GetNumber()) in done_pads:
+                    i += 1; continue
+                j = i
+                while j + 1 < len(row) and row[j + 1].GetNetname() == net:
+                    j += 1
+                group = row[i:j + 1]
+                mid = group[len(group) // 2]
+                mp = mid.GetPosition(); mx, my = int(mp.x), int(mp.y)
+                own = [(int(g.GetPosition().x), int(g.GetPosition().y)) for g in group]
+                ok = False
+                for dd in dists:
+                    vx, vy = (mx, my + int(dd)) if along_x else (mx + int(dd), my)
+                    if not free(vx, vy, own):
+                        continue
+                    if not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
+                        continue
+                    add(mx, my, vx, vy, mid.GetNetCode(), layer); placed += 1; ok = True
+                    for g in group:
+                        if g is not mid:
+                            gp = g.GetPosition()
+                            link((int(gp.x), int(gp.y)), (mx, my), mid.GetNetCode(), layer); bridged += 1
+                    break
+                if not ok:
+                    skipped += len(group)
+                i = j + 1
+    pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    print(f"fanout_conn: {placed} vias, {bridged} pad-to-pad links, {skipped} plane pins left for the router")
+
+
 def main(cmd: str) -> int:
     d = design.build()
     board = pcbnew.LoadBoard(str(PCB))
@@ -549,6 +667,11 @@ def main(cmd: str) -> int:
     if cmd in ("import", "all"):
         import_ses(board, d)
         pcbnew.SaveBoard(str(PCB), board)
+    if cmd == "stage1":   # the single-ended signal nets (no planes, bays or pairs)
+        lite = bay_nets(d) | diff_pair_nets(d) | POWER_NETS | {n for n in d.nets if n.startswith(("12V_BAY", "5V_BAY"))}
+        if stage(board, d, lite, "1 (signals)"):
+            return 1
+        pcbnew.SaveBoard(str(PCB), board)
     if cmd == "stage2":   # everything single-ended: planes, bridge rails, bay power and control
         if stage(board, d, diff_pair_nets(d), "2 (single-ended, planes, bays)"):
             return 1
@@ -560,6 +683,9 @@ def main(cmd: str) -> int:
         pair_report(board, d)
     if cmd == "fanout-big":
         fanout_big(board)
+        pcbnew.SaveBoard(str(PCB), board)
+    if cmd == "fanout-conn":
+        fanout_conn(board)
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "pairs":
         pair_report(board, d)

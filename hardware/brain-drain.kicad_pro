@@ -252,8 +252,8 @@
       },
       {
         "name": "Power",
-        "clearance": 0.13,
-        "track_width": 0.5,
+        "clearance": 0.125,
+        "track_width": 0.3,
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "microvia_diameter": 0.3,
@@ -267,7 +267,7 @@
       },
       {
         "name": "DiffPair90",
-        "clearance": 0.13,
+        "clearance": 0.125,
         "track_width": 0.147,
         "via_diameter": 0.45,
         "via_drill": 0.2,
@@ -285,7 +285,7 @@
       },
       {
         "name": "Bay",
-        "clearance": 0.13,
+        "clearance": 0.125,
         "track_width": 0.2,
         "via_diameter": 0.45,
         "via_drill": 0.2,

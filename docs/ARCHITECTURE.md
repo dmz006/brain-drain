@@ -241,8 +241,10 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
   microSD, fan header. Left edge: the CM5 wireless module's antenna edge (the
   short edge with mounting hole MH1) sits flush with the board edge, with an
   8 mm copper-free strip on all four layers under it and no metal part within
-  10 mm (CM5 datasheet 4.1.2). Rows from the rear: receptacles, bridges, bay
-  switches; then the CM5 in landscape at the left (x 0–55, y 34–74), the two
+  10 mm (CM5 datasheet 4.1.2). Rows from the rear: the receptacles; behind each
+  one its power-switch block directly behind the power pads and the bridge QFN
+  behind the data pads, with the bridge passives in the band below (so the 12 V
+  and 5 V bay tracks never cross the bridge); then the CM5 in landscape at the left (x 0–55, y 34–74), the two
   hubs and the buck / input column to its right; the M.2 socket front-left with
   the 2280 module lying along the front (its switch and 0402/0603 passives sit
   under the SSD, under 1.5 mm tall), the DIP switch front-right, the lid

@@ -37,7 +37,7 @@ change; only the pitch tightened to 28.9 mm.
 
 ```
         rear edge: SATA 1   SATA 2   SATA 3   SATA 4        (drive cables)
-        bridges U10..U13 with passives; bay LEDs; bay power switches
+        per bay: power-switch block | bridge QFN (behind the data pads); bridge passives + LED below
  left   ┌──────────────────────────────┬──────────┬──────┬──────┐
  wall:  │ CM5 (landscape, 55 × 40)     │ hub A    │ buck │ M.2  │
  DIN    │                              │ hub B    │ col. │ 2280 │
