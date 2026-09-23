@@ -57,8 +57,8 @@ NETCLASSES = {
     "DiffPair90": (0.147, 0.125, 0.253, 0.45, 0.2),   # of two classes, the router only knows its own
     "Bay": (0.2, 0.125, None, 0.45, 0.2),
 }
-MIN_RULES = {"min_clearance": 0.125, "min_track_width": 0.1, "min_via_diameter": 0.45, "min_through_hole_diameter": 0.2,
-             "min_via_annular_width": 0.1, "min_copper_edge_clearance": 0.3}
+MIN_RULES = {"min_clearance": 0.125, "min_track_width": 0.1, "min_via_diameter": 0.3, "min_through_hole_diameter": 0.15,
+             "min_via_annular_width": 0.075, "min_hole_clearance": 0.2, "min_copper_edge_clearance": 0.3}   # 0.3/0.15 vias: D8, QFN dog-bones only; verify hole-to-copper 0.2 with the fab
 
 
 def write_project_netclasses(assignments: dict[str, str]) -> None:
@@ -761,6 +761,92 @@ def fanout_conn(board: pcbnew.BOARD) -> None:
     print(f"fanout_conn: {placed} vias, {bridged} pad-to-pad links, {tied} pins tied into exposed pads, {skipped} plane pins left for the router")
 
 
+def fanout_qfn(board: pcbnew.BOARD) -> None:
+    """D8: dog-bone vias of 0.3/0.15 mm on the 0.4-0.5 mm-pitch QFN pins (the bridges and hubs), for every
+    pin on a net with three or more pads that is not a differential pair. Vias sit on two lines outside
+    the pin row (0.75 and 1.35 mm from the pad centre), alternating by pin index so no two vias are
+    closer than 0.8 mm along the row and the signal pins between them can still escape. Plane pins land
+    on their plane; rail pins (VCCO, VDD_CORE, +1V2...) get a B.Cu escape for the router. Only pins DRC
+    lists as open are touched."""
+    import math
+    open_pads = open_pads_from_drc(board)
+    done_pads = connected_pads(board) if open_pads is None else None
+
+    def is_open(ref, num):
+        return ((ref, num) in open_pads) if open_pads is not None else ((ref, num) not in done_pads)
+
+    pads_per_net = {}
+    pair_nets = set()
+    for f in board.GetFootprints():
+        for p in f.Pads():
+            if p.GetNetCode() > 0:
+                pads_per_net[p.GetNetname()] = pads_per_net.get(p.GetNetname(), 0) + 1
+    for n in pads_per_net:
+        if n.endswith(("_P", "_N", "DP", "DM", "TXDP", "TXDM", "RXDP", "RXDM", "_TXP", "_TXN", "_RXP", "_RXN", "XP", "XN")):
+            pair_nets.add(n)
+    zones_by_net = {}
+    for z in board.Zones():
+        if not z.GetIsRuleArea():
+            zones_by_net.setdefault(z.GetNetname(), []).append(z)
+    via_d, via_drill, stub_w = MM(0.3), MM(0.15), MM(0.13)
+    occ = Occupancy(board)
+    placed = skipped = 0
+    for f in board.GetFootprints():
+        ref = f.GetReference()
+        pads = [p for p in f.Pads() if p.GetAttribute() == pcbnew.PAD_ATTRIB_SMD]
+        eps = [p for p in pads if min(pad_size(p)) >= MM(1.2) or not str(p.GetNumber())]
+        if not (ref.startswith("U") and eps and len(pads) >= 20):
+            continue   # QFNs only
+        layer = pcbnew.B_Cu if f.IsFlipped() else pcbnew.F_Cu
+        fcx, fcy = f.GetPosition().x, f.GetPosition().y
+        ep_keys = {(str(e.GetNumber()), int(e.GetPosition().x), int(e.GetPosition().y)) for e in eps}
+        rows = {}
+        for p in pads:
+            if (str(p.GetNumber()), int(p.GetPosition().x), int(p.GetPosition().y)) in ep_keys:
+                continue
+            sx_, sy_ = pad_size(p); along_x = sx_ < sy_
+            pos = p.GetPosition()
+            rows.setdefault((along_x, int(round((pos.y if along_x else pos.x) / 1e4))), []).append(p)
+        for (along_x, k), row in rows.items():
+            if len(row) < 6:
+                continue
+            row.sort(key=lambda p: p.GetPosition().x if along_x else p.GetPosition().y)
+            pos0 = row[0].GetPosition()
+            coord = pos0.y if along_x else pos0.x
+            centre = fcy if along_x else fcx
+            outward = -1 if centre > coord else 1
+            pad_len = max(pad_size(row[0]))
+            d1 = pad_len / 2 + MM(0.125) + via_d / 2 + MM(0.05)
+            d2 = d1 + MM(0.6)
+            for i, p in enumerate(row):
+                net = p.GetNetname()
+                if not net or net in pair_nets or pads_per_net.get(net, 0) < 3:
+                    continue
+                if not is_open(ref, str(p.GetNumber())):
+                    continue
+                pp = p.GetPosition(); px, py = int(pp.x), int(pp.y)
+                ok = False
+                for dd in ((d1, d2) if i % 2 == 0 else (d2, d1)):
+                    vx, vy = (px, py + int(outward * dd)) if along_x else (px + int(outward * dd), py)
+                    if not occ.point_free(vx, vy, via_d // 2, [(px, py)]) or not occ.path_free((px, py), (vx, vy), stub_w // 2, [(px, py)]):
+                        continue
+                    if net in zones_by_net and not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
+                        continue
+                    v = pcbnew.PCB_VIA(board)
+                    v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
+                    v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                    v.SetNetCode(p.GetNetCode()); board.Add(v); occ.add(v)
+                    tr = pcbnew.PCB_TRACK(board)
+                    tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
+                    tr.SetWidth(stub_w); tr.SetLayer(layer); tr.SetNetCode(p.GetNetCode()); board.Add(tr); occ.add(tr)
+                    placed += 1; ok = True
+                    break
+                if not ok:
+                    skipped += 1
+    pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    print(f"fanout_qfn: {placed} small vias placed, {skipped} QFN pins skipped (no free spot)")
+
+
 def drc_clean(board: pcbnew.BOARD, rounds: int = 3) -> int:
     """Remove tracks and vias that DRC flags in clearance, short, crossing or edge-clearance errors (the
     newer router leaves a few), refill, repeat. Pads and zones are never touched. Returns errors left."""
@@ -831,6 +917,9 @@ def main(cmd: str) -> int:
             return 1
         pcbnew.SaveBoard(str(PCB), board)
         pair_report(board, d)
+    if cmd == "fanout-qfn":
+        fanout_qfn(board)
+        pcbnew.SaveBoard(str(PCB), board)
     if cmd == "drc-clean":
         drc_clean(board)
     if cmd == "fanout-big":
