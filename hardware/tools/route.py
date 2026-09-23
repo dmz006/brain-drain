@@ -208,59 +208,103 @@ def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
     print("zones and keep-outs created and filled")
 
 
+class Occupancy:
+    """Geometry-aware collision check for fanout vias and stubs: pads by their bounding box, tracks by
+    segment distance (a diagonal track's bounding box would block a whole square), vias by centre."""
+
+    def __init__(self, board: pcbnew.BOARD, clearance: float = 0.125):
+        self.clr = MM(clearance)
+        self.boxes = [pad.GetBoundingBox() for f in board.GetFootprints() for pad in f.Pads()]
+        self.segs = []   # (SEG, half width)
+        self.vias = []   # (x, y, radius)
+        for t in board.GetTracks():
+            self.add(t)
+
+    def add(self, t) -> None:
+        if t.GetClass() == "PCB_VIA":
+            p = t.GetPosition(); self.vias.append((int(p.x), int(p.y), t.GetWidth(pcbnew.F_Cu) // 2))
+        else:
+            self.segs.append((pcbnew.SEG(t.GetStart(), t.GetEnd()), t.GetWidth() // 2))
+
+    def add_box(self, box) -> None:
+        self.boxes.append(box)
+
+    def point_free(self, x: int, y: int, r: int, own) -> bool:
+        """A disc of radius r at (x, y) clears everything except copper that touches one of `own`."""
+        pt = pcbnew.VECTOR2I(x, y)
+        for b in self.boxes:
+            if b.Intersects(pcbnew.BOX2I(pcbnew.VECTOR2I(x - r - self.clr, y - r - self.clr), pcbnew.VECTOR2I(2 * (r + self.clr), 2 * (r + self.clr)))):
+                if not any(b.Contains(pcbnew.VECTOR2I(*o)) for o in own):
+                    return False
+        for seg, hw in self.segs:
+            if seg.Distance(pt) < r + hw + self.clr:
+                if not any(seg.Distance(pcbnew.VECTOR2I(*o)) <= hw + 10 for o in own):
+                    return False
+        for vx, vy, vr in self.vias:
+            if (vx - x) ** 2 + (vy - y) ** 2 < (r + vr + self.clr) ** 2:
+                if not any((vx - o[0]) ** 2 + (vy - o[1]) ** 2 <= (vr + 10) ** 2 for o in own):
+                    return False
+        return True
+
+    def path_free(self, p1, p2, hw: int, own) -> bool:
+        n = max(2, int(((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5 / MM(0.1)))
+        return all(self.point_free(p1[0] + (p2[0] - p1[0]) * k // n, p1[1] + (p2[1] - p1[1]) * k // n, hw, own) for k in range(n + 1))
+
+
 def fanout(board: pcbnew.BOARD) -> None:
-    """Drop a via and a short stub next to every SMD pad whose net has a copper zone, so the
-    inner/back planes reach the top-side parts. Tries four directions and skips a pad if all
-    collide with existing copper (reported)."""
+    """Drop a via and a short stub next to every open SMD pad of a small part (8 pads or fewer) whose net
+    has a copper zone, so the inner/back planes reach it. Tries 8 directions at 4 distances with a
+    geometry-aware collision check; skips the pad (reported) when nothing fits."""
+    import math
     zones_by_net = {}
     for z in board.Zones():
         if z.GetIsRuleArea():
             continue
         zones_by_net.setdefault(z.GetNetname(), []).append(z)
-    via_d, via_drill, stub_w = MM(0.6), MM(0.3), MM(0.3)
-    occupied = []  # bounding boxes of pads and vias on F.Cu (coarse collision check)
-    for f in board.GetFootprints():
-        for pad in f.Pads():
-            occupied.append(pad.GetBoundingBox())
-    for t in board.GetTracks():
-        occupied.append(t.GetBoundingBox())
+    open_pads = open_pads_from_drc(board)
+    done_pads = connected_pads(board) if open_pads is None else None
+    via_d, via_drill, stub_w = MM(0.45), MM(0.2), MM(0.13)
+    occ = Occupancy(board)
     placed = skipped = 0
     for f in board.GetFootprints():
         fc = f.GetPosition()
         if len(list(f.Pads())) > 8:
-            continue   # ICs and connectors with fine pitch: a stub between 0.4 mm pads shorts them; the router vias these itself
+            continue   # ICs and connectors: fanout_big / fanout_conn
+        layer = pcbnew.B_Cu if f.IsFlipped() else pcbnew.F_Cu
         for pad in f.Pads():
             net = pad.GetNetname()
             if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD or net not in zones_by_net:
                 continue
-            if not any(z.Outline().Contains(pad.GetPosition()) for z in zones_by_net[net]):   # polygon, not bbox: the 5V island is L-shaped
+            key = (f.GetReference(), str(pad.GetNumber()))
+            if (open_pads is not None and key not in open_pads) or (open_pads is None and key in done_pads):
                 continue
-            ppos = pad.GetPosition(); px, py = int(ppos.x), int(ppos.y)   # plain ints: SWIG hands back mutable refs
-            sz = pad.GetSize(); half = max(int(sz.x), int(sz.y)) / 2
-            dist = half + via_d / 2 + MM(0.35)
-            import math
+            if not any(z.Outline().Contains(pad.GetPosition()) for z in zones_by_net[net]):
+                continue
+            ppos = pad.GetPosition(); px, py = int(ppos.x), int(ppos.y)
+            half = max(pad_size(pad)) / 2
             base = math.atan2(py - int(fc.y), px - int(fc.x))
             done = False
-            for k in (0, 1, -1, 2):
-                a = base + k * math.pi / 2
-                vx, vy = int(px + dist * math.cos(a)), int(py + dist * math.sin(a))
-                box = pcbnew.BOX2I(pcbnew.VECTOR2I(vx - via_d // 2 - MM(0.15), vy - via_d // 2 - MM(0.15)),
-                                   pcbnew.VECTOR2I(via_d + 2 * MM(0.15), via_d + 2 * MM(0.15)))
-                if any(o.Intersects(box) and not o.Contains(pcbnew.VECTOR2I(px, py)) for o in occupied):
-                    continue
-                if not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
-                    continue
-                v = pcbnew.PCB_VIA(board)
-                v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
-                v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
-                v.SetNetCode(pad.GetNetCode()); board.Add(v)
-                tr = pcbnew.PCB_TRACK(board)
-                tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
-                tr.SetWidth(stub_w); tr.SetLayer(pcbnew.B_Cu if f.IsFlipped() else pcbnew.F_Cu)
-                tr.SetNetCode(pad.GetNetCode()); board.Add(tr)
-                occupied.append(v.GetBoundingBox()); occupied.append(tr.GetBoundingBox())
-                placed += 1; done = True
-                break
+            for extra in (0.35, 0.75, 1.15, 1.6):
+                dist = half + via_d / 2 + MM(extra)
+                for k in (0, 1, -1, 2, 0.5, -0.5, 1.5, -1.5):
+                    a = base + k * math.pi / 2
+                    vx, vy = int(px + dist * math.cos(a)), int(py + dist * math.sin(a))
+                    if not occ.point_free(vx, vy, via_d // 2, [(px, py)]) or not occ.path_free((px, py), (vx, vy), stub_w // 2, [(px, py)]):
+                        continue
+                    if not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
+                        continue
+                    v = pcbnew.PCB_VIA(board)
+                    v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
+                    v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                    v.SetNetCode(pad.GetNetCode()); board.Add(v); occ.add(v)
+                    tr = pcbnew.PCB_TRACK(board)
+                    tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
+                    tr.SetWidth(stub_w); tr.SetLayer(layer)
+                    tr.SetNetCode(pad.GetNetCode()); board.Add(tr); occ.add(tr)
+                    placed += 1; done = True
+                    break
+                if done:
+                    break
             if not done:
                 skipped += 1
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
@@ -328,7 +372,8 @@ def fanout_big(board: pcbnew.BOARD, dogbones: bool = False) -> None:
                 continue
             ppos = pad.GetPosition(); px, py = int(ppos.x), int(ppos.y)
             sz = pad.GetSize(); sx, sy = int(sz.x), int(sz.y)
-            if min(sx, sy) >= MM(1.8):   # exposed pad: vias inside it, 1 mm grid, 0.5 mm inset
+            sx, sy = pad_size(pad)
+            if min(sx, sy) >= MM(1.2):   # exposed pad (or a quarter of a split one): vias inside it, 1 mm grid
                 nx, ny = max(1, int((sx - MM(1.0)) // MM(1.0))), max(1, int((sy - MM(1.0)) // MM(1.0)))
                 nx, ny = min(nx, 3), min(ny, 3)
                 for ix in range(nx):
@@ -374,6 +419,19 @@ def export_dsn(board: pcbnew.BOARD) -> None:
 
 LITE_DSN = HW / "routing" / "brain-drain-lite.dsn"
 LITE_SES = HW / "routing" / "brain-drain-lite.ses"
+
+
+MAX_PASSES = 60   # freerouting 2.1.0 stops at pass 999 (hard-coded) and ignores -mp: start_pass_no in the DSN bounds a run
+
+
+def bound_passes(text: str, max_passes: int = MAX_PASSES) -> str:
+    """Insert (autoroute_settings (start_pass_no 999-max)) into the structure section. Kept for reference:
+    the headless job flow of 2.1.0 ignores it (passes still count from 1), so runs are bounded only by
+    the router's own history exhaustion, about 600 passes after its last improvement."""
+    start = max(1, 999 - max_passes)
+    i = text.index("(structure")
+    j = text.index("\n", i)
+    return text[:j + 1] + f"    (autoroute_settings (start_pass_no {start}))\n" + text[j + 1:]
 
 
 def filter_dsn(d: design.Design, drop: set[str] | None = None) -> None:
@@ -440,16 +498,25 @@ def filter_dsn(d: design.Design, drop: set[str] | None = None) -> None:
     print(f"lite DSN: kept {kept} nets, dropped {dropped} (diff pairs, bay nets, power nets carried by zones) -> {LITE_DSN.relative_to(HW)}")
 
 
-def run_freerouting(passes: int = 30) -> int:
+def run_freerouting(passes: int = 30, ignore_classes: tuple[str, ...] = ()) -> int:
     """Route the lite DSN (single-ended, non-bay nets). The optimizer loops forever without -oit;
     -mp is ignored by 2.1.0 but kept for newer builds."""
-    if JAR is None:
-        print("no freerouting jar in tools/freerouting/"); return 1
+    import os
+    # BD_ROUTER=2.4.1 picks the newer jar (needs Java 25; honours -mp and writes its session on the cap, but
+    # each pass takes minutes and it leaves some clearance violations for the DRC cleanup); default 2.1.0
+    ver = os.environ.get("BD_ROUTER", "2.1.0")
+    jar = HW / "tools" / "freerouting" / f"freerouting-{ver}.jar"
+    java = "/usr/lib/jvm/java-25-openjdk-amd64/bin/java" if ver != "2.1.0" else "java"
+    passes = int(os.environ.get("BD_PASSES", passes))
+    if not jar.exists():
+        print(f"no {jar.name} in tools/freerouting/"); return 1
     LITE_SES.unlink(missing_ok=True)
-    cmd = ["java", "-Djava.awt.headless=true", "-jar", str(JAR), "-de", str(LITE_DSN), "-do", str(LITE_SES),
+    cmd = [java, "-Djava.awt.headless=true", "-jar", str(jar), "-de", str(LITE_DSN), "-do", str(LITE_SES),
            "-mp", str(passes), "-oit", "2"]
+    if ignore_classes:   # route only the other classes; nets are never dropped from a DSN that has their wiring
+        cmd += ["-inc", ",".join(ignore_classes)]
     print(" ".join(cmd))
-    cp = subprocess.run(cmd, capture_output=True, text=True, timeout=7200, stdin=subprocess.DEVNULL)
+    cp = subprocess.run(cmd, capture_output=True, text=True, timeout=6 * 3600, stdin=subprocess.DEVNULL)
     (HW / "routing" / "freerouting-lite.log").write_text(cp.stdout + cp.stderr)
     print("freerouting rc", cp.returncode, "->", LITE_SES.exists())
     return cp.returncode
@@ -499,13 +566,15 @@ def lock_routes(board: pcbnew.BOARD) -> int:
     return n
 
 
-def stage(board: pcbnew.BOARD, d: design.Design, drop: set[str], label: str) -> int:
-    """One incremental router run: lock what is routed, export, drop `drop` from the DSN, route, import."""
+def stage(board: pcbnew.BOARD, d: design.Design, drop: set[str], label: str, ignore_classes: tuple[str, ...] = ()) -> int:
+    """One incremental router run: lock what is routed, export, drop `drop` from the DSN (only nets that
+    have no wiring yet: freerouting rejects wires of unknown nets), optionally ignore whole net classes,
+    route, import."""
     prepare(board, d)   # classes and rules into this process's board and the project file
     print(f"== stage {label}: {lock_routes(board)} existing segments locked")
     export_dsn(board)
     filter_dsn(d, drop)
-    rc = run_freerouting()
+    rc = run_freerouting(ignore_classes=ignore_classes)
     if rc != 0:
         return rc
     import_ses(board, d)
@@ -541,41 +610,68 @@ def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
     print(f"pairs: {len(pairs)}, {bad} beyond the 0.15 mm match, report routing/pairs.md")
 
 
+def pad_size(p) -> tuple[int, int]:
+    """Pad size as seen on the board: KiCad stores it unrotated, the orientation turns it."""
+    s = p.GetSize()
+    if int(round(p.GetOrientationDegrees())) % 180 == 90:
+        return int(s.y), int(s.x)
+    return int(s.x), int(s.y)
+
+
+def open_pads_from_drc(board: pcbnew.BOARD) -> set | None:
+    """(reference, pad) pairs DRC lists as unconnected, when routing/drc.json is newer than the board
+    file; None when there is no current report (then every pad without a track counts as open)."""
+    import json, re
+    rep = Path(str(PCB).replace(".kicad_pcb", "-drc.json")) if not (HW / "routing" / "drc.json").exists() else HW / "routing" / "drc.json"
+    if not rep.exists() or rep.stat().st_mtime < PCB.stat().st_mtime - 1:
+        return None
+    out = set()
+    for it in json.loads(rep.read_text()).get("unconnected_items", []):
+        for i in it["items"]:
+            m = re.match(r"(?:PTH )?[Pp]ad (\S+) \[.*?\] of (\w+)", i["description"])
+            if m:
+                out.add((m.group(2), m.group(1)))
+    return out
+
+
 def fanout_conn(board: pcbnew.BOARD) -> None:
-    """Plane vias for the fine-pitch connectors, fitted to their row geometry: the CM5's four DF40 rows
-    (0.4 mm pitch, vias in the 2.4 mm gap between a connector's two rows, or outward as fallback), the
-    M.2 socket's two rows (0.5 mm pitch, vias outward), the SATA receptacles (1.27 mm pitch, vias toward
-    the board edge under the housing). Adjacent same-net pins are bridged pad-to-pad and share one via,
-    so vias in a row are never closer than two pitches."""
+    import math
+    """Row-fitted fanout for every fine-pitch part with 20+ SMD pads (CM5 connector, M.2 socket, SATA
+    receptacles, QFN hubs and bridges). Per row of pads, adjacent same-net pins are bridged pad-to-pad
+    so they need one connection; plane-net groups get one via (in the gap between paired rows, else
+    outward, staggered); QFN ground pins next to an exposed pad of the same net are tied straight into
+    it. Non-plane groups (bay 12 V / 5 V pins, M.2 3.3 V pins) are only bridged, the router does the rest.
+    Only pads that are still unconnected are touched; every via is collision-checked."""
     zones_by_net = {}
     for z in board.Zones():
         if not z.GetIsRuleArea():
             zones_by_net.setdefault(z.GetNetname(), []).append(z)
-    done_pads = connected_pads(board)
+    open_pads = open_pads_from_drc(board)
+    done_pads = connected_pads(board) if open_pads is None else None
+
+    def is_open(ref, num):
+        return ((ref, num) in open_pads) if open_pads is not None else ((ref, num) not in done_pads)
+
     via_d, via_drill, stub_w = MM(0.45), MM(0.2), MM(0.13)
-    occupied = [pad.GetBoundingBox() for f in board.GetFootprints() for pad in f.Pads()]
-    occupied += [t.GetBoundingBox() for t in board.GetTracks()]
-    placed = skipped = bridged = 0
+    occ = Occupancy(board)
+    placed = skipped = bridged = tied = 0
 
     def free(vx, vy, own):
-        box = pcbnew.BOX2I(pcbnew.VECTOR2I(vx - via_d // 2 - MM(0.13), vy - via_d // 2 - MM(0.13)),
-                           pcbnew.VECTOR2I(via_d + 2 * MM(0.13), via_d + 2 * MM(0.13)))
-        return not any(o.Intersects(box) and not any(o.Contains(pcbnew.VECTOR2I(*p)) for p in own) for o in occupied)
+        return occ.point_free(vx, vy, via_d // 2, own)
 
-    def add(px, py, vx, vy, net, layer):
-        v = pcbnew.PCB_VIA(board)
-        v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
-        v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetNetCode(net); board.Add(v)
-        tr = pcbnew.PCB_TRACK(board)
-        tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
-        tr.SetWidth(stub_w); tr.SetLayer(layer); tr.SetNetCode(net); board.Add(tr)
-        occupied.append(v.GetBoundingBox()); occupied.append(tr.GetBoundingBox())
+    def path_free(p1, p2, own):
+        return occ.path_free(p1, p2, stub_w // 2, own)
 
-    def link(p1, p2, net, layer):
+    def track(p1, p2, net, layer):
         tr = pcbnew.PCB_TRACK(board)
         tr.SetStart(pcbnew.VECTOR2I(*p1)); tr.SetEnd(pcbnew.VECTOR2I(*p2))
-        tr.SetWidth(stub_w); tr.SetLayer(layer); tr.SetNetCode(net); board.Add(tr)
-        occupied.append(tr.GetBoundingBox())
+        tr.SetWidth(stub_w); tr.SetLayer(layer); tr.SetNetCode(net); board.Add(tr); occ.add(tr)
+
+    def add_via(px, py, vx, vy, net, layer):
+        v = pcbnew.PCB_VIA(board)
+        v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
+        v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetNetCode(net); board.Add(v); occ.add(v)
+        track((px, py), (vx, vy), net, layer)
 
     for f in board.GetFootprints():
         ref = f.GetReference()
@@ -583,42 +679,44 @@ def fanout_conn(board: pcbnew.BOARD) -> None:
         if len(pads) < 20:
             continue
         layer = pcbnew.B_Cu if f.IsFlipped() else pcbnew.F_Cu
-        # rows: pads sharing the coordinate along their long axis; the row axis is the other one
-        sz = pads[0].GetSize(); along_x = sz.x < sz.y   # pads longer in y -> the row runs along x
+        fcx, fcy = f.GetPosition().x, f.GetPosition().y
+        eps = [p for p in pads if min(pad_size(p)) >= MM(1.2) or not str(p.GetNumber())]   # exposed pads, incl. split ones
+        ep_keys = {(str(e.GetNumber()), int(e.GetPosition().x), int(e.GetPosition().y)) for e in eps}
+        # rows: pads with the same orientation sharing the coordinate along their long axis
         rows = {}
         for p in pads:
+            if (str(p.GetNumber()), int(p.GetPosition().x), int(p.GetPosition().y)) in ep_keys:
+                continue
+            sx_, sy_ = pad_size(p); along_x = sx_ < sy_   # pad longer in y -> its row runs along x
             pos = p.GetPosition()
-            key = int(round((pos.y if along_x else pos.x) / 1e4))   # 0.01 mm bins
+            key = (along_x, int(round((pos.y if along_x else pos.x) / 1e4)))
             rows.setdefault(key, []).append(p)
-        rows = {k: sorted(v, key=lambda p: p.GetPosition().x if along_x else p.GetPosition().y) for k, v in rows.items() if len(v) >= 8}
-        keys = sorted(rows)
-        fcx, fcy = f.GetPosition().x, f.GetPosition().y
-        for k in keys:
-            row = rows[k]
+        rows = {k: sorted(v, key=lambda p: p.GetPosition().x if k[0] else p.GetPosition().y) for k, v in rows.items() if len(v) >= 6}
+        for (along_x, k), row in rows.items():
+            partners = [kk for (ax, kk) in rows if ax == along_x and kk != k]
+            partner = min(partners, key=lambda kk: abs(kk - k)) if partners else None
+            gap = abs(partner - k) * 1e4 if partner is not None else 0
+            pad_len = max(pad_size(row[0]))
             pos0 = row[0].GetPosition()
-            # candidate directions perpendicular to the row: toward the footprint centre first (the gap
-            # between paired rows), then away from it
             coord = pos0.y if along_x else pos0.x
             centre = fcy if along_x else fcx
             inward = 1 if centre > coord else -1
-            # a row's partner (the other row of the same connector) is the nearest other row
-            others = [kk for kk in keys if kk != k]
-            partner = min(others, key=lambda kk: abs(kk - k)) if others else None
-            gap = abs(partner - k) * 1e4 if partner is not None else 0
-            pad_len = max(sz.x, sz.y)
             d_in = pad_len / 2 + MM(0.13) + via_d / 2 + MM(0.05)
             dists = []
             if partner is not None and gap and gap / 2 > d_in + via_d / 2 + MM(0.2):
-                # both rows fit their via line inside the gap: this row's line sits d_in from its pads
                 dists.append(inward * d_in)
-            dists.append(-inward * d_in)              # outward
-            dists.append(inward * (d_in + MM(0.6)))   # deeper inward
-            dists.append(-inward * (d_in + MM(0.6)))  # further outward
-            # group consecutive same-net plane pins
+            dists += [-inward * d_in, inward * (d_in + MM(0.6)), -inward * (d_in + MM(0.6))]
+            # the exposed pad this row faces, if any (QFN): its edge nearest the row
+            ep = None
+            for e in eps:
+                epos = e.GetPosition(); ex, ey = pad_size(e)
+                edge = (epos.y - inward * ey / 2) if along_x else (epos.x - inward * ex / 2)
+                if abs(edge - coord) < pad_len / 2 + MM(0.8):
+                    ep = (e, edge)
             i = 0
             while i < len(row):
                 p = row[i]; net = p.GetNetname()
-                if net not in zones_by_net or (ref, p.GetNumber()) in done_pads:
+                if not net or not is_open(ref, str(p.GetNumber())):
                     i += 1; continue
                 j = i
                 while j + 1 < len(row) and row[j + 1].GetNetname() == net:
@@ -627,24 +725,76 @@ def fanout_conn(board: pcbnew.BOARD) -> None:
                 mid = group[len(group) // 2]
                 mp = mid.GetPosition(); mx, my = int(mp.x), int(mp.y)
                 own = [(int(g.GetPosition().x), int(g.GetPosition().y)) for g in group]
+                for g in group:   # bridge the group pad-to-pad (same net, adjacent pads)
+                    if g is not mid:
+                        gp = g.GetPosition(); q = (int(gp.x), int(gp.y))
+                        if path_free(q, (mx, my), own):
+                            track(q, (mx, my), mid.GetNetCode(), layer); bridged += 1
+                span_ok = False
+                if ep is not None:
+                    e = ep[0]; epos = e.GetPosition(); ex, ey = pad_size(e)
+                    span_ok = (abs(mx - epos.x) <= ex / 2) if along_x else (abs(my - epos.y) <= ey / 2)
+                if ep is not None and ep[0].GetNetname() == net and span_ok:
+                    # tie into the exposed pad: straight inward from the group's middle pin to just inside its edge
+                    e, edge = ep
+                    inside = int(edge + inward * MM(0.25))
+                    end = (mx, inside) if along_x else (inside, my)
+                    epos = e.GetPosition()
+                    if path_free((mx, my), end, own + [(int(epos.x), int(epos.y))]):
+                        track((mx, my), end, mid.GetNetCode(), layer); tied += 1
+                        i = j + 1; continue
+                if net not in zones_by_net:
+                    i = j + 1; continue   # bridged only; the router connects the group
                 ok = False
                 for dd in dists:
                     vx, vy = (mx, my + int(dd)) if along_x else (mx + int(dd), my)
-                    if not free(vx, vy, own):
+                    if not free(vx, vy, own) or not path_free((mx, my), (vx, vy), own):
                         continue
                     if not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
                         continue
-                    add(mx, my, vx, vy, mid.GetNetCode(), layer); placed += 1; ok = True
-                    for g in group:
-                        if g is not mid:
-                            gp = g.GetPosition()
-                            link((int(gp.x), int(gp.y)), (mx, my), mid.GetNetCode(), layer); bridged += 1
+                    add_via(mx, my, vx, vy, mid.GetNetCode(), layer); placed += 1; ok = True
                     break
                 if not ok:
                     skipped += len(group)
                 i = j + 1
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
-    print(f"fanout_conn: {placed} vias, {bridged} pad-to-pad links, {skipped} plane pins left for the router")
+    print(f"fanout_conn: {placed} vias, {bridged} pad-to-pad links, {tied} pins tied into exposed pads, {skipped} plane pins left for the router")
+
+
+def drc_clean(board: pcbnew.BOARD, rounds: int = 3) -> int:
+    """Remove tracks and vias that DRC flags in clearance, short, crossing or edge-clearance errors (the
+    newer router leaves a few), refill, repeat. Pads and zones are never touched. Returns errors left."""
+    import json
+    import subprocess as sp
+    rep = HW / "routing" / "drc.json"
+    left = 0
+    for r in range(rounds):
+        pcbnew.SaveBoard(str(PCB), board)
+        sp.run(["kicad-cli", "pcb", "drc", "--format", "json", "--severity-error", "-o", str(rep), str(PCB)], capture_output=True)
+        j = json.loads(rep.read_text())
+        bad = [x for x in j["violations"] if x["type"] in ("clearance", "shorting_items", "tracks_crossing", "copper_edge_clearance", "items_not_allowed")]
+        left = len(bad)
+        if not bad:
+            break
+        spots = set()
+        for x in bad:
+            for i in x["items"]:
+                if i["description"].startswith(("Track", "Via")) and "pos" in i:
+                    spots.add((round(i["pos"]["x"], 3), round(i["pos"]["y"], 3), i["description"].startswith("Via")))
+        doomed = []
+        for t in board.GetTracks():
+            is_via = t.GetClass() == "PCB_VIA"
+            pts = [t.GetPosition()] if is_via else [t.GetStart(), t.GetEnd()]
+            for q in pts:
+                if (round(q.x / 1e6, 3), round(q.y / 1e6, 3), is_via) in spots:
+                    doomed.append(t); break
+        for t in doomed:
+            board.Remove(t)
+        print(f"drc_clean round {r + 1}: {len(bad)} errors, removed {len(doomed)} tracks/vias")
+        pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    pcbnew.SaveBoard(str(PCB), board)
+    print(f"drc_clean: {left} copper errors left")
+    return left
 
 
 def main(cmd: str) -> int:
@@ -676,11 +826,13 @@ def main(cmd: str) -> int:
         if stage(board, d, diff_pair_nets(d), "2 (single-ended, planes, bays)"):
             return 1
         pcbnew.SaveBoard(str(PCB), board)
-    if cmd == "stage3":   # the differential pairs
-        if stage(board, d, set(), "3 (differential pairs)"):
+    if cmd == "stage3":   # the differential pairs alone: the other classes are ignored, their copper stays
+        if stage(board, d, set(), "3 (differential pairs)", ignore_classes=("kicad_default", "Bay", "Power")):
             return 1
         pcbnew.SaveBoard(str(PCB), board)
         pair_report(board, d)
+    if cmd == "drc-clean":
+        drc_clean(board)
     if cmd == "fanout-big":
         fanout_big(board)
         pcbnew.SaveBoard(str(PCB), board)

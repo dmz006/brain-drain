@@ -64,7 +64,14 @@ python3 tools/route.py fanout    # via + stub next to every SMD pad on a plane n
 python3 tools/route.py dsn       # Specctra DSN -> routing/ (full, and lite = no diff pairs / bay nets)
 java -Djava.awt.headless=true -jar tools/freerouting/freerouting-2.1.0.jar -de routing/brain-drain-lite.dsn -do routing/brain-drain-lite.ses -mp 8 -oit 2
                                  # (or `route.py all` which runs the whole chain); -oit 2 stops the optimizer looping forever
-python3 tools/route.py import    # session back into the board; bay-net tracks and anything crossing a keep-out stripped; zones filled
+python3 tools/route.py import    # session back into the board; anything crossing a keep-out stripped; zones filled
+# staged flow used for the v2 board (each stage locks what exists and routes on top of it):
+python3 tools/route.py fanout-big && python3 tools/route.py fanout-conn   # exposed-pad vias, connector-row vias
+python3 tools/route.py stage1    # signal nets            (2.1.0, ~12 min)
+python3 tools/route.py stage2    # planes, rails, bays    (2.1.0, ~3.5 h: it stops only at pass 999)
+BD_ROUTER=2.4.1 BD_PASSES=12 python3 tools/route.py stage3   # pairs, bounded run on Java 25 (~45 min)
+python3 tools/route.py drc-clean # remove any copper the router left in violation
+python3 tools/open_report.py     # routing/open.md; pairs: python3 tools/route.py pairs -> routing/pairs.md
 python3 tools/fpgen.py           # project footprints from vendor drawings
 sh tools/render_board.sh         # renders/board-top.png, board-inner.png, board-3d-{top,bottom,iso}.png, schematic PDF + PNGs
 sh tools/export_fab.sh           # fab/<date>/: gerbers + drill zip, placement CSV, BOM CSV, assembly PDFs (order pack)

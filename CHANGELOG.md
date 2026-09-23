@@ -26,6 +26,12 @@ revisions are noted in the entries.
 - `docs/FABRICATION.md`: small-run assembly vendors, cost estimate, order gates and checklist.
 
 ### Changed
+- Staged autorouting completed as far as the tools go (2026-09-23): 719 / 884 connections (81 %), 3175
+  segments, 658 vias, DRC copper-clean. Tooling: staged runs with locked routes (`stage1/2/3`), `-inc`
+  class ignoring, `BD_ROUTER=2.4.1` / `BD_PASSES` for the newer bounded router, `drc-clean`, geometry-aware
+  fanout collision checks (`Occupancy`), row-fitted connector fanout with orientation-correct pad sizes,
+  exposed-pad ties, DRC-driven open-pad detection, `pair_report`, `open_report`. What remains is listed in
+  `hardware/routing/open.md` and `pairs.md` and decision D7.
 - Routing rerun on the v2 outline: all 75 single-ended signal nets routed (930 segments, 214 vias); the
   fanout now checks the plane polygon, not its bounding box; `route.py prepare` writes the net classes
   into the project file (their only home) and `gen_sch.py` preserves them; session import strips

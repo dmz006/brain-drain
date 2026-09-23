@@ -1,0 +1,52 @@
+# Differential pairs after autorouting
+
+| pair | P mm | N mm | mismatch mm | vias P/N | note |
+|---|---|---|---|---|---|
+| BAY1_SATA_A_P / BAY1_SATA_A_N | 36.98 | 44.23 | 7.25 | 2/2 | match > 0.15 mm |
+| BAY1_SATA_B_P / BAY1_SATA_B_N | 0.00 | 57.20 | 57.20 | 0/4 | UNROUTED |
+| BAY1_USB2_DP / BAY1_USB2_DM | 0.00 | 52.71 | 52.71 | 0/10 | UNROUTED |
+| BAY1_USB3_RX_P / BAY1_USB3_RX_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY1_USB3_TX_P / BAY1_USB3_TX_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY2_SATA_A_P / BAY2_SATA_A_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY2_SATA_B_P / BAY2_SATA_B_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY2_USB2_DP / BAY2_USB2_DM | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY2_USB3_RX_P / BAY2_USB3_RX_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY2_USB3_TX_P / BAY2_USB3_TX_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY3_SATA_A_P / BAY3_SATA_A_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY3_SATA_B_P / BAY3_SATA_B_N | 42.73 | 66.83 | 24.10 | 4/2 | match > 0.15 mm |
+| BAY3_USB2_DP / BAY3_USB2_DM | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY3_USB3_RX_P / BAY3_USB3_RX_N | 0.00 | 83.25 | 83.25 | 0/6 | UNROUTED |
+| BAY3_USB3_TX_P / BAY3_USB3_TX_N | 67.03 | 66.10 | 0.93 | 4/4 | match > 0.15 mm |
+| BAY4_SATA_A_P / BAY4_SATA_A_N | 44.90 | 60.23 | 15.33 | 4/0 | match > 0.15 mm |
+| BAY4_SATA_B_P / BAY4_SATA_B_N | 48.33 | 56.51 | 8.18 | 2/2 | match > 0.15 mm |
+| BAY4_USB2_DP / BAY4_USB2_DM | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY4_USB3_RX_P / BAY4_USB3_RX_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| BAY4_USB3_TX_P / BAY4_USB3_TX_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| PCIE_CLK_P / PCIE_CLK_N | 29.65 | 0.00 | 29.65 | 2/0 | UNROUTED |
+| PCIE_RX_P / PCIE_RX_N | 19.83 | 36.54 | 16.72 | 2/4 | match > 0.15 mm |
+| PCIE_TX_P / PCIE_TX_N | 33.00 | 32.55 | 0.45 | 2/2 | match > 0.15 mm |
+| U10_SRXP / U10_SRXN | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U10_STXP / U10_STXN | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U10_UTXP / U10_UTXN | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U11_SRXP / U11_SRXN | 25.44 | 0.00 | 25.44 | 2/0 | UNROUTED |
+| U11_STXP / U11_STXN | 0.00 | 38.39 | 38.39 | 0/6 | UNROUTED |
+| U11_UTXP / U11_UTXN | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U12_SRXP / U12_SRXN | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U12_STXP / U12_STXN | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U12_UTXP / U12_UTXN | 25.74 | 0.00 | 25.74 | 2/0 | UNROUTED |
+| U13_SRXP / U13_SRXN | 0.00 | 30.58 | 30.58 | 0/4 | UNROUTED |
+| U13_STXP / U13_STXN | 42.12 | 0.00 | 42.12 | 4/0 | UNROUTED |
+| U13_UTXP / U13_UTXN | 0.00 | 30.13 | 30.13 | 0/2 | UNROUTED |
+| U1_DN1_TXDP / U1_DN1_TXDM | 0.00 | 13.73 | 13.73 | 0/2 | UNROUTED |
+| U1_DN2_TXDP / U1_DN2_TXDM | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U1_UP_TXDP / U1_UP_TXDM | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U2_DN1_TXDP / U2_DN1_TXDM | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| U2_DN2_TXDP / U2_DN2_TXDM | 10.10 | 18.53 | 8.44 | 2/4 | match > 0.15 mm |
+| U2_UP_TXDP / U2_UP_TXDM | 0.00 | 32.41 | 32.41 | 0/2 | UNROUTED |
+| USB2_DP / USB2_DM | 153.92 | 123.04 | 30.88 | 5/3 | match > 0.15 mm |
+| USB3_0_DP / USB3_0_DM | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| USB3_0_RX_P / USB3_0_RX_N | 0.00 | 72.29 | 72.29 | 0/8 | UNROUTED |
+| USB3_0_TX_P / USB3_0_TX_N | 0.00 | 0.00 | 0.00 | 0/0 | UNROUTED |
+| USB3_1_DP / USB3_1_DM | 50.76 | 0.00 | 50.76 | 4/0 | UNROUTED |
+| USB3_1_RX_P / USB3_1_RX_N | 61.07 | 0.00 | 61.07 | 6/0 | UNROUTED |
+| USB3_1_TX_P / USB3_1_TX_N | 48.09 | 0.00 | 48.09 | 2/0 | UNROUTED |
