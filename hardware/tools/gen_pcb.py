@@ -164,6 +164,8 @@ def flip_bottom():
         if f and not f.IsFlipped():
             f.Flip(f.GetPosition(), False)
     pcbnew.SaveBoard(str(OUT), board)
+    import pcbfix
+    print("duplicate UUIDs replaced:", pcbfix.uniquify_uuids(OUT))
 
 
 def main():

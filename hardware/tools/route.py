@@ -1148,6 +1148,15 @@ def drc_clean(board: pcbnew.BOARD, rounds: int = 3) -> int:
         pcbnew.SaveBoard(str(PCB), board)
         sp.run(["kicad-cli", "pcb", "drc", "--format", "json", "--severity-error", "-o", str(rep), str(PCB)], capture_output=True)
         j = json.loads(rep.read_text())
+        thin = [x for x in j["violations"] if x["type"] == "track_width"]   # a sliver the router left: widen instead of removing
+        if thin:
+            spots_w = {(round(i["pos"]["x"], 3), round(i["pos"]["y"], 3)) for x in thin for i in x["items"] if "pos" in i}
+            n_w = 0
+            for t in board.GetTracks():
+                if t.GetClass() != "PCB_VIA" and t.GetWidth() < MM(0.1) and (round(t.GetStart().x / 1e6, 3), round(t.GetStart().y / 1e6, 3)) in spots_w | {(round(t.GetEnd().x / 1e6, 3), round(t.GetEnd().y / 1e6, 3))}:
+                    t.SetWidth(MM(0.13)); n_w += 1
+            if n_w:
+                print(f"drc_clean: widened {n_w} sub-minimum tracks")
         bad = [x for x in j["violations"] if x["type"] in ("clearance", "shorting_items", "tracks_crossing", "copper_edge_clearance", "items_not_allowed")]
         left = len(bad)
         if not bad:
@@ -1327,7 +1336,12 @@ def main(cmd: str) -> int:
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "close-gaps":   # small grid router for the open connections the autorouter left (pads, rails, links)
         import gapclose
-        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=diff_pair_nets(d))
+        partner = {}
+        for a_, b_ in pairs_of(d):
+            partner[a_] = b_; partner[b_] = a_
+        # single-ended nets first, then the pair sides (each hugging its partner's copper); tune afterwards
+        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=diff_pair_nets(d), max_len=160.0)
+        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=frozenset(), max_len=160.0, partner_of=partner)
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "tune":
         tune_pairs(board, d)
