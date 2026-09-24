@@ -864,7 +864,7 @@ def fanout_conn(board: pcbnew.BOARD) -> None:
     print(f"fanout_conn: {placed} vias, {bridged} pad-to-pad links, {tied} pins tied into exposed pads, {skipped} plane pins left for the router")
 
 
-def fanout_qfn(board: pcbnew.BOARD) -> None:
+def fanout_qfn(board: pcbnew.BOARD, ripup: bool = False) -> None:
     """D8: dog-bone vias of 0.3/0.15 mm on the 0.4-0.65 mm-pitch QFN / DFN pins (bridges, hubs, the DFN P-FETs), for every
     pin on a net with three or more pads that is not a differential pair. Vias sit on two lines outside
     the pin row (0.75 and 1.35 mm from the pad centre), alternating by pin index so no two vias are
@@ -956,7 +956,7 @@ def fanout_qfn(board: pcbnew.BOARD) -> None:
                 found = next((spot(dd) for dd in order if fits(*spot(dd))), None)
                 if found is None:   # rip up a simple net sitting on the closest spot, then look again
                     blk = occ.blockers(*spot(d1), via_d // 2, [(px, py)])
-                    if blk and p.GetNetCode() not in blk and rip(blk):
+                    if ripup and blk and p.GetNetCode() not in blk and rip(blk):
                         found = next((spot(dd) for dd in order if fits(*spot(dd))), None)
                 if found is None:
                     skipped += 1
@@ -1138,6 +1138,9 @@ def main(cmd: str) -> int:
         pair_report(board, d)
     if cmd == "fanout-qfn":
         fanout_qfn(board)
+        pcbnew.SaveBoard(str(PCB), board)
+    if cmd == "fanout-qfn-rip":   # before a routing stage only: may rip up simple nets for the router to redo
+        fanout_qfn(board, ripup=True)
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "drc-clean":
         drc_clean(board)

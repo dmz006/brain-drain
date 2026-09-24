@@ -35,3 +35,10 @@ from pip.raspberrypi.com myself when the enclosure work starts.
 |---|---|---|---|
 | PCI Express x1 card-edge socket, through-hole, customer drawing | Amphenol 10018783-10100TLF (or TE 1-1734774-1) | amphenol-cs.com / te.com product page, "Drawing" | the eight bay slots on the brain: pin rows, peg holes, housing outline. Footprint is generated from the PCI Express CEM spec meanwhile and checked against the drawing before ordering |
 | 12 V brick, 150–180 W, with its DIN pinout | your choice | vendor page | eight spinning 3.5" drives draw about 9 A at 12 V |
+
+## P-FET datasheets (pin tables, before ordering)
+
+| Part | Where | Why |
+|---|---|---|
+| AO4407A (Q20, SO-8) | https://www.aosmd.com/res/datasheets/AO4407A.pdf | confirm S 1–3, G 4, D 5–8 (symbol `PMOS_SSSGDDDD`) |
+| bay-card P-FET (Q1, Q2, DFN 3x3-8) | vendor PDF of the chosen part (R24), e.g. AON7403 https://www.aosmd.com/res/datasheets/AON7403.pdf | confirm S 1–3, G 4, D 5–8 + EP and the DFN land pattern |

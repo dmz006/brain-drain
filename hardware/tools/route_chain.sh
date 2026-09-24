@@ -8,6 +8,11 @@ log=$RD/chain.log
 echo "chain start $(date)" > $log
 while pgrep -f "^python3 tools/route.py stage1$" >/dev/null; do sleep 20; done   # any project; both chains never overlap stage 1
 echo "stage1 done $(date)" >> $log
+# pre-routing fanouts: plane vias on long pads (card-edge fingers) and QFN / DFN pins, the latter allowed to
+# rip up a simple net that sits on the spot (stage 2 redoes it)
+kicad-cli pcb drc --format json --severity-all -o $RD/drc.json $PCBF >/dev/null 2>&1
+python3 tools/route.py fanout-big 2>&1 | grep fanout | sed 's/^/pre /' >> $log
+python3 tools/route.py fanout-qfn-rip 2>&1 | grep fanout | sed 's/^/pre /' >> $log
 rm -f $RD/*.ses; : > /tmp/freerouting/freerouting.log
 python3 tools/route.py stage2 > $RD/stage2.log 2>&1; echo "stage2 done $(date): $(grep -v 'memory leak\|assert\|Debug' $RD/stage2.log | tail -1)" >> $log
 rm -f $RD/*.ses

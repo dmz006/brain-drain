@@ -25,6 +25,15 @@ revisions are noted in the entries.
   13 new tests (74 total). Dependency: `qrcode`.
 - `docs/FABRICATION.md`: small-run assembly vendors, cost estimate, order gates and checklist.
 
+### Fixed
+- **P-FET pin-out (2026-09-23):** Q20 (AO4407A, SO-8) and the bay cards' Q1 / Q2 (DFN 3x3) used the
+  generic three-pin `Q_PMOS_GSD` symbol, which put gate, source and drain on pads 1, 2 and 3; on these
+  8-pin power packages pads 1–3 are all source, 4 is the gate and 5–8 (plus the exposed pad) the drain.
+  New library symbols `PMOS_SSSGDDDD` / `PMOS_SSSGDDDD_EP` carry the real numbering; `route.py
+  update-nets` re-syncs the pad nets on the routed boards and the router finishes the moved pins.
+- `gen_sch.py` wiped the board design rules (0.3 mm via, 0.15 mm hole) from the project file on every
+  run; it now keeps them, and both projects have them again.
+
 ### Changed
 - **Brain + bay cards (C24, D9 option A, 2026-09-23):** the design is split into a brain board
   (150 × 122 mm: CM5 on the right edge, two hubs with all four downstream ports, eight PCIe-x1

@@ -1,0 +1,10 @@
+project net classes written: 4 classes, 37 patterns; min rules {'min_clearance': 0.125, 'min_track_width': 0.1, 'min_via_diameter': 0.3, 'min_through_hole_diameter': 0.15, 'min_via_annular_width': 0.075, 'min_hole_clearance': 0.2, 'min_copper_edge_clearance': 0.3}
+net classes come from the project file (37 patterns)
+zones already present; net classes refreshed, zones left as they are
+== stage 2 (single-ended, planes, bays): 621 existing segments locked
+DSN export ok routing/bay-card.dsn
+lite DSN: kept 21 nets, dropped 16 (diff pairs, bay nets, power nets carried by zones) -> routing/bay-card-lite.dsn
+java -Djava.awt.headless=true -jar /home/dmz/workspace/brain-drain/hardware/tools/freerouting/freerouting-2.1.0.jar -de /home/dmz/workspace/brain-drain/hardware/bay-card/routing/bay-card-lite.dsn -do /home/dmz/workspace/brain-drain/hardware/bay-card/routing/bay-card-lite.ses -mp 30 -oit 2
+freerouting rc 0 -> True
+SES import ok
+tracks 532 (1141 mm), vias 119, zones 4

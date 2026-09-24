@@ -47,7 +47,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 |---|---|---|---|---|---|
 | U1 | 1 | ASMedia ASM1153E (QFN-48) | USB 3 → SATA bridge | 3 | as U10–U13 before |
 | Y1, L1, C1–C18, R1–R2 | — | crystal 30 MHz, 4.7 µH, passives | bridge support | 1.2 | |
-| Q1, Q2 | 2 | P-FET −30 V ≥6 A DFN3×3 | 12 V and 5 V switches | 0.8 | |
+| Q1, Q2 | 2 | P-FET −30 V ≥6 A DFN3×3, pin-out S 1–3 / G 4 / D 5–8 + EP | 12 V and 5 V switches | 0.8 | part number to be chosen (R24); candidates AON7403 (AOS), Vishay / Nexperia equivalents with the same pin-out |
 | Q3, Q4 | 2 | 2N7002 | gate drivers | 0.1 | |
 | F1, F2 | 2 | PTC 1812, 3 A and 2 A hold | per-bay fuses | 0.6 | |
 | R3–R8, C19, C20 | — | switch passives | soft-start, pull-ups, BAY_EN pull-down | 0.2 | |
@@ -72,7 +72,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 | J21 | 1 | 4-pin DIN power jack, Kycon KPJX-4S-S | 12 V input, 7.5 A per pin, 48 V | 2.5 | decided C13; barrel dropped (5 A rated). **Choose the brick before layout; DIN pin assignment varies by vendor** |
 | F1 | 1 | SMD fuse 10 A slow (Littelfuse 0453010.MR) | input | 1.5 | |
 | D20 | 1 | SMBJ15A | input TVS | 0.3 | |
-| Q20 | 1 | P-MOSFET −30 V ≥12 A (AO4407A, SO-8) | reverse polarity | 0.8 | |
+| Q20 | 1 | P-MOSFET −30 V ≥12 A (AO4407A, SO-8, S 1–3 / G 4 / D 5–8) | reverse polarity | 0.8 | symbol `PMOS_SSSGDDDD` |
 | D21 | 1 | 12 V zener, SOD-123 | Q20 gate clamp | 0.1 | |
 | R20 | 1 | 100k | Q20 gate pull-down | — | |
 | C20, C21 | 2 | 680 µF 25 V low-ESR electrolytic | 12 V bulk | 0.6 ea | near SATA power |
