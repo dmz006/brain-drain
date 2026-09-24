@@ -12,3 +12,10 @@ fanout_qfn: 0 small vias placed, 0 QFN pins skipped (no free spot)
 open connections: 6; groups: {'plane (needs a via to its plane)': 2, 'bay power / control': 1, 'differential pair': 3}; report routing/open.md
 pairs: 8, 7 beyond the 0.15 mm match, report routing/pairs.md
 chain done Wed Sep 23 09:44:47 PM EDT 2026
+rip_pairs: 3 pairs, 0 tracks/vias removed: U1_SRXP/U1_SRXN, USB2_DP/USB2_DM, USB3_TX_P/USB3_TX_N
+reroute stage3: tracks 597 (1156 mm), vias 123, zones 4
+drc_clean: 0 copper errors left
+tune: 1 pairs meandered, 0 left as routed
+open connections: 7; groups: {'plane (needs a via to its plane)': 2, 'bay power / control': 1, 'differential pair': 4}; report routing/open.md
+pairs: 8, 0 beyond the 0.15 mm match, report routing/pairs.md
+reroute done Thu Sep 24 10:59:06 AM EDT 2026

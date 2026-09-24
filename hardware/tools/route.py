@@ -738,6 +738,23 @@ def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
     print(f"pairs: {len(pairs)}, {bad} beyond the 0.15 mm match, report routing/pairs.md")
 
 
+def rip_bad_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.15, min_gap: float = 0.0) -> list[str]:
+    """Remove every track and via of both nets of each pair the tuner cannot fix: a side that is not
+    routed, or a mismatch beyond `tol` (called after `tune`, so what is left is detour, not tuning room).
+    Returns the pair names; the router then routes them again with the rest of the copper locked."""
+    lengths, _v = net_lengths(board)
+    doomed_nets, names = set(), []
+    for a, b in pairs_of(d):
+        la, lb = lengths.get(a, 0.0), lengths.get(b, 0.0)
+        if not (la and lb) or abs(la - lb) > tol:
+            doomed_nets.update((a, b)); names.append(f"{a}/{b}")
+    victims = [t for t in board.GetTracks() if t.GetNetname() in doomed_nets]
+    for t in victims:
+        board.Remove(t)
+    print(f"rip_pairs: {len(names)} pairs, {len(victims)} tracks/vias removed: {', '.join(names)}")
+    return names
+
+
 def tune_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.1, max_extra: float = 40.0) -> None:
     """Length-match every routed differential pair by adding rectangular meanders to the shorter side.
 
@@ -1294,6 +1311,9 @@ def main(cmd: str) -> int:
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "fanout-conn":
         fanout_conn(board)
+        pcbnew.SaveBoard(str(PCB), board)
+    if cmd == "rip-pairs":   # tools/reroute_pairs.sh: rip, then stage3 / drc-clean / tune in fresh processes
+        rip_bad_pairs(board, d)
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "tune":
         tune_pairs(board, d)
