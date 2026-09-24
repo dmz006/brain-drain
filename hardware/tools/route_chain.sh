@@ -23,6 +23,7 @@ python3 tools/route.py fanout 2>&1 | grep fanout >> $log
 python3 tools/route.py fanout-big 2>&1 | grep fanout >> $log
 python3 tools/route.py fanout-conn 2>&1 | grep fanout >> $log
 python3 tools/route.py fanout-qfn 2>&1 | grep fanout >> $log
+python3 tools/route.py tune 2>&1 | grep '^tune' >> $log
 kicad-cli pcb drc --format json --severity-all -o $RD/drc.json $PCBF >/dev/null 2>&1
 python3 tools/open_report.py 2>&1 | tail -1 >> $log
 python3 tools/route.py pairs 2>&1 | grep pairs >> $log

@@ -224,8 +224,9 @@ class Occupancy:
     def __init__(self, board: pcbnew.BOARD, clearance: float = 0.125):
         self.clr = MM(clearance)
         self.boxes = [pad.GetBoundingBox() for f in board.GetFootprints() for pad in f.Pads()]
-        self.segs = []   # (SEG, half width)
-        self.vias = []   # (x, y, radius)
+        self.box_layers = [{L for L in (pcbnew.F_Cu, pcbnew.B_Cu) if pad.IsOnLayer(L)} for f in board.GetFootprints() for pad in f.Pads()]
+        self.segs = []   # (SEG, half width, net code, layer)
+        self.vias = []   # (x, y, radius, net code)
         for t in board.GetTracks():
             self.add(t)
         # board edges (board drawings and footprint-owned outlines such as a card-edge tab with its key notch)
@@ -238,7 +239,12 @@ class Occupancy:
         if t.GetClass() == "PCB_VIA":
             p = t.GetPosition(); self.vias.append((int(p.x), int(p.y), t.GetWidth(pcbnew.F_Cu) // 2, t.GetNetCode()))
         else:
-            self.segs.append((pcbnew.SEG(t.GetStart(), t.GetEnd()), t.GetWidth() // 2, t.GetNetCode()))
+            self.segs.append((pcbnew.SEG(t.GetStart(), t.GetEnd()), t.GetWidth() // 2, t.GetNetCode(), t.GetLayer()))
+
+    def remove_track(self, a, b, netcode: int, layer) -> None:
+        """Forget one straight track (given by its ends) so a replacement can be checked against the rest."""
+        self.segs = [s for s in self.segs if not (s[2] == netcode and s[3] == layer and
+                     {(int(s[0].A.x), int(s[0].A.y)), (int(s[0].B.x), int(s[0].B.y))} == {(int(a[0]), int(a[1])), (int(b[0]), int(b[1]))})]
 
     def drop_net(self, netcode: int) -> None:
         self.segs = [s for s in self.segs if s[2] != netcode]
@@ -255,7 +261,7 @@ class Occupancy:
                 if not any(b.Contains(pcbnew.VECTOR2I(*o)) for o in own):
                     return None
         out = set()
-        for seg, hw, net in self.segs:
+        for seg, hw, net, _layer in self.segs:
             if seg.Distance(pt) < r + hw + self.clr and not any(seg.Distance(pcbnew.VECTOR2I(*o)) <= hw + 10 for o in own):
                 out.add(net)
         for vx, vy, vr, net in self.vias:
@@ -265,17 +271,23 @@ class Occupancy:
 
     def add_box(self, box) -> None:
         self.boxes.append(box)
+        self.box_layers.append(None)
 
-    def point_free(self, x: int, y: int, r: int, own) -> bool:
-        """A disc of radius r at (x, y) clears everything except copper that touches one of `own`."""
+    def point_free(self, x: int, y: int, r: int, own, layer=None) -> bool:
+        """A disc of radius r at (x, y) clears everything except copper that touches one of `own`. With
+        `layer`, tracks and SMD pads on the other copper layer are ignored (vias and through-hole pads count)."""
         pt = pcbnew.VECTOR2I(x, y)
         if any(e.Collide(pt, r + self.edge_clr) for e in self.edges):
             return False
-        for b in self.boxes:
+        for b, bl in zip(self.boxes, self.box_layers):
+            if layer is not None and bl and layer not in bl:
+                continue
             if b.Intersects(pcbnew.BOX2I(pcbnew.VECTOR2I(x - r - self.clr, y - r - self.clr), pcbnew.VECTOR2I(2 * (r + self.clr), 2 * (r + self.clr)))):
                 if not any(b.Contains(pcbnew.VECTOR2I(*o)) for o in own):
                     return False
-        for seg, hw, _net in self.segs:
+        for seg, hw, _net, sl in self.segs:
+            if layer is not None and sl != layer:
+                continue
             if seg.Distance(pt) < r + hw + self.clr:
                 if not any(seg.Distance(pcbnew.VECTOR2I(*o)) <= hw + 10 for o in own):
                     return False
@@ -285,9 +297,9 @@ class Occupancy:
                     return False
         return True
 
-    def path_free(self, p1, p2, hw: int, own) -> bool:
+    def path_free(self, p1, p2, hw: int, own, layer=None) -> bool:
         n = max(2, int(((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5 / MM(0.1)))
-        return all(self.point_free(p1[0] + (p2[0] - p1[0]) * k // n, p1[1] + (p2[1] - p1[1]) * k // n, hw, own) for k in range(n + 1))
+        return all(self.point_free(p1[0] + (p2[0] - p1[0]) * k // n, p1[1] + (p2[1] - p1[1]) * k // n, hw, own, layer) for k in range(n + 1))
 
 
 def fanout(board: pcbnew.BOARD) -> None:
@@ -682,15 +694,10 @@ def stage(board: pcbnew.BOARD, d: design.Design, drop: set[str], label: str, ign
     return 0
 
 
-def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
-    """Differential pairs: routed length per side (tracks + 0.6 mm per via) and the mismatch."""
-    lengths = {}; vias = {}
-    for t in board.GetTracks():
-        n = t.GetNetname()
-        if t.GetClass() == "PCB_VIA":
-            vias[n] = vias.get(n, 0) + 1
-        else:
-            lengths[n] = lengths.get(n, 0) + t.GetLength() / 1e6
+VIA_LEN = 0.6   # mm of electrical length counted per via in a pair
+
+
+def pairs_of(d: design.Design) -> list[tuple[str, str]]:
     pairs = []
     for net in sorted(diff_pair_nets(d)):
         for p, n in (("_P", "_N"), ("DP", "DM"), ("XP", "XN")):
@@ -698,6 +705,26 @@ def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
                 other = net[: -len(p)] + n
                 if other in d.nets:
                     pairs.append((net, other))
+    return pairs
+
+
+def net_lengths(board: pcbnew.BOARD) -> tuple[dict, dict]:
+    """(length in mm per net: tracks + VIA_LEN per via, via count per net)."""
+    lengths = {}; vias = {}
+    for t in board.GetTracks():
+        n = t.GetNetname()
+        if t.GetClass() == "PCB_VIA":
+            vias[n] = vias.get(n, 0) + 1
+            lengths[n] = lengths.get(n, 0) + VIA_LEN
+        else:
+            lengths[n] = lengths.get(n, 0) + t.GetLength() / 1e6
+    return lengths, vias
+
+
+def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
+    """Differential pairs: routed length per side (tracks + VIA_LEN per via) and the mismatch."""
+    lengths, vias = net_lengths(board)
+    pairs = pairs_of(d)
     lines = ["# Differential pairs after autorouting", "", "| pair | P mm | N mm | mismatch mm | vias P/N | note |", "|---|---|---|---|---|---|"]
     bad = 0
     for a, b in pairs:
@@ -709,6 +736,124 @@ def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
         lines.append(f"| {a} / {b} | {la:.2f} | {lb:.2f} | {mm:.2f} | {vias.get(a, 0)}/{vias.get(b, 0)} | {note} |")
     (PRJ.routing / "pairs.md").write_text("\n".join(lines) + "\n")
     print(f"pairs: {len(pairs)}, {bad} beyond the 0.15 mm match, report routing/pairs.md")
+
+
+def tune_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.1, max_extra: float = 40.0) -> None:
+    """Length-match every routed differential pair by adding rectangular meanders to the shorter side.
+
+    A bump of height h adds exactly 2h of track. Bumps are 0.5 mm wide with 0.5 mm between them (edge gap
+    0.35 mm, well above the 0.125 mm clearance), sit on the outer side of the shorter net's longest straight
+    segments, and grow as tall as the free space allows (up to 4 mm); the last bump is cut to the exact
+    remainder. Everything is checked with the layer-aware Occupancy (tracks, pads, vias, board edge) and the
+    keep-out rule areas; a pair that cannot be completed is left alone and listed. Skew is measured as the
+    pair report does: track length plus VIA_LEN per via."""
+    import math
+    lengths, _vias = net_lengths(board)
+    occ = Occupancy(board)
+    keepouts = [z for z in board.Zones() if z.GetIsRuleArea()]
+    tracks = [t for t in board.GetTracks() if t.GetClass() != "PCB_VIA"]
+    by_net = {}
+    for t in tracks:
+        a, b = t.GetStart(), t.GetEnd()
+        by_net.setdefault(t.GetNetname(), []).append(
+            (t, (int(a.x), int(a.y)), (int(b.x), int(b.y)), t.GetLayer(), t.GetWidth(), t.GetNetCode(), t.GetLength()))
+    A_W = MM(0.5)      # bump width and gap between bumps
+    MARGIN = MM(0.45)  # straight run kept at each end of a segment
+    H_MAX, H_MIN, STEP = MM(4.0), MM(0.1), MM(0.1)
+
+    def in_keepout(pt, layer) -> bool:
+        return any(z.IsOnLayer(layer) and z.Outline().Contains(pcbnew.VECTOR2I(int(pt[0]), int(pt[1]))) for z in keepouts)
+
+    def plan(seg, side, need_mm):
+        """Bump heights (nm) along one segment on one side, or [] ; returns (list of (x0, h), extra in mm)."""
+        _t, A, B, layer, width, _nc, length = seg
+        L = math.hypot(B[0] - A[0], B[1] - A[1])
+        if L < 2 * MARGIN + 2 * A_W:
+            return [], 0.0
+        ux, uy = (B[0] - A[0]) / L, (B[1] - A[1]) / L
+        nx, ny = -uy * side, ux * side
+
+        def pt(sx, ty):
+            return (int(A[0] + ux * sx + nx * ty), int(A[1] + uy * sx + ny * ty))
+
+        bumps, extra = [], 0.0
+        x0 = MARGIN
+        while x0 + A_W <= L - MARGIN and need_mm - extra >= tol:
+            want = max(H_MIN, min(H_MAX, int(MM((need_mm - extra) / 2))))
+            h = 0
+            hh = want
+            while hh >= H_MIN:
+                quad = [pt(x0, 0), pt(x0, hh), pt(x0 + A_W, hh), pt(x0 + A_W, 0)]
+                if (all(occ.path_free(quad[i], quad[i + 1], width // 2, [], layer) for i in range(3))
+                        and not any(in_keepout(q, layer) for q in quad)):
+                    h = hh
+                    break
+                hh -= STEP
+            if h:
+                bumps.append((x0, h)); extra += 2 * h / 1e6
+                x0 += 2 * A_W
+            else:
+                x0 += MM(0.25)   # nothing fits here: slide along
+        return bumps, extra
+
+    done = failed = 0
+    notes = []
+    for a, b in pairs_of(d):
+        la, lb = lengths.get(a, 0.0), lengths.get(b, 0.0)
+        if not (la and lb):
+            continue
+        need = abs(la - lb)
+        if need < tol:
+            continue
+        short = a if la < lb else b
+        if need > max_extra:
+            notes.append(f"{a}/{b}: {need:.1f} mm apart, more than {max_extra:.0f} mm; reroute the long side")
+            failed += 1
+            continue
+        segs = sorted(by_net.get(short, []), key=lambda s: -s[6])[:8]
+        chosen = []   # (seg, side, bumps)
+        got = 0.0
+        for seg in segs:
+            if need - got < tol:
+                break
+            # both sides on the seg's occupancy (the original track itself removed while planning)
+            occ.remove_track(seg[1], seg[2], seg[5], seg[3])
+            best = max(((plan(seg, sd, need - got), sd) for sd in (1, -1)), key=lambda r: r[0][1])
+            (bumps, extra), side = best
+            occ.add(seg[0])   # put the original back until the pair is settled
+            if bumps:
+                chosen.append((seg, side, bumps)); got += extra
+        if need - got >= tol:
+            notes.append(f"{a}/{b}: needs {need:.2f} mm, room for {got:.2f} mm; left as routed")
+            failed += 1
+            continue
+        for seg, side, bumps in chosen:
+            t, A, B, layer, width, nc, _len = seg
+            L = math.hypot(B[0] - A[0], B[1] - A[1])
+            ux, uy = (B[0] - A[0]) / L, (B[1] - A[1]) / L
+            nx, ny = -uy * side, ux * side
+
+            def pt(sx, ty, A=A, ux=ux, uy=uy, nx=nx, ny=ny):
+                return (int(A[0] + ux * sx + nx * ty), int(A[1] + uy * sx + ny * ty))
+
+            poly = [A]
+            for x0, h in bumps:
+                poly += [pt(x0, 0), pt(x0, h), pt(x0 + A_W, h), pt(x0 + A_W, 0)]
+            poly.append(B)
+            occ.remove_track(A, B, nc, layer)
+            board.Remove(t)
+            for q0, q1 in zip(poly, poly[1:]):
+                if q0 == q1:
+                    continue
+                nt = pcbnew.PCB_TRACK(board)
+                nt.SetStart(pcbnew.VECTOR2I(*q0)); nt.SetEnd(pcbnew.VECTOR2I(*q1))
+                nt.SetWidth(width); nt.SetLayer(layer); nt.SetNetCode(nc)
+                board.Add(nt); occ.add(nt)
+        done += 1
+    pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    print(f"tune: {done} pairs meandered, {failed} left as routed")
+    for n in notes:
+        print("tune note:", n)
 
 
 def pad_size(p) -> tuple[int, int]:
@@ -1150,7 +1295,10 @@ def main(cmd: str) -> int:
     if cmd == "fanout-conn":
         fanout_conn(board)
         pcbnew.SaveBoard(str(PCB), board)
-    if cmd == "pairs":
+    if cmd == "tune":
+        tune_pairs(board, d)
+        pcbnew.SaveBoard(str(PCB), board)
+    if cmd in ("pairs", "tune"):
         pair_report(board, d)
     stats(board)
     return 0

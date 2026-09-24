@@ -25,6 +25,9 @@ revisions are noted in the entries.
   13 new tests (74 total). Dependency: `qrcode`.
 - `docs/FABRICATION.md`: small-run assembly vendors, cost estimate, order gates and checklist.
 
+### Added
+- **Length tuner (`route.py tune`, 2026-09-24):** meanders the shorter side of every routed differential pair (rectangular bumps 0.5 mm wide, up to 4 mm tall, layer-aware collision checks, keep-outs respected, last bump cut to the exact remainder). Skew now counts 0.6 mm per via. Bay card: 5 of 8 pairs matched to under 0.01 mm; brain: 26 pairs tuned, 10 left (sides unrouted or more than 40 mm apart). No new DRC errors on either board. Part of `route_chain.sh`.
+
 ### Fixed
 - **P-FET pin-out (2026-09-23):** Q20 (AO4407A, SO-8) and the bay cards' Q1 / Q2 (DFN 3x3) used the
   generic three-pin `Q_PMOS_GSD` symbol, which put gate, source and drain on pads 1, 2 and 3; on these

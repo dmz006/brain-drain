@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-09-24T00:05:16-0400",
+    "date": "2026-09-24T00:23:56-0400",
     "included_severities": [
         "error",
         "warning",
@@ -61,12 +61,12 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Track [+1V2] on F.Cu, length 0.0007 mm",
+                    "description": "Track [+1V2] on F.Cu, length 0.0552 mm",
                     "pos": {
                         "x": 112.6172,
                         "y": 63.0
                     },
-                    "uuid": "0047607e-c3e0-42ea-8349-b6e2918459f1"
+                    "uuid": "05596f08-5557-42e0-904a-6541cecbe7f6"
                 },
                 {
                     "description": "Pad 49 [+1V2] of U2 on F.Cu",
@@ -199,12 +199,12 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Track [+3V3] on F.Cu, length 2.8099 mm",
+                    "description": "Pad 1 [+3V3] of R11 on F.Cu",
                     "pos": {
                         "x": 144.04,
                         "y": 127.59
                     },
-                    "uuid": "496b11ac-e26d-4341-add2-cd531a1f474e"
+                    "uuid": "2e3c7ac6-7f7a-4f0b-8493-437c0c634306"
                 },
                 {
                     "description": "Pad 1 [+3V3] of R10 on F.Cu",
@@ -222,12 +222,12 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Pad 4 [3V3_M2] of U50 on F.Cu",
+                    "description": "Track [3V3_M2] on F.Cu, length 0.6250 mm",
                     "pos": {
                         "x": 78.55,
                         "y": 125.8
                     },
-                    "uuid": "3ebb53ee-e1a5-4605-a1c6-29645b2c8ef1"
+                    "uuid": "f91cee24-fcef-45de-9c4f-05ba601f685a"
                 },
                 {
                     "description": "Track [3V3_M2] on F.Cu, length 0.4991 mm",
@@ -245,12 +245,12 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Track [3V3_M2_SW] on F.Cu, length 1.7443 mm",
+                    "description": "Pad 1 [3V3_M2_SW] of C501 on F.Cu",
                     "pos": {
                         "x": 78.75,
                         "y": 127.68
                     },
-                    "uuid": "f0e1fd78-1fb3-4c39-81c3-5aced4428dc8"
+                    "uuid": "7a4b6638-e3aa-4d76-821f-953c8b5044ab"
                 },
                 {
                     "description": "Pad 7 [3V3_M2_SW] of U50 on F.Cu",
@@ -368,12 +368,12 @@
                     "uuid": "501eed8d-4513-4bdb-a074-02b61b32e2b0"
                 },
                 {
-                    "description": "Track [5V_SYS] on F.Cu, length 1.3000 mm",
+                    "description": "Pad 1 [5V_SYS] of C2004 on F.Cu",
                     "pos": {
                         "x": 87.55,
                         "y": 92.88
                     },
-                    "uuid": "000fb15f-75ce-4d05-8402-88f2d4861b34"
+                    "uuid": "bca2266e-a5b7-4735-92bf-ac956bbba784"
                 }
             ],
             "severity": "error",
@@ -406,12 +406,12 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Track [5V_SYS] on F.Cu, length 1.3000 mm",
+                    "description": "Pad 1 [5V_SYS] of C2004 on F.Cu",
                     "pos": {
                         "x": 87.55,
                         "y": 92.88
                     },
-                    "uuid": "000fb15f-75ce-4d05-8402-88f2d4861b34"
+                    "uuid": "bca2266e-a5b7-4735-92bf-ac956bbba784"
                 },
                 {
                     "description": "Pad 1 [5V_SYS] of C2005 on F.Cu",
@@ -452,12 +452,12 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Via [5V_SYS] on F.Cu - B.Cu",
+                    "description": "Track [5V_SYS] on F.Cu, length 0.8950 mm",
                     "pos": {
                         "x": 89.0,
-                        "y": 99.225
+                        "y": 98.33
                     },
-                    "uuid": "b93f3ca4-5bc5-490f-abf8-4ea4c5e39418"
+                    "uuid": "78d5e95c-646f-451f-8f55-6cbf07400522"
                 },
                 {
                     "description": "Via [5V_SYS] on F.Cu - B.Cu",
@@ -598,12 +598,12 @@
                     "uuid": "83d070a0-0949-46c2-90d8-683b4a750ffe"
                 },
                 {
-                    "description": "Track [GND] on F.Cu, length 0.4888 mm",
+                    "description": "Track [GND] on F.Cu, length 0.1409 mm",
                     "pos": {
-                        "x": 80.37,
-                        "y": 86.2612
+                        "x": 80.4696,
+                        "y": 86.1616
                     },
-                    "uuid": "aebb9299-73f7-4d5b-8f97-dee58048d182"
+                    "uuid": "1ec8a306-2533-488d-a1f1-8b9b10fa25f3"
                 }
             ],
             "severity": "error",
@@ -705,20 +705,20 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Pad 3 [U1_DN1_TXDP] of U1 on F.Cu",
+                    "description": "Track [U1_DN1_TXDP] on F.Cu, length 0.8970 mm",
                     "pos": {
                         "x": 54.5625,
                         "y": 62.2
                     },
-                    "uuid": "f6db079e-2062-4f6c-8ab0-cd528f0be188"
+                    "uuid": "014b15fa-4b42-4b21-a4f3-7235f1cd4e32"
                 },
                 {
-                    "description": "Pad 1 [U1_DN1_TXDP] of C151 on F.Cu",
+                    "description": "Track [U1_DN1_TXDP] on F.Cu, length 0.9211 mm",
                     "pos": {
                         "x": 72.09,
                         "y": 64.02
                     },
-                    "uuid": "ad508b42-dda0-4d5a-9421-4abfd8899ae9"
+                    "uuid": "56a0614e-5cc4-4d4e-aa92-f960b92c710a"
                 }
             ],
             "severity": "error",
