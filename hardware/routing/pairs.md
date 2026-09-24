@@ -16,7 +16,7 @@
 | BAY4_USB3_TX_P / BAY4_USB3_TX_N | 59.49 | 60.10 | 0.61 | 6/5 | match > 0.15 mm |
 | BAY5_USB2_DP / BAY5_USB2_DM | 45.20 | 42.64 | 2.55 | 2/2 | match > 0.15 mm |
 | BAY5_USB3_RX_P / BAY5_USB3_RX_N | 81.45 | 71.74 | 9.71 | 2/5 | match > 0.15 mm |
-| BAY5_USB3_TX_P / BAY5_USB3_TX_N | 45.69 | 44.57 | 1.13 | 2/2 | match > 0.15 mm |
+| BAY5_USB3_TX_P / BAY5_USB3_TX_N | 45.69 | 44.57 | 1.12 | 2/2 | match > 0.15 mm |
 | BAY6_USB2_DP / BAY6_USB2_DM | 38.91 | 40.66 | 1.74 | 0/2 | match > 0.15 mm |
 | BAY6_USB3_RX_P / BAY6_USB3_RX_N | 69.37 | 65.36 | 4.01 | 2/0 | match > 0.15 mm |
 | BAY6_USB3_TX_P / BAY6_USB3_TX_N | 43.31 | 42.87 | 0.44 | 1/2 | match > 0.15 mm |
