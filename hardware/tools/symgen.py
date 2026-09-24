@@ -325,9 +325,27 @@ def slot_symbols():
     return [edge, sock]
 
 
+def pmos_symbols():
+    """P-channel MOSFETs in the 8-pin power packages (SO-8, DFN 3x3): pins 1-3 source, 4 gate, 5-8 drain, the
+    exposed pad (9) drain on the DFN. The generic 3-pin Q_PMOS_GSD symbol lands G/S/D on pads 1/2/3, which
+    on these packages are three source pins; these symbols carry the real numbering (AO4407A datasheet
+    pin table; the same pin-out is standard for the DFN 3x3-8 P-FETs)."""
+    def unit(ep):
+        left = [Pin("4", "G", "input")]
+        right = [Pin(n, "S", "passive") for n in ("1", "2", "3")] + [Pin(n, "D", "passive") for n in ("5", "6", "7", "8")]
+        if ep:
+            right.append(Pin("9", "D", "passive"))
+        return Unit("PMOS", left, right)
+    so8 = Symbol("PMOS_SSSGDDDD", "Q", "P-MOSFET SO-8", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+                 "P-channel MOSFET, SO-8 power pin-out: S 1-3, G 4, D 5-8", [unit(False)], keywords="pmos so-8")
+    dfn = Symbol("PMOS_SSSGDDDD_EP", "Q", "P-MOSFET DFN3x3", "Package_DFN_QFN:DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm",
+                 "P-channel MOSFET, DFN 3x3-8 power pin-out: S 1-3, G 4, D 5-8 and the exposed pad", [unit(True)], keywords="pmos dfn")
+    return [so8, dfn]
+
+
 def build() -> str:
     syms = cm5_symbols() + [usb5744_symbol(), asm1153e_symbol(), tps56637_symbol(), tps22965_symbol(),
-                            sata22_symbol(), m2_symbol(), din4_symbol()] + slot_symbols()
+                            sata22_symbol(), m2_symbol(), din4_symbol()] + slot_symbols() + pmos_symbols()
     body = "\n".join(render(s) for s in syms)
     return f'(kicad_symbol_lib\n\t(version 20241209)\n\t(generator "brain-drain-symgen")\n\t(generator_version "9.0")\n{body}\n)\n'
 

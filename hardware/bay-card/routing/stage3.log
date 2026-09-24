@@ -1,11 +1,11 @@
 project net classes written: 4 classes, 37 patterns; min rules {'min_clearance': 0.125, 'min_track_width': 0.1, 'min_via_diameter': 0.3, 'min_through_hole_diameter': 0.15, 'min_via_annular_width': 0.075, 'min_hole_clearance': 0.2, 'min_copper_edge_clearance': 0.3}
 net classes come from the project file (37 patterns)
 zones already present; net classes refreshed, zones left as they are
-== stage 3 (differential pairs): 575 existing segments locked
+== stage 3 (differential pairs): 640 existing segments locked
 DSN export ok routing/bay-card.dsn
 lite DSN: kept 37 nets, dropped 0 (diff pairs, bay nets, power nets carried by zones) -> routing/bay-card-lite.dsn
 /usr/lib/jvm/java-25-openjdk-amd64/bin/java -Djava.awt.headless=true -jar /home/dmz/workspace/brain-drain/hardware/tools/freerouting/freerouting-2.4.1.jar -de /home/dmz/workspace/brain-drain/hardware/bay-card/routing/bay-card-lite.dsn -do /home/dmz/workspace/brain-drain/hardware/bay-card/routing/bay-card-lite.ses -mp 12 -oit 2 -inc kicad_default,Bay,Power
 freerouting rc 0 -> True
 SES import ok
 pairs: 8, 7 beyond the 0.15 mm match, report routing/pairs.md
-tracks 488 (1097 mm), vias 95, zones 4
+tracks 526 (1186 mm), vias 114, zones 4

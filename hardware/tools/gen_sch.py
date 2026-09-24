@@ -272,6 +272,10 @@ def write_project(root_uuid: str, sheet_uuids: dict[str, str]):
             prev = json.loads(old.read_text())
             if len(prev.get("net_settings", {}).get("classes", [])) > 1:
                 pro["net_settings"] = prev["net_settings"]
+            # the board design rules (min via / drill / clearances, written by route.py prepare) live here too
+            prev_rules = prev.get("board", {}).get("design_settings", {}).get("rules", {})
+            if prev_rules:
+                pro["board"]["design_settings"]["rules"] = prev_rules
         except ValueError:
             pass
     old.write_text(json.dumps(pro, indent=2) + "\n")

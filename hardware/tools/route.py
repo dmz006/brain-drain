@@ -646,6 +646,13 @@ def import_ses(board: pcbnew.BOARD, d: design.Design) -> None:
 
 
 def stats(board: pcbnew.BOARD) -> None:
+    try:
+        _stats(board)
+    except Exception as e:  # noqa: BLE001 - untyped SWIG proxies after heavy edits; the board is already saved
+        print("stats skipped:", e)
+
+
+def _stats(board: pcbnew.BOARD) -> None:
     tracks = [t for t in board.GetTracks() if t.GetClass() == "PCB_TRACK"]
     vias = [t for t in board.GetTracks() if t.GetClass() == "PCB_VIA"]
     length = sum(t.GetLength() for t in tracks) / 1e6
@@ -1003,9 +1010,101 @@ def drc_clean(board: pcbnew.BOARD, rounds: int = 3) -> int:
     return left
 
 
+def update_nets(board: pcbnew.BOARD, d: design.Design) -> int:
+    """Re-sync the pad nets of an already routed board from the design (after a pin-mapping fix such as
+    the 8-pin P-FET symbols) without regenerating the board: pads get their new net, copper of another
+    net that lands on a re-netted pad is removed, and whatever of the touched nets is then left without
+    a pad (the rest of an old route) is removed too. The router finishes the re-netted pins afterwards.
+    All geometry is read into plain Python first: after the first pad edit this KiCad build hands back
+    untyped SWIG proxies for everything else."""
+    want = d.pin_net()
+    nets = board.GetNetInfo()
+    tracks = []   # (proxy, is_via, netcode, layer, (x, y) ends)
+    for t in board.GetTracks():
+        if t.GetClass() == "PCB_VIA":
+            pos = t.GetPosition(); tracks.append((t, True, t.GetNetCode(), None, [(int(pos.x), int(pos.y))]))
+        else:
+            a, b = t.GetStart(), t.GetEnd()
+            tracks.append((t, False, t.GetNetCode(), t.GetLayer(), [(int(a.x), int(a.y)), (int(b.x), int(b.y))]))
+    pads = []     # (proxy, ref, number, netname, netcode, box, layers)
+    for f in board.GetFootprints():
+        for p in f.Pads():
+            bb = p.GetBoundingBox()
+            box = (int(bb.GetLeft()), int(bb.GetTop()), int(bb.GetRight()), int(bb.GetBottom()))
+            layers = {L for L in (pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu) if p.IsOnLayer(L)}
+            pads.append((p, f.GetReference(), str(p.GetNumber()), p.GetNetname(), p.GetNetCode(), box, layers))
+    codes = {}
+    for _p, ref, num, netname, _c, _b, _l in pads:
+        new = want.get((ref, num), "")
+        if new and new != netname and new not in codes:
+            item = nets.GetNetItem(new)
+            if item is None:
+                board.Add(pcbnew.NETINFO_ITEM(board, new)); item = nets.GetNetItem(new)
+            codes[new] = item.GetNetCode()
+
+    def inside(box, pt):
+        return box[0] <= pt[0] <= box[2] and box[1] <= pt[1] <= box[3]
+
+    changed = []   # (pad tuple, new code)
+    for pt in pads:
+        new = want.get((pt[1], pt[2]), "")
+        if new != pt[3]:
+            changed.append((pt, codes[new] if new else 0))
+    if not changed:
+        print("update_nets: nothing to change")
+        return 0
+    touched = {c for pt, new in changed for c in (pt[4], new) if c}
+    removed = set()
+    # 1) copper of another net sitting on a re-netted pad
+    for pt, new in changed:
+        for i, (t, is_via, net, layer, ends) in enumerate(tracks):
+            if net == new or i in removed:
+                continue
+            if any(inside(pt[5], e) for e in ends) and (is_via or layer in pt[6]):
+                removed.add(i)
+    # new pad nets and layers for step 2
+    newcode = {id(pt[0]): new for pt, new in changed}
+    pad_net = [(newcode.get(id(pt[0]), pt[4]), pt[5], pt[6]) for pt in pads]
+    # 2) pieces of the touched nets that no longer reach any pad (union-find on coincident ends)
+    for code in touched:
+        idx = [i for i, tr in enumerate(tracks) if tr[2] == code and i not in removed]
+        parent = {i: i for i in idx}
+
+        def find(i):
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]; i = parent[i]
+            return i
+
+        pts = {}
+        for i in idx:
+            for e in tracks[i][4]:
+                k = (e[0] // 1000, e[1] // 1000)
+                if k in pts:
+                    parent[find(i)] = find(pts[k])
+                else:
+                    pts[k] = i
+        cpads = [(box, layers) for c, box, layers in pad_net if c == code]
+        has_pad = set()
+        for i in idx:
+            _t, is_via, _n, layer, ends = tracks[i]
+            if any(inside(box, e) and (is_via or layer in layers) for e in ends for box, layers in cpads):
+                has_pad.add(find(i))
+        removed.update(i for i in idx if find(i) not in has_pad)
+    # mutate last
+    for pt, new in changed:
+        pt[0].SetNetCode(new)
+    for i in removed:
+        board.Remove(tracks[i][0])
+    print(f"update_nets: {len(changed)} pads re-netted ({', '.join(sorted({pt[1] for pt, _ in changed}))}), {len(removed)} copper items removed")
+    return len(changed)
+
+
 def main(cmd: str) -> int:
     d = design.build(PRJ.key)
     board = pcbnew.LoadBoard(str(PCB))
+    if cmd == "update-nets":
+        update_nets(board, d)
+        pcbnew.SaveBoard(str(PCB), board)
     if cmd in ("prepare", "all"):
         prepare(board, d)
         pcbnew.SaveBoard(str(PCB), board)
