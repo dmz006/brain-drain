@@ -78,12 +78,14 @@ def main(out_dir: Path):
         2: status(2, "DONE", ssd, tier="PURGE"),
         3: status(3, "RUNNING", hdd2, "VRFY", 0.87, 41 * 60, 168e6),
         4: status(4, "DETECTED", hdd3, countdown=3),
-        5: status(5, "RUNNING", nvme, "SANZ", 0.65, 95, None, slot="ON"),
+        5: status(5, "RUNNING", hdd, "OVW", 0.10, 8 * 3600, 150e6),
+        6: status(6, "IDLE"), 7: status(7, "ERROR", hdd2, msg="verify fail"), 8: status(8, "IDLE"),
+        9: status(9, "RUNNING", nvme, "SANZ", 0.65, 95, None, slot="ON"),
     }
     frame_png(display.render("AUTO", running, unit), out_dir / "oled-running.png",
-              "Running: bay 1 overwriting, bay 2 done (Purge), bay 3 verifying, bay 4 starting, bay 5 NVMe sanitize")
-    idle = {b: status(b, "IDLE") for b in (1, 2, 3, 4)}
-    idle[5] = status(5, "IDLE", slot="OFF")
+              "Running, eight slots + M.2: 1 overwriting, 2 done (Purge), 3 verifying, 4 starting, 5 overwriting, 7 failed verify, 9 NVMe sanitize")
+    idle = {b: status(b, "IDLE") for b in range(1, 9)}
+    idle[9] = status(9, "IDLE", slot="OFF")
     frame_png(display.render("AUTO", idle, unit), out_dir / "oled-idle.png", "Idle: no drives, bay 5 door open")
     err = dict(running)
     err[1] = status(1, "ERROR", hdd, msg="verify fail")
@@ -93,12 +95,12 @@ def main(out_dir: Path):
     # idle on the access point: the Wi-Fi QR code plus the key and address (C22)
     from braindrain.wifi import WifiState
     w = WifiState(mode="ap", ssid="brain-drain-7f3a", key="kx7m2pq4", ip="10.42.0.1")
-    f = display.frame("AUTO", {b: status(b, "IDLE") for b in (1, 2, 3, 4, 5)}, unit, "", w)
+    f = display.frame("AUTO", {b: status(b, "IDLE") for b in range(1, 10)}, unit, "", w)
     frame_png(f.lines, out_dir / "oled-wifi.png", "Idle on the access point: scan the QR code to join, then open the address; the key also unlocks actions on the phone page",
               bitmap=f.bitmap, scale=f.bitmap_scale, text_x=f.text_x)
     w2 = WifiState(mode="station", ssid="shop-wifi", key="kx7m2pq4", ip="192.168.1.77")
     f2 = display.frame("AUTO", running, unit, "", w2)
-    frame_png(f2.lines, out_dir / "oled-running.png", "Running on the shop network: bay 1 overwriting, bay 2 done (Purge), bay 3 verifying, bay 4 starting, bay 5 NVMe sanitize; key and address on the bottom rows")
+    frame_png(f2.lines, out_dir / "oled-running.png", "Running on the shop network, eight slots + M.2; unit key on the message row, address on the bottom row")
 
 
 if __name__ == "__main__":

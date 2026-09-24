@@ -293,9 +293,41 @@ def din4_symbol():
                   [Unit("DIN 4", left, right)], keywords="din power jack")
 
 
+# Bay slot pinout on a PCI Express x1 card edge (36 contacts, our own signals, not PCIe). Grounds flank
+# every pair; five contacts each for 12 V and 5 V (about 1 A per contact). The key sits between 11 and 12.
+SLOT_PINS = {   # electrical types as seen from the CARD EDGE; the socket gets them flipped
+    "A1": ("12V", "power_out"), "A2": ("12V", "power_out"), "A3": ("GND", "power_out"), "A4": ("GND", "power_out"),
+    "A5": ("NC", "no_connect"), "A6": ("NC", "no_connect"), "A7": ("GND", "power_out"), "A8": ("5V", "power_out"),
+    "A9": ("5V", "power_out"), "A10": ("GND", "power_out"), "A11": ("GND", "power_out"), "A12": ("GND", "power_out"),
+    "A13": ("GND", "power_out"), "A14": ("USB3_TX_N", "input"), "A15": ("USB3_TX_P", "input"), "A16": ("GND", "power_out"),
+    "A17": ("GND", "power_out"), "A18": ("GND", "power_out"),
+    "B1": ("12V", "power_out"), "B2": ("12V", "power_out"), "B3": ("12V", "power_out"), "B4": ("GND", "power_out"),
+    "B5": ("BAY_EN", "output"), "B6": ("LED_K", "input"), "B7": ("GND", "power_out"), "B8": ("5V", "power_out"),
+    "B9": ("5V", "power_out"), "B10": ("5V", "power_out"), "B11": ("GND", "power_out"), "B12": ("USB2_DM", "bidirectional"),
+    "B13": ("USB2_DP", "bidirectional"), "B14": ("GND", "power_out"), "B15": ("USB3_RX_N", "output"),
+    "B16": ("USB3_RX_P", "output"), "B17": ("GND", "power_out"), "B18": ("GND", "power_out"),
+}
+FLIP = {"power_out": "power_in", "power_in": "power_out", "input": "output", "output": "input"}
+
+
+def slot_symbols():
+    """The bay card's edge fingers and the brain's socket, same pin names, opposite directions."""
+    def unit(flip):
+        left = [Pin(k, v[0], flip.get(v[1], v[1])) for k, v in SLOT_PINS.items() if k.startswith("A")]
+        right = [Pin(k, v[0], flip.get(v[1], v[1])) for k, v in SLOT_PINS.items() if k.startswith("B")]
+        return Unit("slot", left, right)
+    edge = Symbol("BAY_EDGE", "J", "bay card edge", "Connector_PCBEdge:BUS_PCIexpress_x1",
+                  "brain-drain bay card: PCI Express x1 card-edge fingers carrying USB 3, USB 2, 12 V, 5 V, BAY_EN, LED",
+                  [unit({})], keywords="card edge bay")
+    sock = Symbol("BAY_SLOT", "J", "bay slot", "brain-drain:PCIe_x1_Socket_THT",
+                  "brain-drain bay slot: PCI Express x1 socket (36 contacts) with the bay-card pinout",
+                  [unit(FLIP)], keywords="slot bay")
+    return [edge, sock]
+
+
 def build() -> str:
     syms = cm5_symbols() + [usb5744_symbol(), asm1153e_symbol(), tps56637_symbol(), tps22965_symbol(),
-                            sata22_symbol(), m2_symbol(), din4_symbol()]
+                            sata22_symbol(), m2_symbol(), din4_symbol()] + slot_symbols()
     body = "\n".join(render(s) for s in syms)
     return f'(kicad_symbol_lib\n\t(version 20241209)\n\t(generator "brain-drain-symgen")\n\t(generator_version "9.0")\n{body}\n)\n'
 

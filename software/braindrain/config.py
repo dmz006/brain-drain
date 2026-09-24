@@ -18,7 +18,9 @@ DEFAULT_CONFIG_PATH = Path("/etc/brain-drain/config.json")
 # USB port paths, as they appear in sysfs (the leaf of the device path, e.g. "1-1.2"),
 # for each bay. PLACEHOLDERS: fill in from the real board once it exists
 # (`braindrain list` prints every candidate with its port path).
-DEFAULT_BAY_PORTS: dict[int, str] = {1: "1-1.1", 2: "1-1.2", 3: "2-1.1", 4: "2-1.2"}
+# Eight bay slots (C24): hub A's four downstream ports are bays 1-4, hub B's are bays 5-8. Only the
+# slots that hold a card enumerate; an empty slot is simply never seen.
+DEFAULT_BAY_PORTS: dict[int, str] = {1: "1-1.1", 2: "1-1.2", 3: "1-1.3", 4: "1-1.4", 5: "2-1.1", 6: "2-1.2", 7: "2-1.3", 8: "2-1.4"}
 
 # USB bridge VID:PID allow-list. Only drives behind one of these bridges, on a bay
 # port path, are ever candidates for wiping.
@@ -31,7 +33,7 @@ DEFAULT_ALLOWED_BRIDGES: frozenset[tuple[str, str]] = frozenset(
 
 # BCM GPIO numbers, ARCHITECTURE.md §3.7.
 DEFAULT_DIP_GPIOS: tuple[int, ...] = (16, 17, 20, 21, 22, 23, 24, 25)
-DEFAULT_BAY_EN_GPIOS: dict[int, int] = {1: 5, 2: 6, 3: 12, 4: 13}
+DEFAULT_BAY_EN_GPIOS: dict[int, int] = {1: 5, 2: 6, 3: 12, 4: 13, 5: 7, 6: 8, 7: 9, 8: 10}
 DEFAULT_STATUS_LED_GPIO = 26
 
 MiB = 1024 * 1024
@@ -73,8 +75,8 @@ class Config:
     i2c_port: int = 1
     oled_address: int = 0x3C
 
-    # Bay 5: M.2 NVMe slot on the CM5 PCIe lane (ARCHITECTURE.md §3.3, decision C15)
-    m2_bay: int | None = 5
+    # Bay 9: M.2 NVMe slot on the CM5 PCIe lane (ARCHITECTURE.md §3.3, decision C15; bays 1-8 are the slots, C24)
+    m2_bay: int | None = 9
     m2_door_gpio: int = 4       # microswitch, closed = low
     m2_pedet_gpio: int = 19     # M.2 pin 69, pulled up; a SATA module grounds it
     m2_power_gpio: int = 27     # TPS22965 enable for 3V3_M2

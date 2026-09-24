@@ -318,38 +318,6 @@
       },
       {
         "netclass": "Power",
-        "pattern": "12V_BAY1"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "12V_BAY1_SW"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "12V_BAY2"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "12V_BAY2_SW"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "12V_BAY3"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "12V_BAY3_SW"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "12V_BAY4"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "12V_BAY4_SW"
-      },
-      {
-        "netclass": "Power",
         "pattern": "3V3_M2"
       },
       {
@@ -358,67 +326,11 @@
       },
       {
         "netclass": "Power",
-        "pattern": "5V_BAY1"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "5V_BAY1_SW"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "5V_BAY2"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "5V_BAY2_SW"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "5V_BAY3"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "5V_BAY3_SW"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "5V_BAY4"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "5V_BAY4_SW"
-      },
-      {
-        "netclass": "Power",
         "pattern": "5V_HDD"
       },
       {
         "netclass": "Power",
         "pattern": "5V_SYS"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "BAY1_EN_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "BAY1_LED_A"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY1_SATA_A_N"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY1_SATA_A_P"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY1_SATA_B_N"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY1_SATA_B_P"
       },
       {
         "netclass": "DiffPair90",
@@ -445,30 +357,6 @@
         "pattern": "BAY1_USB3_TX_P"
       },
       {
-        "netclass": "Bay",
-        "pattern": "BAY2_EN_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "BAY2_LED_A"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY2_SATA_A_N"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY2_SATA_A_P"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY2_SATA_B_N"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY2_SATA_B_P"
-      },
-      {
         "netclass": "DiffPair90",
         "pattern": "BAY2_USB2_DM"
       },
@@ -491,30 +379,6 @@
       {
         "netclass": "DiffPair90",
         "pattern": "BAY2_USB3_TX_P"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "BAY3_EN_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "BAY3_LED_A"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY3_SATA_A_N"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY3_SATA_A_P"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY3_SATA_B_N"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY3_SATA_B_P"
       },
       {
         "netclass": "DiffPair90",
@@ -541,30 +405,6 @@
         "pattern": "BAY3_USB3_TX_P"
       },
       {
-        "netclass": "Bay",
-        "pattern": "BAY4_EN_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "BAY4_LED_A"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY4_SATA_A_N"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY4_SATA_A_P"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY4_SATA_B_N"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "BAY4_SATA_B_P"
-      },
-      {
         "netclass": "DiffPair90",
         "pattern": "BAY4_USB2_DM"
       },
@@ -589,20 +429,100 @@
         "pattern": "BAY4_USB3_TX_P"
       },
       {
-        "netclass": "Bay",
-        "pattern": "BAY_EN1"
+        "netclass": "DiffPair90",
+        "pattern": "BAY5_USB2_DM"
       },
       {
-        "netclass": "Bay",
-        "pattern": "BAY_EN2"
+        "netclass": "DiffPair90",
+        "pattern": "BAY5_USB2_DP"
       },
       {
-        "netclass": "Bay",
-        "pattern": "BAY_EN3"
+        "netclass": "DiffPair90",
+        "pattern": "BAY5_USB3_RX_N"
       },
       {
-        "netclass": "Bay",
-        "pattern": "BAY_EN4"
+        "netclass": "DiffPair90",
+        "pattern": "BAY5_USB3_RX_P"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY5_USB3_TX_N"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY5_USB3_TX_P"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY6_USB2_DM"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY6_USB2_DP"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY6_USB3_RX_N"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY6_USB3_RX_P"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY6_USB3_TX_N"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY6_USB3_TX_P"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY7_USB2_DM"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY7_USB2_DP"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY7_USB3_RX_N"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY7_USB3_RX_P"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY7_USB3_TX_N"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY7_USB3_TX_P"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY8_USB2_DM"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY8_USB2_DP"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY8_USB3_RX_N"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY8_USB3_RX_P"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY8_USB3_TX_N"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "BAY8_USB3_TX_P"
       },
       {
         "netclass": "Power",
@@ -633,296 +553,8 @@
         "pattern": "PCIE_TX_P"
       },
       {
-        "netclass": "Bay",
-        "pattern": "Q31_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q32_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q33_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q34_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q41_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q42_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q43_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q44_G"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q51_D"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q52_D"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q53_D"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q54_D"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q61_D"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q62_D"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q63_D"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "Q64_D"
-      },
-      {
         "netclass": "Power",
         "pattern": "SD_VDD"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U10_LED"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U10_LXI"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U10_REXT"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U10_RST"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U10_SRXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U10_SRXP"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U10_STXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U10_STXP"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U10_UTXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U10_UTXP"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U10_VCCO"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U10_VDD_CORE"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U10_XI"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U10_XO"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U11_LED"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U11_LXI"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U11_REXT"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U11_RST"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U11_SRXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U11_SRXP"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U11_STXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U11_STXP"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U11_UTXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U11_UTXP"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U11_VCCO"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U11_VDD_CORE"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U11_XI"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U11_XO"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U12_LED"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U12_LXI"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U12_REXT"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U12_RST"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U12_SRXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U12_SRXP"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U12_STXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U12_STXP"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U12_UTXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U12_UTXP"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U12_VCCO"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U12_VDD_CORE"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U12_XI"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U12_XO"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U13_LED"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U13_LXI"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U13_REXT"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U13_RST"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U13_SRXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U13_SRXP"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U13_STXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U13_STXP"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U13_UTXN"
-      },
-      {
-        "netclass": "DiffPair90",
-        "pattern": "U13_UTXP"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U13_VCCO"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U13_VDD_CORE"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U13_XI"
-      },
-      {
-        "netclass": "Bay",
-        "pattern": "U13_XO"
       },
       {
         "netclass": "DiffPair90",
@@ -939,6 +571,22 @@
       {
         "netclass": "DiffPair90",
         "pattern": "U1_DN2_TXDP"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "U1_DN3_TXDM"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "U1_DN3_TXDP"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "U1_DN4_TXDM"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "U1_DN4_TXDP"
       },
       {
         "netclass": "DiffPair90",
@@ -967,6 +615,22 @@
       {
         "netclass": "DiffPair90",
         "pattern": "U2_DN2_TXDP"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "U2_DN3_TXDM"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "U2_DN3_TXDP"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "U2_DN4_TXDM"
+      },
+      {
+        "netclass": "DiffPair90",
+        "pattern": "U2_DN4_TXDP"
       },
       {
         "netclass": "DiffPair90",
@@ -1097,38 +761,10 @@
     ],
     [
       "0b6a1e2a-0000-4000-8000-000000000007",
-      "bridge-1"
+      "bay-slots"
     ],
     [
       "0b6a1e2a-0000-4000-8000-000000000008",
-      "bay-switch-1"
-    ],
-    [
-      "0b6a1e2a-0000-4000-8000-000000000009",
-      "bridge-2"
-    ],
-    [
-      "0b6a1e2a-0000-4000-8000-000000000010",
-      "bay-switch-2"
-    ],
-    [
-      "0b6a1e2a-0000-4000-8000-000000000011",
-      "bridge-3"
-    ],
-    [
-      "0b6a1e2a-0000-4000-8000-000000000012",
-      "bay-switch-3"
-    ],
-    [
-      "0b6a1e2a-0000-4000-8000-000000000013",
-      "bridge-4"
-    ],
-    [
-      "0b6a1e2a-0000-4000-8000-000000000014",
-      "bay-switch-4"
-    ],
-    [
-      "0b6a1e2a-0000-4000-8000-000000000015",
       "m2-nvme"
     ]
   ],

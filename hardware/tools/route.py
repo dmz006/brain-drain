@@ -20,16 +20,19 @@ import pcbnew
 
 import design
 
-HW = Path(__file__).resolve().parent.parent
-PCB = HW / "brain-drain.kicad_pcb"
-DSN = HW / "routing" / "brain-drain.dsn"
-SES = HW / "routing" / "brain-drain.ses"
+import project as _project
+
+PRJ = _project.current()
+HW = PRJ.dir
+PCB = PRJ.pcb
+DSN = PRJ.routing / f"{PRJ.name}.dsn"
+SES = PRJ.routing / f"{PRJ.name}.ses"
 JAR = next(iter(sorted((HW / "tools" / "freerouting").glob("freerouting-2.1.0.jar"))), None)
 
 MM = pcbnew.FromMM
 
 POWER_NETS = {"+12V", "5V_SYS", "5V_HDD", "+3V3", "3V3_M2", "3V3_M2_SW", "+1V2", "VIN_12V_RAW", "VIN_12V_FUSED", "GND", "SD_VDD"}
-BAY_SHEETS = {f"bridge-{i}" for i in range(1, 5)} | {f"bay-switch-{i}" for i in range(1, 5)}
+BAY_SHEETS = {"bridge", "bay-switch"}   # on the bay card; the brain has no bay sheets any more (C24)
 
 
 def bay_nets(d: design.Design) -> set[str]:
@@ -65,7 +68,7 @@ def write_project_netclasses(assignments: dict[str, str]) -> None:
     """Net classes live in the .kicad_pro, not the board: kicad-cli DRC and the DSN export read them from
     there, and gen_sch.py rewrites the project. So prepare() writes them into the project file itself."""
     import json
-    pro = HW / "brain-drain.kicad_pro"
+    pro = PRJ.pro
     data = json.loads(pro.read_text()) if pro.exists() else {}
     classes = []
     for name, (w, c, gap, vd, vh) in NETCLASSES.items():
@@ -100,7 +103,7 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
         elif net in bays:
             assignments[net] = "Bay"
     import json
-    pro = HW / "brain-drain.kicad_pro"
+    pro = PRJ.pro
     have = {c.get("name") for c in json.loads(pro.read_text()).get("net_settings", {}).get("classes", [])} if pro.exists() else set()
     if set(NETCLASSES) <= have:
         # the board was loaded with the classes from the project: touching them again through the API
@@ -133,7 +136,7 @@ def prepare(board: pcbnew.BOARD, d: design.Design) -> None:
 
 
 def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
-    codes = {n: board.FindNet(n).GetNetCode() for n in ("GND", "5V_SYS", "5V_HDD", "+3V3", "+12V")}
+    codes = {n: board.FindNet(n).GetNetCode() for n in ("GND", "5V_SYS", "5V_HDD", "+3V3", "+12V") if board.FindNet(n) is not None}
     # copper zones: GND on In1, power islands on In2, GND on B.Cu. Only on a board that has none yet
     # (gen_pcb.py writes none): removing filled zones that fanout vias connect to corrupts the
     # Python bindings for the rest of the process, so prepare() never deletes zones.
@@ -166,22 +169,30 @@ def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
 
     zone("GND", pcbnew.In1_Cu, (0, 0, W, H))
     zone("GND", pcbnew.B_Cu, (0, 0, W, H))
-    # In2 power islands for the 150x112 layout (gen_pcb.py REGIONS); a higher priority island wins overlaps
-    zone("5V_SYS", pcbnew.In2_Cu, [(0, 0), (126, 0), (126, 38), (150, 38), (150, 62), (100, 62), (100, 80), (56, 80), (56, 112), (0, 112), (0, 38)], 1)
-    zone("5V_HDD", pcbnew.In2_Cu, (0, 9, 126, 23), 2)          # bay switch blocks
-    zone("+3V3", pcbnew.In2_Cu, (8, 82, 56, 112), 2)           # hub corner
-    zone("+12V", pcbnew.In2_Cu, (56, 39, 100, 80), 3)          # buck column, input block, bulk caps
-    # CM5 antenna strip: no copper on any layer, nothing routed (CM5 datasheet 4.1.2)
-    ax0, ay0, ax1, ay1 = gen_pcb.ANTENNA_STRIP
-    ka = pcbnew.ZONE(board)
-    ka.SetIsRuleArea(True); ka.SetDoNotAllowTracks(True); ka.SetDoNotAllowVias(True)
-    ka.SetDoNotAllowCopperPour(True); ka.SetDoNotAllowPads(False); ka.SetDoNotAllowFootprints(True)   # the CM5 standoff holes sit in the strip
-    ka.SetLayer(pcbnew.F_Cu); ka.SetLayerSet(pcbnew.LSET.AllCuMask(4))
-    o = ka.Outline(); o.RemoveAllContours(); o.NewOutline()
-    for x, y in ((ax0, ay0), (ax1, ay0), (ax1, ay1), (ax0, ay1)):
-        o.Append(MM(ox + x), MM(oy + y))
-    ka.SetZoneName("keepout_CM5_antenna")
-    board.Add(ka)
+    if PRJ.key == "card":
+        # bay card: 12 V and 5 V islands on In2 under the switch block, the rest of In2 is 5 V for the bridge
+        zone("5V_HDD", pcbnew.In2_Cu, (0, 0, W, H), 1)
+        zone("+12V", pcbnew.In2_Cu, (0, 29, 18, 37.5), 2)
+    else:
+        # brain v4 (150x122, gen_pcb.layout_brain): 5V_SYS almost everywhere on In2, 5V_HDD behind the slots,
+        # +3V3 around the hubs, +12V under the bucks / input block. A higher priority island wins overlaps.
+        zone("5V_SYS", pcbnew.In2_Cu, (0, 0, W, H), 1)
+        zone("5V_HDD", pcbnew.In2_Cu, (0, 0, 122, 30), 2)          # slot row: card 5 V through the slots
+        zone("+12V", pcbnew.In2_Cu, [(0, 0), (12, 0), (12, 30), (58, 30), (58, 35), (0, 35)], 3)   # unused corner + strip feeding the slot row
+        zone("+12V", pcbnew.In2_Cu, (56, 55, 95, 100), 3)          # bucks, input block, bulk caps
+        zone("+3V3", pcbnew.In2_Cu, (30, 35, 122, 55), 2)          # hub band
+    if gen_pcb.ANTENNA_STRIP:
+        # CM5 antenna strip: no copper on any layer, nothing routed (CM5 datasheet 4.1.2)
+        ax0, ay0, ax1, ay1 = gen_pcb.ANTENNA_STRIP
+        ka = pcbnew.ZONE(board)
+        ka.SetIsRuleArea(True); ka.SetDoNotAllowTracks(True); ka.SetDoNotAllowVias(True)
+        ka.SetDoNotAllowCopperPour(True); ka.SetDoNotAllowPads(False); ka.SetDoNotAllowFootprints(True)   # the CM5 standoff holes sit in the strip
+        ka.SetLayer(pcbnew.F_Cu); ka.SetLayerSet(pcbnew.LSET.AllCuMask(4))
+        o = ka.Outline(); o.RemoveAllContours(); o.NewOutline()
+        for x, y in ((ax0, ay0), (ax1, ay0), (ax1, ay1), (ax0, ay1)):
+            o.Append(MM(ox + x), MM(oy + y))
+        ka.SetZoneName("keepout_CM5_antenna")
+        board.Add(ka)
     # keep-out areas (no tracks / vias) around the CM5 mounting holes: the DSN export carries no
     # hole clearance, so without these the autorouter runs traces under the standoffs
     m1 = next((f for f in board.GetFootprints() if f.GetReference() == "M1"), None)
@@ -415,8 +426,8 @@ def export_dsn(board: pcbnew.BOARD) -> None:
     print("DSN export", "ok" if ok else "FAILED", DSN.relative_to(HW))
 
 
-LITE_DSN = HW / "routing" / "brain-drain-lite.dsn"
-LITE_SES = HW / "routing" / "brain-drain-lite.ses"
+LITE_DSN = PRJ.routing / f"{PRJ.name}-lite.dsn"
+LITE_SES = PRJ.routing / f"{PRJ.name}-lite.ses"
 
 
 MAX_PASSES = 60   # freerouting 2.1.0 stops at pass 999 (hard-coded) and ignores -mp: start_pass_no in the DSN bounds a run
@@ -503,7 +514,7 @@ def run_freerouting(passes: int = 30, ignore_classes: tuple[str, ...] = ()) -> i
     # BD_ROUTER=2.4.1 picks the newer jar (needs Java 25; honours -mp and writes its session on the cap, but
     # each pass takes minutes and it leaves some clearance violations for the DRC cleanup); default 2.1.0
     ver = os.environ.get("BD_ROUTER", "2.1.0")
-    jar = HW / "tools" / "freerouting" / f"freerouting-{ver}.jar"
+    jar = _project.HW / "tools" / "freerouting" / f"freerouting-{ver}.jar"
     java = "/usr/lib/jvm/java-25-openjdk-amd64/bin/java" if ver != "2.1.0" else "java"
     passes = int(os.environ.get("BD_PASSES", passes))
     if not jar.exists():
@@ -515,7 +526,7 @@ def run_freerouting(passes: int = 30, ignore_classes: tuple[str, ...] = ()) -> i
         cmd += ["-inc", ",".join(ignore_classes)]
     print(" ".join(cmd))
     cp = subprocess.run(cmd, capture_output=True, text=True, timeout=6 * 3600, stdin=subprocess.DEVNULL)
-    (HW / "routing" / "freerouting-lite.log").write_text(cp.stdout + cp.stderr)
+    (PRJ.routing / "freerouting-lite.log").write_text(cp.stdout + cp.stderr)
     print("freerouting rc", cp.returncode, "->", LITE_SES.exists())
     return cp.returncode
 
@@ -604,7 +615,7 @@ def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
         if la and lb and mm > 0.15:
             note = "match > 0.15 mm"; bad += 1
         lines.append(f"| {a} / {b} | {la:.2f} | {lb:.2f} | {mm:.2f} | {vias.get(a, 0)}/{vias.get(b, 0)} | {note} |")
-    (HW / "routing" / "pairs.md").write_text("\n".join(lines) + "\n")
+    (PRJ.routing / "pairs.md").write_text("\n".join(lines) + "\n")
     print(f"pairs: {len(pairs)}, {bad} beyond the 0.15 mm match, report routing/pairs.md")
 
 
@@ -620,7 +631,7 @@ def open_pads_from_drc(board: pcbnew.BOARD) -> set | None:
     """(reference, pad) pairs DRC lists as unconnected, when routing/drc.json is newer than the board
     file; None when there is no current report (then every pad without a track counts as open)."""
     import json, re
-    rep = Path(str(PCB).replace(".kicad_pcb", "-drc.json")) if not (HW / "routing" / "drc.json").exists() else HW / "routing" / "drc.json"
+    rep = PRJ.routing / "drc.json"
     if not rep.exists() or rep.stat().st_mtime < PCB.stat().st_mtime - 1:
         return None
     out = set()
@@ -852,7 +863,7 @@ def drc_clean(board: pcbnew.BOARD, rounds: int = 3) -> int:
     newer router leaves a few), refill, repeat. Pads and zones are never touched. Returns errors left."""
     import json
     import subprocess as sp
-    rep = HW / "routing" / "drc.json"
+    rep = PRJ.routing / "drc.json"
     left = 0
     for r in range(rounds):
         pcbnew.SaveBoard(str(PCB), board)
@@ -884,7 +895,7 @@ def drc_clean(board: pcbnew.BOARD, rounds: int = 3) -> int:
 
 
 def main(cmd: str) -> int:
-    d = design.build()
+    d = design.build(PRJ.key)
     board = pcbnew.LoadBoard(str(PCB))
     if cmd in ("prepare", "all"):
         prepare(board, d)

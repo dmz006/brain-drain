@@ -1,6 +1,6 @@
 """Generate the documentation diagrams as SVG (+PNG via cairosvg when available):
    docs/img/system-block.svg   architecture block diagram
-   docs/img/{rear,right}-panel.svg   wall elevations with the cutouts, from enclosure/board.scad
+   docs/img/left-panel.svg   wall elevation with the cutouts, from enclosure/board.scad
    docs/img/bay-flow.svg       per-bay state machine
 Run from the repo root:  software/.venv/bin/python docs/tools/diagrams.py
 """
@@ -66,29 +66,28 @@ def system_block():
     b += box(560, 90, 170, 70, "USB5744 hub A", "USB 3.0 port 0", "#e8eef7")
     b += box(560, 340, 170, 70, "USB5744 hub B", "USB 3.0 port 1", "#e8eef7")
     b += arrow(480, 225, 560, 130, "5 Gb/s") + arrow(480, 315, 560, 370, "5 Gb/s")
-    # bridges + bays
-    for i, y in enumerate((60, 140, 320, 400)):
-        hub_y = 125 if i < 2 else 375
-        b += box(800, y, 130, 60, f"ASM1153E #{i + 1}", "USB to SATA", "#eef7e8")
-        b += arrow(730, hub_y, 800, y + 30)
-        b += box(980, y, 120, 60, f"SATA bay {i + 1}", "22-pin cable to a bare drive", "#f4f4f4")
-        b += arrow(930, y + 30, 980, y + 30, "6 Gb/s")
-    # bay switches under the bays column
-    b += box(760, 490, 340, 60, "4x bay power switch", "P-FET 12 V + 5 V per bay, soft-start, PTC fuses, BAY_EN GPIO", "#fdf2e9")
-    b += arrow(170, 370, 760, 515, "5V_HDD and +12V")
-    b += arrow(1040, 490, 1040, 462, "12 V / 5 V to each bay", dash="4 3")
+    # bay slots + cards (C24): hub A -> slots 1-4, hub B -> slots 5-8; cards 1-4 fitted in v1
+    for i in range(8):
+        y = 20 + i * 58
+        hub_y = 125 if i < 4 else 375
+        fitted = i < 4
+        b += box(800, y, 300, 46, f"slot {i + 1}: bay card" if fitted else f"slot {i + 1}: empty (expansion)",
+                 "ASM1153E, 12 V / 5 V switch, PTC, 22-pin cable" if fitted else "PCIe-x1 socket, custom pinout",
+                 "#eef7e8" if fitted else "#f4f4f4")
+        b += arrow(730, hub_y, 800, y + 23, "5 Gb/s" if i in (0, 4) else "")
+    b += f"<text x='950' y='510' text-anchor='middle' {FONT} font-size='11' fill='#34495e'>each slot carries +12V, 5V_HDD, BAY_EN and the bay LED</text>"
+    b += arrow(170, 370, 260, 560, "5V_HDD, +12V")
+    b += box(260, 540, 220, 50, "Bay power", "5V_HDD and +12V to the eight slots", "#fdf2e9")
     # M.2
-    b += box(260, 460, 220, 70, "M.2 M-key, bay 5", "PCIe Gen3 x1, 3V3_M2 switch,|door switch, PEDET", "#f4f4f4")
-    b += arrow(370, 330, 370, 460, "PCIe")
-    svg(1120, 580, b, "system-block.svg")
+    b += box(560, 460, 170, 70, "M.2 M-key, bay 9", "PCIe Gen3 x1, 3V3_M2 switch,|lid switch, PEDET", "#f4f4f4")
+    b += arrow(480, 320, 560, 480, "PCIe")
+    svg(1120, 600, b, "system-block.svg")
 
 
 PANELS = {
     # kind: (title, axis, mirrored, names)
-    "rear": ("Rear wall (drive cables), viewed from outside", "x", False,
-             {"J10": "SATA 1", "J11": "SATA 2", "J12": "SATA 3", "J13": "SATA 4"}),
-    "right": ("Right wall (power, rpiboot, microSD), viewed from outside; rear edge at the left", "y", False,
-              {"J21": "DIN 12 V", "J5": "USB-C", "J3": "microSD"}),
+    "left": ("Left wall from outside (rear edge at the right)", "y", True,
+             {"J21": "DIN 12 V", "J5": "USB-C", "J3": "microSD"}),
 }
 
 
@@ -104,8 +103,8 @@ def panel(kind):
         feats += re.findall(r'\["(\w+)", "%s", ([\d.-]+), ([\d.-]+), (-?\d+), ([\d.]+), ([\d.]+), ([\d.]+)\]' % k, txt)
     length = bw if axis == "x" else bh
     S = 6.0  # px per mm
-    W = int(length * S + 120); H = 360
-    b = f"<text x='{W / 2}' y='28' text-anchor='middle' {FONT} font-size='18' font-weight='700' fill='#1f2d3d'>{title}; dimensions in mm along the board edge</text>"
+    W = max(int(length * S + 120), 1000); H = 360
+    b = f"<text x='{W / 2}' y='28' text-anchor='middle' {FONT} font-size='18' font-weight='700' fill='#1f2d3d'>{title}; mm along the board edge</text>"
     y0 = 240  # board top surface line
     b += f"<rect x='60' y='{y0 - 40 * S / 2 - 10}' width='{length * S}' height='{40 * S / 2 + 40}' fill='#f2efe6' stroke='#7f8c8d'/>"
     b += f"<line x1='60' y1='{y0}' x2='{60 + length * S}' y2='{y0}' stroke='#7f8c8d' stroke-dasharray='6 4'/>"
@@ -122,17 +121,50 @@ def panel(kind):
         b += f"<text x='{60 + u * S}' y='{py - 8}' text-anchor='middle' {FONT} font-size='12' font-weight='700' fill='#1f2d3d'>{names.get(ref, ref)}</text>"
         b += f"<text x='{60 + u * S}' y='{y0 + 22}' text-anchor='middle' {FONT} font-size='11' fill='#34495e'>{'x' if axis == 'x' else 'y'}={float(x) if axis == 'x' else float(y):.0f}</text>"
         b += f"<text x='{60 + u * S}' y='{y0 + 36}' text-anchor='middle' {FONT} font-size='10' fill='#7f8c8d'>{w:.0f}x{h:.0f}</text>"
-    b += f"<text x='60' y='{H - 20}' {FONT} font-size='12' fill='#34495e'>Cutout sizes are connector faces before the 0.6 mm print clearance. Board {bw:.0f} x {bh:.0f} mm (C21-C23); the left wall is the antenna side, the front holds the lid latch.</text>"
+    b += f"<text x='60' y='{H - 20}' {FONT} font-size='12' fill='#34495e'>Connector faces before the 0.6 mm print clearance. Board {bw:.0f} x {bh:.0f} mm (C24). Right wall: antenna, vents. Rear: eight bay slots under lid windows. Front: latch.</text>"
     svg(W, H, b, f"{kind}-panel.svg")
+
+
+def lid_plan():
+    """Plan view of the lid: the eight slot windows, LEDs, OLED, DIP and the M.2 bay under it (from board.scad, C24)."""
+    txt = (ROOT / "enclosure" / "board.scad").read_text()
+    bw = float(re.search(r"board_w = ([\d.]+)", txt).group(1))
+    bh = float(re.search(r"board_h = ([\d.]+)", txt).group(1))
+    feats = re.findall(r'\["(\w+)", "(\w+)", ([\d.-]+), ([\d.-]+), (-?\d+), ([\d.]+), ([\d.]+), ([\d.]+)\]', txt)
+    S = 5.0
+    W = int(bw * S + 120); H = int(bh * S + 130)
+    b = f"<text x='{W / 2}' y='28' text-anchor='middle' {FONT} font-size='18' font-weight='700' fill='#1f2d3d'>Lid, viewed from above (rear edge at the top); windows before the 0.6 mm print clearance</text>"
+    x0, y0 = 60, 60
+    b += f"<rect x='{x0}' y='{y0}' width='{bw * S}' height='{bh * S}' fill='#f2efe6' stroke='#7f8c8d'/>"
+    for ref, kind, x, y, rot, w, h, z in feats:
+        x, y, w, h = float(x), float(y), float(w), float(h)
+        if kind == "slot":
+            px, py = x0 + (x - w / 2) * S, y0 + (y - h / 2) * S
+            b += f"<rect x='{px}' y='{py}' width='{w * S}' height='{h * S}' fill='#2c3e50' opacity='0.85' rx='3'/>"
+            b += f"<text x='{x0 + x * S}' y='{py - 6}' text-anchor='middle' {FONT} font-size='11' font-weight='700' fill='#1f2d3d'>slot {int(ref[1:]) - 9}</text>"
+        elif kind == "led":
+            b += f"<circle cx='{x0 + x * S}' cy='{y0 + y * S}' r='{w / 2 * S}' fill='#2c3e50' opacity='0.85'/>"
+        elif kind == "m2":
+            px, py = x0 + (x - h / 2) * S, y0 + (y - w / 2) * S
+            b += f"<rect x='{px}' y='{py}' width='{h * S}' height='{w * S}' fill='none' stroke='#7f8c8d' stroke-dasharray='5 4'/>"
+            b += f"<text x='{x0 + x * S}' y='{y0 + y * S + 4}' text-anchor='middle' {FONT} font-size='11' fill='#7f8c8d'>M.2 bay 9 (under the lid)</text>"
+        elif kind == "cm5":
+            px, py = x0 + (x - h / 2) * S, y0 + (y - w / 2) * S
+            b += f"<rect x='{px}' y='{py}' width='{h * S}' height='{w * S}' fill='none' stroke='#7f8c8d' stroke-dasharray='5 4'/>"
+            b += f"<text x='{x0 + x * S}' y='{y0 + y * S + 4}' text-anchor='middle' {FONT} font-size='11' fill='#7f8c8d'>CM5 + grille</text>"
+    b += f"<text x='{x0}' y='{H - 30}' {FONT} font-size='12' fill='#34495e'>Board {bw:.0f} x {bh:.0f} mm. Drive cables rise through the slot windows; the OLED and DIP cutouts are in enclosure/params.scad (oled_pos, dip_pos).</text>"
+    b += f"<text x='{x0}' y='{H - 14}' {FONT} font-size='12' fill='#34495e'>Left wall: DIN 12 V, USB-C, microSD. Right wall: antenna side, vents only. Front: lid latch. Rear: hinge.</text>"
+    svg(W, H, b, "lid-plan.svg")
 
 
 def rear_panel():
     for kind in PANELS:
         panel(kind)
+    lid_plan()
 
 
 def bay_flow():
-    b = f"<text x='500' y='30' text-anchor='middle' {FONT} font-size='18' font-weight='700' fill='#1f2d3d'>Per-bay state machine (USB bays; bay 5 adds the slot power step)</text>"
+    b = f"<text x='500' y='30' text-anchor='middle' {FONT} font-size='18' font-weight='700' fill='#1f2d3d'>Per-bay state machine (USB bays 1-8; bay 9 adds the slot power step)</text>"
     states = [("IDLE", 40, "bay powered,|no drive"), ("DETECTED", 240, "identify, SMART,|grace countdown"), ("RUNNING", 440, "method chain,|then verify"),
               ("DONE", 640, "certificate,|drive spun down"), ("ERROR", 840, "certificate,|not sanitized")]
     for name, x, sub in states:
@@ -142,7 +174,7 @@ def bay_flow():
     b += arrow(515, 200, 515, 280, "drive removed", "#c0392b")
     b += f"<path d='M715,200 C715,360 115,360 115,200' fill='none' stroke='#2c3e50' stroke-width='2' marker-end='url(#ah)' stroke-dasharray='5 4'/>"
     b += f"<text x='420' y='372' text-anchor='middle' {FONT} font-size='11' fill='#2c3e50'>drive removed (from any state) returns the bay to IDLE</text>"
-    b += box(40, 420, 920, 90, "Bay 5 (M.2) in front of IDLE", "door closed and PEDET = PCIe -> slot power on -> 1 s -> PCIe rescan -> NVMe appears -> IDLE/DETECTED as above|door opened at any time -> abort, PCIe remove, slot power off. No device in 10 s -> power off and latch until the door cycles.", "#fff9e6")
+    b += box(40, 420, 920, 90, "Bay 9 (M.2) in front of IDLE", "door closed and PEDET = PCIe -> slot power on -> 1 s -> PCIe rescan -> NVMe appears -> IDLE/DETECTED as above|door opened at any time -> abort, PCIe remove, slot power off. No device in 10 s -> power off and latch until the door cycles.", "#fff9e6")
     svg(1000, 540, b, "bay-flow.svg")
 
 

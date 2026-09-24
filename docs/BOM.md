@@ -41,18 +41,34 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 | C_sata | 16 | 10 nF 0402 | SATA TX/RX AC coupling | — | 4 per link |
 | D10–D13 | 4 | 3 mm LED, blue | bay activity, from bridge LED pin | 0.1 ea | through front panel |
 
-## D. Drive connectors and pigtails
+## C2. Bay card (C24), per card; four in v1, up to eight
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| J10–J13 | 4 | Molex 47018-4001, SATA 22-pin right-angle SMT host receptacle | bay connectors | 1.5 ea | decided C17; drawing SD-47018-001 |
-| CBL1–4 | 4 | SATA 22-pin male→female extension cable, 0.5 m | drive cables: these are the "bays" (C21); the drive end plugs straight onto a bare drive | 3 ea | off-the-shelf |
+| U1 | 1 | ASMedia ASM1153E (QFN-48) | USB 3 → SATA bridge | 3 | as U10–U13 before |
+| Y1, L1, C1–C18, R1–R2 | — | crystal 30 MHz, 4.7 µH, passives | bridge support | 1.2 | |
+| Q1, Q2 | 2 | P-FET −30 V ≥6 A DFN3×3 | 12 V and 5 V switches | 0.8 | |
+| Q3, Q4 | 2 | 2N7002 | gate drivers | 0.1 | |
+| F1, F2 | 2 | PTC 1812, 3 A and 2 A hold | per-bay fuses | 0.6 | |
+| R3–R8, C19, C20 | — | switch passives | soft-start, pull-ups, BAY_EN pull-down | 0.2 | |
+| J2 | 1 | Molex 47018-4001 SATA 22-pin receptacle | drive cable | 1.5 | C17 |
+| J1 | — | card-edge fingers (PCIe x1 pattern), ENIG | into the brain's slot | 0 | chamfer the tab |
+| PCB | 1 | 4-layer 40 × 46 mm, panelised | | 3–4 | share of a panel of 8–16 |
+| **Card total** | | | | **~11 + PCB** | |
+
+## D. Slots and drive cables
+
+| Ref | Qty | Part | Description | ~USD | Note |
+|---|---|---|---|---|---|
+| J10–J17 | 8 | PCI Express x1 socket, through-hole (Amphenol 10018783-10100TLF or TE 1-1734774-1) | bay slots on the brain, custom pinout | 1 ea | placeholder footprint until the drawing arrives (`ref/DOWNLOADS.md`) |
+| D10–D17, R60–R67 | 8 + 8 | 3 mm blue LED, 470 Ω | bay activity LEDs on the brain, sunk by the card | 0.15 ea | |
+| CBL1–4 (–8) | 4 (8) | SATA 22-pin male→female extension cable, 0.5 m | drive cables; the drive end plugs straight onto a bare drive | 3 ea | off-the-shelf |
 
 ## E. Power
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| PSU1 | 1 | 12 V / 10 A desktop brick, 120 W | | 25 | connector must match J20/J21 |
+| PSU1 | 1 | 12 V / 10 A desktop brick, 120 W (four bays); 150–180 W for eight | | 25–45 | connector must match J21; DIN pins paralleled for 12 V |
 | J21 | 1 | 4-pin DIN power jack, Kycon KPJX-4S-S | 12 V input, 7.5 A per pin, 48 V | 2.5 | decided C13; barrel dropped (5 A rated). **Choose the brick before layout; DIN pin assignment varies by vendor** |
 | F1 | 1 | SMD fuse 10 A slow (Littelfuse 0453010.MR) | input | 1.5 | |
 | D20 | 1 | SMBJ15A | input TVS | 0.3 | |

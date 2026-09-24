@@ -1,0 +1,186 @@
+(kicad_sch
+	(version 20250114)
+	(generator "brain-drain-gen_sch")
+	(generator_version "9.0")
+	(uuid "0b6a1e2a-0000-4000-8000-000000000001")
+	(paper "A3")
+	(title_block
+		(title "brain-drain bay card: ASM1153E USB-SATA bridge, switched 12 V / 5 V, 22-pin SATA receptacle")
+		(rev "v0-generated")
+		(company "brain-drain")
+	)
+	(lib_symbols)
+	(text "brain-drain bay card: ASM1153E USB-SATA bridge, switched 12 V / 5 V, 22-pin SATA receptacle"
+		(exclude_from_sim no)
+		(at 30 14 0)
+		(effects
+			(font
+				(size 4.0 4.0)
+			)
+			(justify left bottom)
+		)
+		(uuid "5a52183d-d092-546e-a02a-94f721769b41")
+	)
+	(sheet
+		(at 30 25)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "2a325bd4-07a1-5c59-b37e-cae86ad701c5")
+		(property "Sheetname" "bridge"
+			(at 30 24.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bridge.kicad_sch"
+			(at 30 55.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "bay-card"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "2")
+				)
+			)
+		)
+	)
+	(text "ASM1153E USB 3 to SATA bridge, 30 MHz crystal, core switcher, AC coupling"
+		(exclude_from_sim no)
+		(at 32 33 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "c178cf67-3e5e-5744-b7ef-93b32d2e705c")
+	)
+	(sheet
+		(at 160 25)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "6903cfca-cca5-5999-885e-2f2cf54a290f")
+		(property "Sheetname" "bay-switch"
+			(at 160 24.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/bay-switch.kicad_sch"
+			(at 160 55.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "bay-card"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "3")
+				)
+			)
+		)
+	)
+	(text "Switched 12 V and 5 V for the drive: P-FET high-side switches with soft-start, PTC fuses"
+		(exclude_from_sim no)
+		(at 162 33 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "6a4b434e-1dcf-59bb-ae95-1dd5635d83c7")
+	)
+	(sheet
+		(at 290 25)
+		(size 110 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0)
+		)
+		(uuid "1c5f8f42-faf3-58f2-ae89-cb31bfcc09ee")
+		(property "Sheetname" "edge"
+			(at 290 24.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/edge.kicad_sch"
+			(at 290 55.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "bay-card"
+				(path "/0b6a1e2a-0000-4000-8000-000000000001"
+					(page "4")
+				)
+			)
+		)
+	)
+	(text "Card edge to the brain (PCIe x1 fingers, bay-card pinout) and the SATA 22-pin receptacle"
+		(exclude_from_sim no)
+		(at 292 33 0)
+		(effects
+			(font
+				(size 1.4 1.4)
+			)
+			(justify left top)
+		)
+		(uuid "5725338e-f51b-5391-9114-93f7a43dedde")
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

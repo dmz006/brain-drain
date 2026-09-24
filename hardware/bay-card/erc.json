@@ -1,0 +1,65 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-23T20:59:50-0400",
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "9.0.8",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/0b6a1e2a-0000-4000-8000-000000000001",
+            "violations": [
+                {
+                    "description": "Symbol '2N7002' doesn't match copy in library 'Transistor_FET'",
+                    "items": [
+                        {
+                            "description": "Symbol Q3 [2N7002]",
+                            "pos": {
+                                "x": 2.0955,
+                                "y": 0.3556
+                            },
+                            "uuid": "e94db61f-ff04-55cc-9be4-fd91fbc62bf4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol '2N7002' doesn't match copy in library 'Transistor_FET'",
+                    "items": [
+                        {
+                            "description": "Symbol Q4 [2N7002]",
+                            "pos": {
+                                "x": 2.8067,
+                                "y": 0.3556
+                            },
+                            "uuid": "1fc45a17-a742-525d-a7e9-6efcce696b21"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                }
+            ]
+        },
+        {
+            "path": "/bridge/",
+            "uuid_path": "/0b6a1e2a-0000-4000-8000-000000000001/2a325bd4-07a1-5c59-b37e-cae86ad701c5",
+            "violations": []
+        },
+        {
+            "path": "/bay-switch/",
+            "uuid_path": "/0b6a1e2a-0000-4000-8000-000000000001/6903cfca-cca5-5999-885e-2f2cf54a290f",
+            "violations": []
+        },
+        {
+            "path": "/edge/",
+            "uuid_path": "/0b6a1e2a-0000-4000-8000-000000000001/1c5f8f42-faf3-58f2-ae89-cb31bfcc09ee",
+            "violations": []
+        }
+    ],
+    "source": "bay-card.kicad_sch"
+}

@@ -10,21 +10,23 @@ board, a Python service, and a 3D-printed enclosure.
 > **Status: design phase, nothing fabricated yet.** Schematic, board, software
 > and enclosure all exist as a first version; the first bench test with a real
 > drive is scheduled for 2026-09-26. See [docs/STATUS.md](docs/STATUS.md).
-> The board and enclosure were re-laid out on 2026-09-23 as a portable "brain
-> box" (decisions C21–C23): the unit, its power brick and four cables go in a
-> backpack, drives lie loose on the bench while they are wiped, the lid pops
-> open for an M.2 SSD, and a phone joins the unit's own Wi-Fi by scanning a QR
-> code on the OLED. No Ethernet, no fan, no buzzer.
+> The hardware was re-laid out on 2026-09-23 as a portable "brain box"
+> (decisions C21–C24): a brain board with eight plug-in bay cards (four fitted
+> in v1), the unit, its brick and cables in a backpack, drives loose on the
+> bench while they are wiped, the lid pops open for an M.2 SSD, and a phone
+> joins the unit's own Wi-Fi by scanning a QR code on the OLED. No Ethernet,
+> no fan, no buzzer.
 
 <p align="center"><img src="enclosure/renders/assembled-iso.png" alt="the brain box on the bench with four loose drives on 22-pin cables" width="720"></p>
 <p align="center"><img src="enclosure/renders/lid-open.png" alt="lid hinged open: the M.2 socket sits on the board under it" width="520"></p>
 
 ## What it does
 
-* Four SATA bays over USB 3 bridges. Drives are not docked: each bay is a
-  0.5 m 22-pin SATA cable (data + power) that plugs straight onto a bare 3.5"
-  or 2.5" drive lying on the bench. Plus an M.2 NVMe slot in the front wall.
-  Each bay is independent.
+* Up to eight SATA bays as plug-in cards (four fitted), each a USB 3 bridge
+  with its own switched power. Drives are not docked: each bay is a 0.5 m
+  22-pin SATA cable (data + power) that plugs straight onto a bare 3.5" or 2.5"
+  drive lying on the bench. Plus an M.2 NVMe bay under the lid. Each bay is
+  independent.
 * Set the policy on an 8-way DIP switch. Plug a drive in: it is identified,
   wiped, verified and reported. Unplug it: the job aborts. That is the whole UI.
 * Methods follow NIST 800-88 Rev. 2: single-pass overwrite with full
@@ -51,9 +53,9 @@ board, a Python service, and a 3D-printed enclosure.
 
 | Directory | Workstream | State |
 |---|---|---|
-| [`hardware/`](hardware/README.md) | KiCad 9 carrier board, 150 × 112 mm: CM5 wireless, 2× USB5744 hubs, 4× ASM1153E, per-bay power switching, M.2 | schematic 0 ERC errors; v3 outline placed, 83 % of connections autorouted (all signal nets, most plane pins, 21 of 48 pairs), the QFN supply pins and pair matching remain (STATUS R4/R22, D7/D8); SATA footprint pending a drawing |
+| [`hardware/`](hardware/README.md) | KiCad 9: brain board 150 × 122 mm (CM5 wireless, 2× USB5744, eight bay slots, M.2) and the 40 × 46 mm bay card (ASM1153E, switched power, SATA receptacle) | schematic 0 ERC errors; v3 outline placed, 83 % of connections autorouted (all signal nets, most plane pins, 21 of 48 pairs), the QFN supply pins and pair matching remain (STATUS R4/R22, D7/D8); SATA footprint pending a drawing |
 | [`software/`](software/README.md) | `braindrain` Python service, simulator, bench tool, Wi-Fi access point + phone page, Pi deployment | 74 tests, ready for the first bench |
-| [`enclosure/`](enclosure/README.md) | OpenSCAD "brain box": tray, hinged lid with snap latch, OLED bezel; about 157 × 119 × 32 mm | STLs export, renders, not printed |
+| [`enclosure/`](enclosure/README.md) | OpenSCAD "brain box": tray, hinged lid with eight cable windows and a snap latch, OLED bezel; about 157 × 129 × 62 mm | STLs export, renders, not printed |
 | [`docs/`](docs/README.md) | architecture, BOM, decisions, status, usage, diagrams | |
 
 ## Quick start

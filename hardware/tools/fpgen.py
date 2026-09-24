@@ -63,6 +63,23 @@ def write(name, lines):
     print("wrote", name)
 
 
+def pcie_x1_socket():
+    """PLACEHOLDER for a through-hole PCI Express x1 socket (Amphenol 10018783-10100TLF / TE 1-1734774-1):
+    two rows of 18 pins on the finger pitch (1.0 mm, key gap between 11 and 12, matching
+    Connector_PCBEdge:BUS_PCIexpress_x1), rows 2.0 mm apart, housing 25 x 7.5 mm. Pad/drill from the
+    PCI Express CEM connector recommendation; check against the vendor drawing before ordering."""
+    xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19]
+    lines = header("PCIe_x1_Socket_THT", "PLACEHOLDER PCIe x1 socket, THT, brain-drain bay slot pinout", "pcie x1 socket bay slot", "through_hole")
+    lines += [text("Reference", "REF**", 9.5, -6.0, "F.SilkS"), text("Value", "PCIe_x1_Socket_THT", 9.5, 6.0, "F.Fab")]
+    for i, x in enumerate(xs, start=1):
+        lines.append(tht(f"A{i}", x, 1.0, 0.55, None, 0.85, 0.85, "circle" if i > 1 else "rect").replace(" (uuid", " (zone_connect 2) (uuid"))
+        lines.append(tht(f"B{i}", x, -1.0, 0.55, None, 0.85, 0.85, "circle").replace(" (uuid", " (zone_connect 2) (uuid"))
+    lines += [npth(-2.2, 0.0, 1.6), npth(21.2, 0.0, 1.6)]          # housing pegs (placeholder positions)
+    lines += [rect(-3.0, -3.75, 22.5, 3.75, "F.Fab"), rect(-3.25, -4.0, 22.75, 4.0, "F.CrtYd"),
+              rect(-3.0, -3.75, 22.5, 3.75, "F.SilkS", 0.12)]
+    write("PCIe_x1_Socket_THT", lines)
+
+
 def kycon_kpjx_4s_s():
     """Origin: the jack's front face line (Kycon 'reference' line), +y into the board (away from the panel).
     Kycon's layout is a BOTTOM view; x is mirrored here for the top view."""
@@ -127,5 +144,6 @@ if __name__ == "__main__":
     import sys
     OUT.mkdir(exist_ok=True)
     kycon_kpjx_4s_s()
+    pcie_x1_socket()
     fingers = json.loads(sys.argv[1]) if len(sys.argv) > 1 else [(0.50, 0.25), (0.0, -0.25), (-0.50, -0.75)]
     texas_rpa0010a(fingers)

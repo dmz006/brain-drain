@@ -3,7 +3,7 @@
   braindrain simulate [--sim-dir D] [--grace S] [--display term|log|none]
   braindrain sim-plug BAY --size 256M [--media hdd|ssd|nvme] [--fw crypto,block] [--throttle 20M]
   braindrain sim-unplug BAY
-  braindrain sim-door open|closed  bay 5 access door (M.2 slot powers only while closed)
+  braindrain sim-door open|closed  M.2 bay lid (the slot powers only while it is shut)
   braindrain sim-pedet pcie|sata   M.2 PEDET pin; a SATA module is refused
   braindrain dip 00000000          decode a DIP setting
   braindrain list                  real enumeration + safety-fence verdicts (needs pyudev)
@@ -141,13 +141,13 @@ def cmd_sim_unplug(a) -> int:
 
 def cmd_sim_door(a) -> int:
     (Path(a.sim_dir) / "door").write_text(a.state + "\n")
-    print(f"bay 5 door {a.state}")
+    print(f"M.2 bay lid {a.state}")
     return 0
 
 
 def cmd_sim_pedet(a) -> int:
     (Path(a.sim_dir) / "pedet").write_text(a.kind + "\n")
-    print(f"bay 5 PEDET = {a.kind}")
+    print(f"M.2 PEDET = {a.kind}")
     return 0
 
 
@@ -299,7 +299,7 @@ def main(argv=None) -> int:
     s.add_argument("--sim-dir", default=str(DEFAULT_SIM_DIR))
     s.set_defaults(fn=cmd_sim_unplug)
 
-    s = sub.add_parser("sim-door", help="open or close the simulated bay 5 door")
+    s = sub.add_parser("sim-door", help="open or close the simulated M.2 bay lid")
     s.add_argument("state", choices=["open", "closed"])
     s.add_argument("--sim-dir", default=str(DEFAULT_SIM_DIR))
     s.set_defaults(fn=cmd_sim_door)

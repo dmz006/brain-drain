@@ -38,11 +38,11 @@ def bay_line(bay: int, st) -> str:
     state = st.state
     if state == "IDLE":
         slot = getattr(st, "slot", None)
-        if slot == "OFF" and bay == 5:
-            return fit(f"{bay} ---- door open")
-        if slot in ("POWERING", "ON") and bay == 5:
+        if slot == "OFF" and bay > 8:
+            return fit(f"{bay} ---- lid open")
+        if slot in ("POWERING", "ON") and bay > 8:
             return fit(f"{bay} ---- scanning")
-        if slot == "LATCHED" and bay == 5:
+        if slot == "LATCHED" and bay > 8:
             return fit(f"{bay} ---- no NVMe")
         return fit(f"{bay} ----")
     d = st.drive
@@ -92,13 +92,46 @@ def frame(policy_label: str, bays: dict, unit_line: str, message: str = "", wifi
     return Frame(lines=render(policy_label, bays, unit_line, message))
 
 
+def bay_cell(bay: int, st) -> str:
+    """Ten-character bay summary for the two-column layout (eight slots + M.2 on one 128x64 panel)."""
+    state = st.state
+    if state == "IDLE":
+        return fit(f"{bay} ----", 10)
+    if state == "DETECTED":
+        return fit(f"{bay} in {st.countdown:>2}s", 10)
+    if state == "RUNNING":
+        p = st.progress
+        pct = " ?%" if p.percent is None else f"{p.percent:2d}%"
+        return fit(f"{bay} {p.phase[:3]} {pct}", 10)
+    if state == "DONE":
+        return fit(f"{bay} DONE {st.tier_label[:1]}", 10)
+    if state == "ERROR":
+        return fit(f"{bay} FAIL", 10)
+    if state == "ABORTED":
+        return fit(f"{bay} ABORT", 10)
+    return fit(f"{bay} {state[:7]}", 10)
+
+
 def render(policy_label: str, bays: dict, unit_line: str, message: str = "") -> list[str]:
     lines = [fit(f"BRAIN-DRAIN {policy_label:>9}")]
-    for bay in sorted(bays):
-        lines.append(bay_line(bay, bays[bay]))
-    while len(lines) < 5:
+    order = sorted(bays)
+    if len(order) > 5:
+        # two columns: bays 1-4 left, 5-8 right, the M.2 bay (if any) on its own row
+        usb = [b for b in order if b <= 8]
+        left, right = usb[:4], usb[4:8]
+        for i in range(4):
+            a = bay_cell(left[i], bays[left[i]]) if i < len(left) else fit("", 10)
+            b = bay_cell(right[i], bays[right[i]]) if i < len(right) else fit("", 10)
+            lines.append(fit(a + "|" + b))
+        for b in order:
+            if b > 8:
+                lines.append(bay_line(b, bays[b]))
+    else:
+        for bay in order:
+            lines.append(bay_line(bay, bays[bay]))
+    while len(lines) < 6:
         lines.append(fit(""))
+    lines = lines[:6]
     lines.append(fit(message))
     lines.append(fit(unit_line[:COLS]))
-    lines.append(fit(unit_line[COLS:]))
     return lines[:ROWS]

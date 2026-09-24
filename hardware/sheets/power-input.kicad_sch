@@ -1473,7 +1473,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "power-input: 12 V DIN input, fuse, TVS, reverse-polarity FET, bulk capacitance"
+	(text "power-input: 12 V DIN input, fuse, TVS, reverse-polarity FET, bulk capacitance (sized for 8 bays)"
 		(exclude_from_sim no)
 		(at 30 12 0)
 		(effects

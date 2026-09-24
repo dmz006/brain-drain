@@ -126,10 +126,31 @@ pins; no SPI ROM.
   USB-NVMe bridges (RTL9210 etc.) present as SCSI and cannot receive NVMe
   Sanitize; they fall back to SCSI SANITIZE or overwrite.
 
-### 3.4 Drive connectors and pigtails
+### 3.4 Bay cards, slots and drive cables (C24)
 
-* Board side: 4× **SATA 22-pin (7+15) right-angle receptacle**, backplane style,
-  along the rear edge on 28.9 mm pitch (pad span 27.94 mm plus clearance).
+* The bays are **cards**: one 40 × 46 mm board per bay carrying the ASM1153E
+  bridge, its crystal and passives, the switched 12 V / 5 V block with PTC fuses,
+  and the 22-pin SATA receptacle on its top edge. Its bottom edge is a PCI
+  Express x1 finger pattern (KiCad's stock footprint) that plugs into one of
+  eight sockets on the brain. Pinout (symgen `SLOT_PINS`): one USB 3 TX pair,
+  one RX pair, USB 2 D+/D−, five 12 V contacts, five 5 V contacts, sixteen
+  grounds, BAY_EN, LED cathode, two spares. Not PCIe signalling.
+* The brain has eight slots at 14.5 mm pitch behind the rear edge; hub A's four
+  downstream ports are slots 1–4, hub B's are 5–8. v1 populates four cards;
+  the other slots are empty until a bigger brick is fitted.
+* The card stands vertically, its plane front-to-back, so the receptacle on its
+  top edge points up: the drive cable rises through a window in the lid at the
+  rear and bends back to the drive. A 22-pin plug is 9 mm thick, so eight plugs
+  fit side by side at the slot pitch.
+* Bay LEDs sit on the brain (lid) and are sunk by the card's bridge LED pin
+  through the edge connector; BAY_EN comes from a CM5 GPIO through the edge to
+  the card's gate drivers, with the pull-down on the card so an empty or
+  half-inserted slot is off.
+
+### 3.4a Drive connectors and pigtails
+
+* Card side: one **SATA 22-pin (7+15) right-angle receptacle** per bay card, on
+  the card's top edge.
 * Pigtail: off-the-shelf **22-pin male-to-female SATA extension, 0.5 m**. No
   custom cable. The drive end plugs straight onto the drive.
 * Pin 11 of the 15-pin power segment (staggered-spin-up / activity) is left
@@ -236,24 +257,21 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
 
 ### 3.10 PCB
 
-* **Size:** 150 × 112 mm (v3, decision D7 option B, 2026-09-23; v2 was
-  136 × 100, C19 was 180 × 110). Rear edge: the four SATA receptacles only.
-  Right wall: USB-C rpiboot, microSD, DIN 12 V. Left edge: the CM5 wireless
-  module's antenna edge (the short edge with mounting hole MH1) sits flush with
-  the board edge, with an 8 mm copper-free strip on all four layers under it and
-  no metal part within 10 mm (CM5 datasheet 4.1.2). Rows from the rear: the
-  receptacles; behind each one its power-switch block directly behind the power
-  pads and the bridge QFN behind the data pads, the bridge passives in the band
-  below, every QFN with at least 2.5 mm of free board around it. Then the CM5 in
-  landscape at the left (x 0–55, y 39–79). Its USB 3 and PCIe pins are on the
-  connector row nearest the front, so the two hubs sit in the front-left corner
-  right under them, and the M.2 socket is front-right with the 2280 module lying
-  toward the middle (its switch and 0402/0603 passives sit under the SSD, under
-  1.5 mm tall). Buck and input column right of the CM5, DIP switch and fan header
-  in the right column, lid microswitch rear-right. The CR2032 holder and the two
-  service headers are on the bottom side under the CM5, inside the 6 mm standoff
-  height. Placement is generated (`gen_pcb.py`) and checked for outline and
-  courtyard clashes (`check_place.py`).
+* **Brain, 150 × 122 mm (v4, C24).** Eight PCIe x1 sockets along the rear edge
+  at 14.5 mm pitch, their bay LEDs right in front of them; the two hubs behind
+  their slots; the CM5 in landscape on the RIGHT edge with its antenna edge out
+  (8 mm copper-free strip, no metal within 10 mm, CM5 datasheet 4.1.2), turned
+  so its USB 3 / PCIe row faces the hubs; DIN 12 V, USB-C and microSD on the
+  LEFT wall; bucks and input block in the middle; the M.2 socket front-left with
+  the 2280 module lying along the front (its small passives under the SSD); DIP
+  switch and fan header front-right; CR2032 holder and service headers on the
+  bottom under the CM5. Rules from the CM5IO reference (0.13 / 0.125 mm,
+  0.45/0.2 vias) plus 0.3/0.15 vias for the QFN supply pins (D8).
+* **Bay card, 40 × 46 mm (C24), same 4-layer stack-up.** Receptacle on the top
+  edge, bridge QFN behind its data pads, passives in the middle, switch block
+  above the finger tab. The finger footprint carries the tab outline and key.
+  Both boards come from the same generators (`BD_PROJECT=brain|card`) and go
+  through the same fanout and routing pipeline.
 * **Stack:** 4-layer, 1.6 mm, ENIG. Sig / GND / PWR / Sig. Target the JLCPCB
   JLC04161H-7628 stackup so controlled impedance is free: 90 Ω differential for
   USB 3 SS and SATA pairs, 85 Ω for the PCIe Gen3 pair to the M.2 slot. Length-match
@@ -438,7 +456,8 @@ schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
 * **Tool:** OpenSCAD, everything driven from `enclosure/params.scad`. Connector
   positions are generated from the KiCad PCB by a small script
   (`enclosure/tools/kicad_to_scad.py`) so the shell tracks the board.
-* **Form (C21–C23):** a box about 157 × 119 × 32 mm, bottom tray + a lid hinged
+* **Form (C21–C24):** a box about 157 × 129 × 62 mm (the bay cards stand
+  46 mm tall), bottom tray + a lid hinged
   along the rear top edge (filament pin) with a snap latch at the front, so it
   pops open for the M.2 SSD; a lid microswitch is the bay-5 "door". Board on
   M2.5 heat-set inserts. Rear wall: 4× SATA 22-pin windows (the drive cables).

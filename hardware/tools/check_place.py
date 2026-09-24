@@ -7,8 +7,10 @@ from pathlib import Path
 
 import pcbnew
 
-HW = Path(__file__).resolve().parent.parent
-PCB = HW / "brain-drain.kicad_pcb"
+import project as _project
+
+HW = _project.HW
+PCB = _project.current().pcb
 
 
 def main() -> int:
@@ -29,7 +31,11 @@ def main() -> int:
             for p in tht:   # mixed part (CM5 with its standoff holes): each hole clashes with both sides
                 boxes.append((f"{ref}:{p.GetNumber() or 'hole'}", p.GetBoundingBox(), None))
     bad = 0
+    edge_owners = {f.GetReference() for f in board.GetFootprints()
+                   if any(g.GetLayer() == pcbnew.Edge_Cuts for g in f.GraphicalItems())}   # card-edge fingers draw their own tab
     for ref, box, flipped in boxes:
+        if ref.split(":")[0] in edge_owners:
+            continue
         if not bb.Contains(box):
             x0, y0 = (box.GetX() - ox) / 1e6, (box.GetY() - oy) / 1e6
             print(f"OUTSIDE {ref}: x {x0:.1f}-{x0 + box.GetWidth() / 1e6:.1f} y {y0:.1f}-{y0 + box.GetHeight() / 1e6:.1f}")

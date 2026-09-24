@@ -7,11 +7,14 @@ from pathlib import Path
 
 import design
 
-HW = Path(__file__).resolve().parent.parent
+import project as _project
+
+PRJ = _project.current()
+HW = PRJ.dir
 
 
 def main():
-    d = design.build()
+    d = design.build(PRJ.key)
     pin_net = d.pin_net()
     out = [f"# {d.title} — connection list\n",
            "Generated from `hardware/tools/design.py`; do not edit by hand. One table per sheet: every",

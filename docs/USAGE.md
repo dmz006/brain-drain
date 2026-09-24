@@ -50,6 +50,9 @@ that needs the carrier board. Config lives in `/etc/brain-drain/config.json`.
 
 ## Hardware: regenerate everything from the netlist
 
+Two boards share one pipeline: `BD_PROJECT=brain` (default, files in `hardware/`)
+and `BD_PROJECT=card` (the bay card, files in `hardware/bay-card/`).
+
 ```
 cd hardware
 python3 tools/symgen.py          # lib/brain-drain.kicad_sym from ref/*.csv

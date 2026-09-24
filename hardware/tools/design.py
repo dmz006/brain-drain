@@ -161,18 +161,23 @@ FP = {
 }
 
 
-def build() -> Design:
-    d = Design("brain-drain 4-bay disk sanitizer carrier, CM5")
+PROJECTS = ("brain", "card")   # C24: the brain board with eight bay slots, and the bay card built per bay
 
-    d.sheet("power-input", "12 V DIN input, fuse, TVS, reverse-polarity FET, bulk capacitance")
+
+def build(project: str = "brain") -> Design:
+    return build_card() if project == "card" else build_brain()
+
+
+def build_brain() -> Design:
+    d = Design("brain-drain brain: CM5, two USB 3 hubs, eight bay slots, M.2 bay, power, UI")
+
+    d.sheet("power-input", "12 V DIN input, fuse, TVS, reverse-polarity FET, bulk capacitance (sized for 8 bays)")
     d.sheet("power-bucks", "5V_SYS and 5V_HDD (TPS56637), +3V3 and 3V3_M2 (AP63203), +1V2 LDO")
     d.sheet("cm5", "Compute Module 5 (wireless): power, control, GPIO, microSD, USB-C, UART, RTC cell, fan, DIP, LEDs, OLED")
-    d.sheet("usb3-hub-A", "USB5744 hub A on CM5 USB3-0, bays 1 and 2")
-    d.sheet("usb3-hub-B", "USB5744 hub B on CM5 USB3-1, bays 3 and 4")
-    for b in range(1, 5):
-        d.sheet(f"bridge-{b}", f"Bay {b}: ASM1153E USB-SATA bridge and 22-pin SATA receptacle")
-        d.sheet(f"bay-switch-{b}", f"Bay {b}: switched 12 V and 5 V with soft-start and PTC fuses")
-    d.sheet("m2-nvme", "Bay 5: M.2 M-key on PCIe Gen3 x1, 3V3_M2 buck + load switch, door switch")
+    d.sheet("usb3-hub-A", "USB5744 hub A on CM5 USB3-0, bay slots 1-4")
+    d.sheet("usb3-hub-B", "USB5744 hub B on CM5 USB3-1, bay slots 5-8")
+    d.sheet("bay-slots", "Eight bay slots (PCIe x1 sockets, bay-card pinout): USB 3, USB 2, 12 V, 5 V, BAY_EN, bay LEDs")
+    d.sheet("m2-nvme", "Bay 9: M.2 M-key on PCIe Gen3 x1, 3V3_M2 buck + load switch, lid switch")
 
     # ---------------------------------------------------------------- power input
     s = "power-input"
@@ -346,19 +351,19 @@ def build() -> Design:
     d.nc("J5.VBUS", "J5.SBU1", "J5.SBU2", "M1.USB_OTG_ID", "M1.VBUS_EN")
     d.note(s, "USB-C is a device port (rpiboot / gadget). As on the CM5IO, CC1/CC2 go straight to the CM5, which presents the sink pull-downs itself; VBUS is not connected (the board is powered from 12 V). USB_OTG_ID floats = device.")
     # bay enables and M.2 controls from GPIO
-    for b, g in ((1, 5), (2, 6), (3, 12), (4, 13)):
+    for b, g in ((1, 5), (2, 6), (3, 12), (4, 13), (5, 7), (6, 8), (7, 9), (8, 10)):
         d.net(f"BAY_EN{b}", f"M1.GPIO{g}")
     d.net("M2_DOOR", "M1.GPIO4")
     d.net("M2_PWR_EN", "M1.GPIO27")
     d.net("M2_PEDET", "M1.GPIO19")
-    d.nc("M1.ID_SD", "M1.ID_SC", "M1.GPIO7", "M1.GPIO8", "M1.GPIO9", "M1.GPIO10", "M1.GPIO11")
+    d.nc("M1.ID_SD", "M1.ID_SC", "M1.GPIO11")
     # unused high-speed / video pins on M2 unit 2
     for p in kilib.get("brain-drain:CM5").pins:
         if p.unit == 5:
             d.nc(f"M1.{p.number}")
 
     # ---------------------------------------------------------------- hubs
-    for hub, port, bays in (("A", 0, (1, 2)), ("B", 1, (3, 4))):
+    for hub, port, bays in (("A", 0, (1, 2, 3, 4)), ("B", 1, (5, 6, 7, 8))):
         s = f"usb3-hub-{hub}"
         u = "U1" if hub == "A" else "U2"
         n = u[1:]
@@ -398,8 +403,8 @@ def build() -> Design:
         d.net(f"USB3_{port}_RX_N", f"C{n}41.2", f"M1.USB3-{port}-RX_N")
         d.net(f"USB3_{port}_DP", f"M1.USB3-{port}-DP", f"{u}.USB2UP_DP")
         d.net(f"USB3_{port}_DM", f"M1.USB3-{port}-DM", f"{u}.USB2UP_DM")
-        # downstream ports 1 and 2 -> bays; ports 3 and 4 disabled via straps
-        for pi, bay in zip((1, 2), bays):
+        # downstream ports 1-4 -> bay slots
+        for pi, bay in zip((1, 2, 3, 4), bays):
             d.part(f"C{n}5{pi}", "Device:C", "100n", s, FP["C0402"], note=f"USB3 DN{pi} TX AC coupling")
             d.part(f"C{n}6{pi}", "Device:C", "100n", s, FP["C0402"], note=f"USB3 DN{pi} TX AC coupling")
             d.net(f"{u}_DN{pi}_TXDP", f"{u}.USB3DN_TXDP{pi}", f"C{n}5{pi}.1")
@@ -410,128 +415,40 @@ def build() -> Design:
             d.net(f"BAY{bay}_USB3_TX_N", f"{u}.USB3DN_RXDM{pi}")
             d.net(f"BAY{bay}_USB2_DP", f"{u}.USB2DN_DP{pi}/PRT_DIS_P{pi}")
             d.net(f"BAY{bay}_USB2_DM", f"{u}.USB2DN_DM{pi}/PRT_DIS_M{pi}")
-        for pi in (3, 4):
-            d.part(f"R{n}1{pi}", "Device:R", "10k", s, FP["R0402"], note=f"PRT_DIS_P{pi} strap")
-            d.part(f"R{n}2{pi}", "Device:R", "10k", s, FP["R0402"], note=f"PRT_DIS_M{pi} strap")
-            d.net("+3V3", f"R{n}1{pi}.1", f"R{n}2{pi}.1")
-            d.net(f"{u}_PRT_DIS_P{pi}", f"{u}.USB2DN_DP{pi}/PRT_DIS_P{pi}", f"R{n}1{pi}.2")
-            d.net(f"{u}_PRT_DIS_M{pi}", f"{u}.USB2DN_DM{pi}/PRT_DIS_M{pi}", f"R{n}2{pi}.2")
-            d.nc(f"{u}.USB3DN_TXDP{pi}", f"{u}.USB3DN_TXDM{pi}", f"{u}.USB3DN_RXDP{pi}", f"{u}.USB3DN_RXDM{pi}")
         d.nc(f"{u}.PRT_CTL1", f"{u}.PRT_CTL2", f"{u}.PRT_CTL3", f"{u}.PRT_CTL4/GANG_PWR",
              f"{u}.SPI_CLK/SMCLK", f"{u}.SPI_DO/SMDAT", f"{u}.SPI_DI/CFG_BC_EN")
-        d.note(s, f"Hub {hub}: upstream on CM5 USB3-{port}. Downstream ports 1,2 -> bays {bays[0]},{bays[1]}. Ports 3,4 disabled by PRT_DIS straps (verify the strap resistor value against USB5744 §3.4.2).")
+        d.note(s, f"Hub {hub}: upstream on CM5 USB3-{port}. Downstream ports 1-4 -> bay slots {bays[0]}-{bays[3]} (C24: eight slots, four cards populated in v1).")
         d.note(s, "No SPI ROM and no SMBus pull-ups: the hub runs its internal ROM defaults. RESET_N has a pull-up only; add an RC if strap timing (1 ms hold) is a concern.")
         d.note(s, "Crystal: 25 MHz, CL 20 pF per datasheet table 10-10; 33 pF load caps assume ~3 pF stray, adjust to the chosen crystal.")
 
-    # ---------------------------------------------------------------- bridges and SATA
-    for b in range(1, 5):
-        s = f"bridge-{b}"
-        u = f"U1{b - 1}"  # U10..U13
-        n = f"1{b - 1}"
-        j = f"J1{b - 1}"  # J10..J13
-        d.part(u, "brain-drain:ASM1153E", "ASM1153E", s)
-        d.part(j, "brain-drain:SATA22", "SATA 22-pin", s)
-        d.part(f"Y{n}", "Device:Crystal_GND24", "30MHz CL=16pF", s, FP["XTAL3225"])
-        d.part(f"C{n}00", "Device:C", "22p", s, FP["C0402"])
-        d.part(f"C{n}01", "Device:C", "22p", s, FP["C0402"])
-        d.part(f"R{n}00", "Device:R", "12.1k 1%", s, FP["R0402"], note="REXT")
-        d.part(f"R{n}01", "Device:R", "10k", s, FP["R0402"], note="RST# pull-up")
-        d.part(f"C{n}02", "Device:C", "2.2u", s, FP["C0603"], note="RST# delay")
-        d.part(f"L{n}", "Device:L", "4.7u 1A", s, FP["L_4x4"], note="core switcher inductor (value per ASMedia reference design, verify)")
-        d.part(f"C{n}03", "Device:C", "10u 10V", s, FP["C0805"], note="core rail")
-        d.part(f"C{n}04", "Device:C", "10u 10V", s, FP["C0805"], note="VCCIN bypass")
-        d.part(f"C{n}05", "Device:C", "10u 10V", s, FP["C0805"], note="VCCO 3.3 V out")
-        for i in range(6, 12):
-            d.part(f"C{n}{i:02d}", "Device:C", "100n", s, FP["C0402"])
-        d.part(f"C{n}20", "Device:C", "100n", s, FP["C0402"], note="USB3 TX AC coupling")
-        d.part(f"C{n}21", "Device:C", "100n", s, FP["C0402"], note="USB3 TX AC coupling")
-        for i, nm in enumerate(("TX+", "TX-", "RX+", "RX-")):
-            d.part(f"C{n}3{i}", "Device:C", "10n", s, FP["C0402"], note=f"SATA {nm} AC coupling")
-        d.part(f"D1{b - 1}", "Device:LED", "blue bay activity", s, FP["LED3"])
-        d.part(f"R{n}02", "Device:R", "470", s, FP["R0402"])
-        d.part(f"F1{b - 1}", "Device:Polyfuse", "3A hold 1812", f"bay-switch-{b}", FP["PTC1812"])
-        d.part(f"F1{b + 3}", "Device:Polyfuse", "2A hold 1812", f"bay-switch-{b}", FP["PTC1812"])
-        # power: single 5 V in, internal regulators
-        d.net("5V_SYS", f"{u}.VBUS", f"{u}.VBUS_LDO", f"{u}.VCCIN", f"C{n}04.1")
-        d.net(f"{u}_LXI", f"{u}.LXI", f"L{n}.1")
-        d.net(f"{u}_VDD_CORE", f"L{n}.2", f"C{n}03.1", f"{u}.VDD", f"{u}.VDDU", f"{u}.VDDS", f"C{n}06.1", f"C{n}07.1")
-        d.net(f"{u}_VCCO", f"{u}.VCCO", f"C{n}05.1", f"{u}.VCC", f"{u}.VCCU", f"{u}.VCCS", f"{u}.VCCTXL",
-              f"C{n}08.1", f"C{n}09.1", f"C{n}10.1", f"C{n}11.1", f"R{n}01.1", f"R{n}02.1")
-        d.net("GND", f"{u}.PGND", f"{u}.GNDA", f"{u}.GND", f"{u}.TEST_EN", f"R{n}00.2", f"C{n}02.2", f"Y{n}.2", f"Y{n}.4",
-              *[f"C{n}{i:02d}.2" for i in range(0, 12) if i not in (2,)])
-        d.pwr_flag(f"{u}_VDD_CORE")
-        d.net(f"{u}_REXT", f"{u}.REXT", f"R{n}00.1")
-        d.net(f"{u}_RST", f"{u}.RST#", f"R{n}01.2", f"C{n}02.1")
-        d.net(f"{u}_XI", f"{u}.XI", f"Y{n}.1", f"C{n}00.1")
-        d.net(f"{u}_XO", f"{u}.XO", f"Y{n}.3", f"C{n}01.1")
-        # USB side to hub
-        d.net(f"BAY{b}_USB2_DP", f"{u}.UDP")
-        d.net(f"BAY{b}_USB2_DM", f"{u}.UDM")
-        d.net(f"BAY{b}_USB3_RX_P", f"{u}.URXP")
-        d.net(f"BAY{b}_USB3_RX_N", f"{u}.URXN")
-        d.net(f"{u}_UTXP", f"{u}.UTXP", f"C{n}20.1")
-        d.net(f"{u}_UTXN", f"{u}.UTXN", f"C{n}21.1")
-        d.net(f"BAY{b}_USB3_TX_P", f"C{n}20.2")
-        d.net(f"BAY{b}_USB3_TX_N", f"C{n}21.2")
-        # SATA data with AC coupling both directions
-        d.net(f"{u}_STXP", f"{u}.STXP", f"C{n}30.1")
-        d.net(f"{u}_STXN", f"{u}.STXN", f"C{n}31.1")
-        d.net(f"BAY{b}_SATA_A_P", f"C{n}30.2", f"{j}.S2")
-        d.net(f"BAY{b}_SATA_A_N", f"C{n}31.2", f"{j}.S3")
-        d.net(f"BAY{b}_SATA_B_P", f"{j}.S6", f"C{n}32.1")
-        d.net(f"BAY{b}_SATA_B_N", f"{j}.S5", f"C{n}33.1")
-        d.net(f"{u}_SRXP", f"C{n}32.2", f"{u}.SRXP")
-        d.net(f"{u}_SRXN", f"C{n}33.2", f"{u}.SRXN")
-        # SATA power segment
-        d.net("GND", f"{j}.S1", f"{j}.S4", f"{j}.S7", f"{j}.P4", f"{j}.P5", f"{j}.P6", f"{j}.P10", f"{j}.P12")
-        d.net(f"5V_BAY{b}", f"{j}.P7", f"{j}.P8", f"{j}.P9")
-        d.net(f"12V_BAY{b}", f"{j}.P13", f"{j}.P14", f"{j}.P15")
-        d.nc(f"{j}.P1", f"{j}.P2", f"{j}.P3", f"{j}.P11")
-        # LED on GPIO0 (firmware default, verify on bench)
-        d.net(f"BAY{b}_LED_A", f"R{n}02.2", f"D1{b - 1}.A")
-        d.net(f"{u}_LED", f"D1{b - 1}.K", f"{u}.GPIO0")
-        d.nc(f"{u}.GPIO1", f"{u}.GPIO2", f"{u}.GPIO3", f"{u}.GPIO4", f"{u}.GPIO5", f"{u}.GPIO6", f"{u}.GPIO7",
-             f"{u}.HDDPC", f"{u}.I2C_DATA", f"{u}.I2C_CLK", f"{u}.UART_RX", f"{u}.UART_TX")
-        d.note(s, "ASM1153E runs from 5 V only: VBUS_LDO -> VCCO (3.3 V, feeds VCC/VCCU/VCCS/VCCTXL) and VCCIN -> LXI switcher -> 1.05 V core (VDD/VDDU/VDDS). Datasheet notes VCCIN must be tied to 5 V.")
-        d.note(s, "Clock straps GPIO3/GPIO7 left at their internal pull-up default (11) = 30 MHz crystal, so no strap resistors. GPIO6 default = I2C mode, no SPI ROM.")
-        d.note(s, "SATA P1-P3 (3.3 V) are not connected on purpose: P3 is PWDIS on SATA 3.3 drives and a 3.3 V supply there keeps them from spinning up.")
-        d.note(s, "Bay activity LED assumed on GPIO0 (bridge firmware default): confirm on the bench; GPIO1 is the alternative.")
+    # ---------------------------------------------------------------- bay slots (C24)
+    s = "bay-slots"
+    for b in range(1, 9):
+        j = f"J1{b - 1}"   # J10..J17, slot n = bay n
+        d.part(j, "brain-drain:BAY_SLOT", f"bay slot {b}", s)
+        d.part(f"D1{b - 1}", "Device:LED", f"blue bay {b} activity", s, FP["LED3"])
+        d.part(f"R6{b - 1}", "Device:R", "470", s, FP["R0402"])
+        d.net("+12V", f"{j}.A1", f"{j}.A2", f"{j}.B1", f"{j}.B2", f"{j}.B3")
+        d.net("5V_HDD", f"{j}.A8", f"{j}.A9", f"{j}.B8", f"{j}.B9", f"{j}.B10")
+        d.net("GND", f"{j}.A3", f"{j}.A4", f"{j}.A7", f"{j}.A10", f"{j}.A11", f"{j}.A12", f"{j}.A13", f"{j}.A16", f"{j}.A17", f"{j}.A18",
+              f"{j}.B4", f"{j}.B7", f"{j}.B11", f"{j}.B14", f"{j}.B17", f"{j}.B18")
+        d.nc(f"{j}.A5", f"{j}.A6")
+        d.net(f"BAY_EN{b}", f"{j}.B5")
+        d.net(f"BAY{b}_LED_K", f"{j}.B6", f"D1{b - 1}.K")
+        d.net(f"BAY{b}_LED_A", f"R6{b - 1}.2", f"D1{b - 1}.A")
+        d.net("+3V3", f"R6{b - 1}.1")
+        # hub side: the card's TX pair (already AC-coupled on the card) feeds the hub's RX, and the hub's
+        # coupled TX pair feeds the card's RX
+        d.net(f"BAY{b}_USB3_TX_P", f"{j}.A15")
+        d.net(f"BAY{b}_USB3_TX_N", f"{j}.A14")
+        d.net(f"BAY{b}_USB3_RX_P", f"{j}.B16")
+        d.net(f"BAY{b}_USB3_RX_N", f"{j}.B15")
+        d.net(f"BAY{b}_USB2_DP", f"{j}.B13")
+        d.net(f"BAY{b}_USB2_DM", f"{j}.B12")
+    d.note(s, "Bay slots are PCI Express x1 sockets used with the bay-card pinout (symgen SLOT_PINS), not PCIe signalling. Five contacts each for 12 V and 5 V (about 1 A per contact), grounds beside every pair. v1 populates cards in slots 1-4; slots 5-8 take cards later (bigger brick, D9).")
+    d.note(s, "The bay LED sits on the brain (lid) and is sunk by the card's bridge LED pin through B6.")
 
-    # ---------------------------------------------------------------- bay power switches
-    for b in range(1, 5):
-        s = f"bay-switch-{b}"
-        n = f"{b}"
-        d.part(f"Q3{b}", "Transistor_FET:Q_PMOS_GSD", "P-FET -30V 6A DFN3x3", s, FP["DFN8"], note="12 V switch")
-        d.part(f"Q4{b}", "Transistor_FET:Q_PMOS_GSD", "P-FET -30V 6A DFN3x3", s, FP["DFN8"], note="5 V switch")
-        d.part(f"Q5{b}", "Transistor_FET:2N7002", "2N7002", s, FP["SOT23"], note="12 V gate driver")
-        d.part(f"Q6{b}", "Transistor_FET:2N7002", "2N7002", s, FP["SOT23"], note="5 V gate driver")
-        d.part(f"R3{b}0", "Device:R", "100k", s, FP["R0402"], note="Q3 gate pull-up (off)")
-        d.part(f"R3{b}1", "Device:R", "10k", s, FP["R0402"], note="soft-start series")
-        d.part(f"C3{b}0", "Device:C", "100n", s, FP["C0402"], note="soft-start G-S")
-        d.part(f"R4{b}0", "Device:R", "100k", s, FP["R0402"], note="Q4 gate pull-up (off)")
-        d.part(f"R4{b}1", "Device:R", "10k", s, FP["R0402"], note="soft-start series")
-        d.part(f"C4{b}0", "Device:C", "100n", s, FP["C0402"], note="soft-start G-S")
-        d.part(f"R5{b}0", "Device:R", "10k", s, FP["R0402"], note="BAY_EN pull-down: off at boot")
-        d.part(f"R5{b}1", "Device:R", "1k", s, FP["R0402"])
-        d.net(f"BAY_EN{b}", f"R5{b}1.1", f"R5{b}0.1")
-        d.net(f"BAY{b}_EN_G", f"R5{b}1.2", f"Q5{b}.G", f"Q6{b}.G")
-        d.net("GND", f"R5{b}0.2", f"Q5{b}.S", f"Q6{b}.S")
-        # 12 V branch
-        d.net("+12V", f"Q3{b}.S", f"R3{b}0.1", f"C3{b}0.1")
-        d.net(f"Q3{b}_G", f"Q3{b}.G", f"R3{b}0.2", f"C3{b}0.2", f"R3{b}1.1")
-        d.net(f"Q5{b}_D", f"R3{b}1.2", f"Q5{b}.D")
-        d.net(f"12V_BAY{b}_SW", f"Q3{b}.D", f"F1{b - 1}.1")
-        d.net(f"12V_BAY{b}", f"F1{b - 1}.2")
-        # 5 V branch
-        d.net("5V_HDD", f"Q4{b}.S", f"R4{b}0.1", f"C4{b}0.1")
-        d.net(f"Q4{b}_G", f"Q4{b}.G", f"R4{b}0.2", f"C4{b}0.2", f"R4{b}1.1")
-        d.net(f"Q6{b}_D", f"R4{b}1.2", f"Q6{b}.D")
-        d.net(f"5V_BAY{b}_SW", f"Q4{b}.D", f"F1{b + 3}.1")
-        d.net(f"5V_BAY{b}", f"F1{b + 3}.2")
-        d.pwr_flag(f"12V_BAY{b}", f"5V_BAY{b}")
-        d.note(s, "P-FET high-side switch: 100k gate pull-up holds it off; the 2N7002 pulls the gate down through 10k with 100n gate-source, ~1 ms ramp so the drive's bulk caps do not trip the fuse. BAY_EN pull-down keeps the bay off through boot.")
-
-    # ---------------------------------------------------------------- M.2 bay 5
+    # ---------------------------------------------------------------- M.2 bay 9
     s = "m2-nvme"
     d.part("J50", "brain-drain:M2_MKEY", "M.2 M-key", s)
     d.part("U50", "brain-drain:TPS22965", "TPS22965DSGR", s)
@@ -591,3 +508,122 @@ if __name__ == "__main__":
             print("  ", m)
     else:
         print("every pin is assigned or NC")
+
+
+def build_card() -> Design:
+    """One bay card (C24): ASM1153E bridge, switched 12 V / 5 V with soft-start and PTC fuses, the 22-pin
+    SATA receptacle on its rear edge, PCIe-x1 card-edge fingers to the brain. Built once per bay."""
+    d = Design("brain-drain bay card: ASM1153E USB-SATA bridge, switched 12 V / 5 V, 22-pin SATA receptacle")
+    d.sheet("bridge", "ASM1153E USB 3 to SATA bridge, 30 MHz crystal, core switcher, AC coupling")
+    d.sheet("bay-switch", "Switched 12 V and 5 V for the drive: P-FET high-side switches with soft-start, PTC fuses")
+    d.sheet("edge", "Card edge to the brain (PCIe x1 fingers, bay-card pinout) and the SATA 22-pin receptacle")
+
+    # ---------------------------------------------------------------- edge + receptacle
+    s = "edge"
+    d.part("J1", "brain-drain:BAY_EDGE", "bay card edge", s)
+    d.part("J2", "brain-drain:SATA22", "SATA 22-pin", s)
+    d.net("+12V", "J1.A1", "J1.A2", "J1.B1", "J1.B2", "J1.B3")
+    d.net("5V_HDD", "J1.A8", "J1.A9", "J1.B8", "J1.B9", "J1.B10")
+    d.net("GND", "J1.A3", "J1.A4", "J1.A7", "J1.A10", "J1.A11", "J1.A12", "J1.A13", "J1.A16", "J1.A17", "J1.A18",
+          "J1.B4", "J1.B7", "J1.B11", "J1.B14", "J1.B17", "J1.B18")
+    d.nc("J1.A5", "J1.A6")
+    d.net("BAY_EN", "J1.B5")
+    d.net("LED_K", "J1.B6")
+    d.net("USB3_TX_P", "J1.A15")
+    d.net("USB3_TX_N", "J1.A14")
+    d.net("USB3_RX_P", "J1.B16")
+    d.net("USB3_RX_N", "J1.B15")
+    d.net("USB2_DP", "J1.B13")
+    d.net("USB2_DM", "J1.B12")
+    d.pwr_flag("+12V", "5V_HDD")
+    d.note(s, "Fingers: Connector_PCBEdge:BUS_PCIexpress_x1 on the card's bottom edge (chamfer the edge, ENIG is fine for a few insertions). Pinout in symgen.SLOT_PINS.")
+    d.note(s, "SATA P1-P3 (3.3 V) are not connected on purpose: P3 is PWDIS on SATA 3.3 drives and a 3.3 V supply there keeps them from spinning up.")
+
+    # ---------------------------------------------------------------- bridge
+    s = "bridge"
+    d.part("U1", "brain-drain:ASM1153E", "ASM1153E", s)
+    d.part("Y1", "Device:Crystal_GND24", "30MHz CL=16pF", s, FP["XTAL3225"])
+    d.part("C1", "Device:C", "22p", s, FP["C0402"])
+    d.part("C2", "Device:C", "22p", s, FP["C0402"])
+    d.part("R1", "Device:R", "12.1k 1%", s, FP["R0402"], note="REXT")
+    d.part("R2", "Device:R", "10k", s, FP["R0402"], note="RST# pull-up")
+    d.part("C3", "Device:C", "2.2u", s, FP["C0603"], note="RST# delay")
+    d.part("L1", "Device:L", "4.7u 1A", s, FP["L_4x4"], note="core switcher inductor (value per ASMedia reference design, verify)")
+    d.part("C4", "Device:C", "10u 10V", s, FP["C0805"], note="core rail")
+    d.part("C5", "Device:C", "10u 10V", s, FP["C0805"], note="VCCIN bypass")
+    d.part("C6", "Device:C", "10u 10V", s, FP["C0805"], note="VCCO 3.3 V out")
+    for i in range(7, 13):
+        d.part(f"C{i}", "Device:C", "100n", s, FP["C0402"])
+    d.part("C13", "Device:C", "100n", s, FP["C0402"], note="USB3 TX AC coupling")
+    d.part("C14", "Device:C", "100n", s, FP["C0402"], note="USB3 TX AC coupling")
+    for i, nm in enumerate(("TX+", "TX-", "RX+", "RX-"), start=15):
+        d.part(f"C{i}", "Device:C", "10n", s, FP["C0402"], note=f"SATA {nm} AC coupling")
+    d.net("5V_HDD", "U1.VBUS", "U1.VBUS_LDO", "U1.VCCIN", "C5.1")   # the brain's always-on 5 V rail
+    d.net("U1_LXI", "U1.LXI", "L1.1")
+    d.net("U1_VDD_CORE", "L1.2", "C4.1", "U1.VDD", "U1.VDDU", "U1.VDDS", "C7.1", "C8.1")
+    d.net("U1_VCCO", "U1.VCCO", "C6.1", "U1.VCC", "U1.VCCU", "U1.VCCS", "U1.VCCTXL", "C9.1", "C10.1", "C11.1", "C12.1", "R2.1")
+    d.net("GND", "U1.PGND", "U1.GNDA", "U1.GND", "U1.TEST_EN", "R1.2", "C3.2", "Y1.2", "Y1.4",
+          *[f"C{i}.2" for i in (1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12)])
+    d.pwr_flag("U1_VDD_CORE")
+    d.net("U1_REXT", "U1.REXT", "R1.1")
+    d.net("U1_RST", "U1.RST#", "R2.2", "C3.1")
+    d.net("U1_XI", "U1.XI", "Y1.1", "C1.1")
+    d.net("U1_XO", "U1.XO", "Y1.3", "C2.1")
+    d.net("USB2_DP", "U1.UDP")
+    d.net("USB2_DM", "U1.UDM")
+    d.net("USB3_RX_P", "U1.URXP")
+    d.net("USB3_RX_N", "U1.URXN")
+    d.net("U1_UTXP", "U1.UTXP", "C13.1")
+    d.net("U1_UTXN", "U1.UTXN", "C14.1")
+    d.net("USB3_TX_P", "C13.2")
+    d.net("USB3_TX_N", "C14.2")
+    d.net("U1_STXP", "U1.STXP", "C15.1")
+    d.net("U1_STXN", "U1.STXN", "C16.1")
+    d.net("SATA_A_P", "C15.2", "J2.S2")
+    d.net("SATA_A_N", "C16.2", "J2.S3")
+    d.net("SATA_B_P", "J2.S6", "C17.1")
+    d.net("SATA_B_N", "J2.S5", "C18.1")
+    d.net("U1_SRXP", "C17.2", "U1.SRXP")
+    d.net("U1_SRXN", "C18.2", "U1.SRXN")
+    d.net("GND", "J2.S1", "J2.S4", "J2.S7", "J2.P4", "J2.P5", "J2.P6", "J2.P10", "J2.P12")
+    d.net("5V_BAY", "J2.P7", "J2.P8", "J2.P9")
+    d.net("12V_BAY", "J2.P13", "J2.P14", "J2.P15")
+    d.nc("J2.P1", "J2.P2", "J2.P3", "J2.P11")
+    d.net("LED_K", "U1.GPIO0")
+    d.nc("U1.GPIO1", "U1.GPIO2", "U1.GPIO3", "U1.GPIO4", "U1.GPIO5", "U1.GPIO6", "U1.GPIO7",
+         "U1.HDDPC", "U1.I2C_DATA", "U1.I2C_CLK", "U1.UART_RX", "U1.UART_TX")
+    d.note(s, "ASM1153E runs from 5 V only (the brain's always-on 5V_HDD rail through the edge): VBUS_LDO -> VCCO (3.3 V) and VCCIN -> LXI switcher -> 1.05 V core.")
+    d.note(s, "Clock straps GPIO3/GPIO7 at their internal pull-up default (11) = 30 MHz crystal. GPIO6 default = I2C mode, no SPI ROM. Bay activity LED assumed on GPIO0 (verify on the bench); it sinks the brain's LED through the edge.")
+
+    # ---------------------------------------------------------------- bay power switch
+    s = "bay-switch"
+    d.part("F1", "Device:Polyfuse", "3A hold 1812", s, FP["PTC1812"])
+    d.part("F2", "Device:Polyfuse", "2A hold 1812", s, FP["PTC1812"])
+    d.part("Q1", "Transistor_FET:Q_PMOS_GSD", "P-FET -30V 6A DFN3x3", s, FP["DFN8"], note="12 V switch")
+    d.part("Q2", "Transistor_FET:Q_PMOS_GSD", "P-FET -30V 6A DFN3x3", s, FP["DFN8"], note="5 V switch")
+    d.part("Q3", "Transistor_FET:2N7002", "2N7002", s, FP["SOT23"], note="12 V gate driver")
+    d.part("Q4", "Transistor_FET:2N7002", "2N7002", s, FP["SOT23"], note="5 V gate driver")
+    d.part("R3", "Device:R", "100k", s, FP["R0402"], note="Q1 gate pull-up (off)")
+    d.part("R4", "Device:R", "10k", s, FP["R0402"], note="soft-start series")
+    d.part("C19", "Device:C", "100n", s, FP["C0402"], note="soft-start G-S")
+    d.part("R5", "Device:R", "100k", s, FP["R0402"], note="Q2 gate pull-up (off)")
+    d.part("R6", "Device:R", "10k", s, FP["R0402"], note="soft-start series")
+    d.part("C20", "Device:C", "100n", s, FP["C0402"], note="soft-start G-S")
+    d.part("R7", "Device:R", "10k", s, FP["R0402"], note="BAY_EN pull-down: off at boot and with the slot empty")
+    d.part("R8", "Device:R", "1k", s, FP["R0402"])
+    d.net("BAY_EN", "R8.1", "R7.1")
+    d.net("EN_G", "R8.2", "Q3.G", "Q4.G")
+    d.net("GND", "R7.2", "Q3.S", "Q4.S")
+    d.net("+12V", "Q1.S", "R3.1", "C19.1")
+    d.net("Q1_G", "Q1.G", "R3.2", "C19.2", "R4.1")
+    d.net("Q3_D", "R4.2", "Q3.D")
+    d.net("12V_BAY_SW", "Q1.D", "F1.1")
+    d.net("12V_BAY", "F1.2")
+    d.net("5V_HDD", "Q2.S", "R5.1", "C20.1")
+    d.net("Q2_G", "Q2.G", "R5.2", "C20.2", "R6.1")
+    d.net("Q4_D", "R6.2", "Q4.D")
+    d.net("5V_BAY_SW", "Q2.D", "F2.1")
+    d.net("5V_BAY", "F2.2")
+    d.pwr_flag("12V_BAY", "5V_BAY")
+    d.note(s, "P-FET high-side switch: 100k gate pull-up holds it off; the 2N7002 pulls the gate down through 10k with 100n gate-source, ~1 ms ramp so the drive's bulk caps do not trip the fuse. BAY_EN pull-down keeps the bay off through boot.")
+    return d

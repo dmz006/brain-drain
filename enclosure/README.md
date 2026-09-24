@@ -1,6 +1,6 @@
 # enclosure — parametric OpenSCAD "brain box"
 
-The unit is a printed box (about 157 × 119 × 32 mm outside) that goes in a
+The unit is a printed box (about 157 × 129 × 62 mm outside; the bay cards stand 46 mm tall) that goes in a
 backpack with its 12 V brick and four 22-pin cables; drives lie loose on the
 bench while they are wiped (decisions C21–C23). The lid is hinged along the rear
 edge and snaps shut at the front: open it to fit an M.2 SSD. Printed parts are
@@ -11,11 +11,11 @@ sized from the real board:
 
 | Face | What is on it |
 |---|---|
-| rear (cable side) | four SATA 22-pin receptacles; the lid hinge knuckles above them |
-| right | DIN 12 V jack, USB-C (rpiboot), microSD |
-| left | the CM5 antenna edge: vent slots only, no metal |
-| front | vent slots, the lid latch |
-| lid | OLED window over the SSD (module on a 4-wire lead, clamped by the bezel), DIP switch slot, 8 LED holes, convection grille over the passive CM5 cooler |
+| rear | vent slots; the lid hinge knuckles |
+| left | DIN 12 V jack, USB-C (rpiboot), microSD |
+| right | the CM5 antenna edge: vent slots only, no metal |
+| front | the lid latch |
+| lid | eight windows at the rear for the bay cards' SATA receptacles (the drive cables rise through them), OLED window over the SSD, DIP switch slot, 12 LED holes, convection grille over the passive CM5 cooler |
 | floor | rubber-feet pockets |
 
 * `board.scad` is **generated** from `hardware/brain-drain.kicad_pcb` by

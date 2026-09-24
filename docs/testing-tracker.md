@@ -15,7 +15,8 @@ Validated.
 | ATA firmware wrappers (`methods/ata.py`) | parser only, `tests/test_parsers.py` | **no** | fixtures written from hdparm 9.65 docs | status-output format must be confirmed on the bench |
 | NVMe wrappers (`methods/nvme.py`) | parser only | no | nvme-cli JSON | no native NVMe until the board exists |
 | Engine state machine, abort on unplug | yes, `tests/test_engine_sim.py` | no | simulated bays | |
-| Bay 5 M.2 slot controller | yes, `tests/test_m2_bay.py` | no | simulated door/PEDET | GPIO paths untested |
+| Bay 9 M.2 slot controller (bay 5 before C24) | yes, `tests/test_m2_bay.py` | no | simulated lid switch/PEDET | GPIO paths untested |
+| Eight bays, two-column OLED layout, bay-card ports | yes, `tests/test_display.py`, `tests/test_config.py` | no | | slots 5–8 unpopulated in v1 |
 | Certificates + crash recovery | yes | no | | schema v1 |
 | Bench tool (`bench.py`) | yes, `tests/test_bench.py` | **planned 2026-09-26** | fake hdparm/smartctl | |
 | Config file, headless HAL, setup-bay | yes, `tests/test_config.py` | no | | |

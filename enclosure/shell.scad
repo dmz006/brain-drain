@@ -36,6 +36,12 @@ module rear_cutouts() {
             cube([w, wall + 2, h]);
 }
 
+module left_cutouts() {
+    feature("left") let (y = by($f[3]), w = $f[5] + 2 * cut_clear, h = $f[6] + 2 * cut_clear, z = $f[7])
+        translate([-1, y - w / 2, z_board_top + z - cut_clear])
+            cube([wall + 2, w, h]);
+}
+
 module right_cutouts() {
     feature("right") let (y = by($f[3]), w = $f[5] + 2 * cut_clear, h = $f[6] + 2 * cut_clear, z = $f[7])
         translate([outer_w - wall - 1, y - w / 2, z_board_top + z - cut_clear])
@@ -52,15 +58,15 @@ module standoffs() {
 }
 
 module side_vents() {
-    // vent slots in the LEFT wall (the CM5 antenna edge: plastic only, no metal) and the front wall
+    // vent slots in the RIGHT wall (the CM5 antenna edge: plastic only, no metal) and the rear wall
     n = floor((inner_h - 30) / vent_pitch);
     for (i = [0 : n - 1])
-        translate([-1, wall + 15 + i * vent_pitch, z_board_top + 6])
-            cube([wall + 2, vent_w, above_board - 10]);
+        translate([outer_w - wall - 1, wall + 15 + i * vent_pitch, z_board_top + 6])
+            cube([wall + 2, vent_w, 24]);
     m = floor((inner_w - 30) / vent_pitch);
     for (i = [0 : m - 1])
-        translate([wall + 15 + i * vent_pitch, outer_h - wall - 1, z_board_top + 8])
-            cube([vent_w, wall + 2, above_board - 12]);
+        translate([wall + 15 + i * vent_pitch, -1, z_board_top + 8])
+            cube([vent_w, wall + 2, 24]);
 }
 
 // hinge along the rear top edge: tray knuckles at 1/4 and 3/4, lid knuckles between them
@@ -81,8 +87,7 @@ module tray() {
         rounded_box(outer_w, outer_h, tray_height, corner_r);
         // cavity
         translate([wall, wall, floor_t]) rounded_box(inner_w, inner_h, tray_height, corner_r - wall + 0.1);
-        rear_cutouts();
-        right_cutouts();
+        left_cutouts();
         side_vents();
         feet_pockets();
         // latch groove inside the front wall's rebate
@@ -130,6 +135,9 @@ module lid() {
             translate([x - oled_win[0] / 2, y - oled_win[1] / 2, -1]) cube([oled_win[0], oled_win[1], lid_t + 2]);
             translate([x - oled_pcb[0] / 2, y - oled_pcb[1] / 2, lid_t - 1.2]) cube([oled_pcb[0], oled_pcb[1], 5]);
         }
+        // bay slot windows: the cards' SATA receptacles poke through the lid (plug 28 x 9 mm on the card top)
+        feature("slot") let (x = bx($f[2]), y = by($f[3]), w = $f[5] + 2 * cut_clear, h = $f[6] + 2 * cut_clear)
+            translate([x - w / 2, y - h / 2, -1]) cube([w, h, lid_t + 2]);
         // DIP switch slot
         feature("top") if ($f[0] == "SW1") let (x = bx($f[2]), y = by($f[3]), r = $f[4],
                                                  w = (r == 90 || r == 270) ? $f[6] : $f[5], h = (r == 90 || r == 270) ? $f[5] : $f[6])

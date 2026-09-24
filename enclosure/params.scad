@@ -13,7 +13,7 @@ fit        = 0.25;    // lid-to-tray sliding fit per side
 // heights (z = 0 at the board top surface)
 below_board = 6.0;    // standoff height: THT leads, the CR2032 holder and buzzer on the bottom side
 board_t     = 1.6;
-above_board = 20.0;   // CM5 (4.9) + passive CM5 cooler (~11) + margin; electrolytics 10.5; DIN on the wall (C22)
+above_board = 50.0;   // bay cards (C24): socket ~8 + card body 37.6 = ~46 above the board; their receptacles pass through the lid
 lid_lip     = 3.0;    // skirt on the front and side edges only (the rear edge is the hinge)
 
 // mounting
@@ -27,7 +27,7 @@ corner_r    = 3.0;
 oled_win    = [24.0, 13.0];   // visible area of a 0.96" 128x64 module
 oled_pcb    = [27.5, 27.5];   // module PCB, sits in a recess under the window
 oled_hole_pitch = [23.0, 23.5];
-oled_pos    = [88, 98];       // window centre in board coordinates: over the M.2 module (6 mm tall) at the
+oled_pos    = [50, 108];      // window centre in board coordinates: over the M.2 module (6 mm tall) at the
                               // front, on a 4-wire lead to J41; [] = above J41
 fan_grille_d = 40;
 vent_w      = 2.0;

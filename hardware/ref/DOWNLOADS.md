@@ -28,3 +28,10 @@ footprints from them.
 `amphenol-m2-farnell.pdf` (brochure only, no footprint), and the Raspberry Pi
 CM5IO rev 2 KiCad project in `cm5io-kicad/`. I can also fetch the CM5 STEP model
 from pip.raspberrypi.com myself when the enclosure work starts.
+
+## Added 2026-09-23 for the bay-card architecture (D9 A)
+
+| What | Part | Where | Why |
+|---|---|---|---|
+| PCI Express x1 card-edge socket, through-hole, customer drawing | Amphenol 10018783-10100TLF (or TE 1-1734774-1) | amphenol-cs.com / te.com product page, "Drawing" | the eight bay slots on the brain: pin rows, peg holes, housing outline. Footprint is generated from the PCI Express CEM spec meanwhile and checked against the drawing before ordering |
+| 12 V brick, 150–180 W, with its DIN pinout | your choice | vendor page | eight spinning 3.5" drives draw about 9 A at 12 V |

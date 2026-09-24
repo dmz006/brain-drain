@@ -26,6 +26,19 @@ revisions are noted in the entries.
 - `docs/FABRICATION.md`: small-run assembly vendors, cost estimate, order gates and checklist.
 
 ### Changed
+- **Brain + bay cards (C24, D9 option A, 2026-09-23):** the design is split into a brain board
+  (150 × 122 mm: CM5 on the right edge, two hubs with all four downstream ports, eight PCIe-x1
+  bay slots along the rear with the bay LEDs, M.2 bay 9, DIN / USB-C / microSD on the left wall)
+  and one bay-card design (40 × 46 mm: ASM1153E, switched 12 V / 5 V with PTC fuses, SATA 22-pin
+  receptacle on top, PCIe-x1 fingers). Four cards fitted in v1, slots 5–8 for expansion. Second
+  KiCad project `hardware/bay-card/` from the same generators (`BD_PROJECT=brain|card`, `project.py`);
+  slot pinout in `symgen.SLOT_PINS`; placeholder socket footprint. Software: eight bays (bay ports
+  1-1.1..1-1.4 and 2-1.1..2-1.4, BAY_EN GPIOs 5,6,12,13,7,8,9,10), M.2 is bay 9, two-column OLED
+  layout above five bays. Enclosure: 50 mm above the board, eight lid windows for the card
+  receptacles, left-wall cutouts, vents on the right and rear; about 157 × 129 × 62 mm. Docs, BOM
+  (card table), fabrication (two boards, panelised cards) and cost table updated.
+- D8 applied: 0.3 / 0.15 mm dog-bone vias on the QFN supply pins (`fanout_qfn`); unattended routing
+  chain `tools/route_chain.sh` (stage 2 → stage 3 → DRC clean → fanouts → reports → renders).
 - Board v3 (D7 option B): 150 × 112 mm, 2.5 mm around every QFN, hubs under the CM5 USB 3 pins, M.2
   front-right; pipeline rerun: 733 / 884 connections (83 %), 3300 segments, 738 vias, DRC copper-clean,
   21 of 48 pairs routed (unmatched). The connector fanout no longer touches QFNs (its via ring blocked

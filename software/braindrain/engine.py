@@ -38,7 +38,7 @@ class BayStatus:
     thread: threading.Thread | None = None
     cert: report.Certificate | None = None
     cert_path: str | None = None
-    # bay 5 only
+    # M.2 bay only
     slot: str = "OFF"          # OFF | POWERING | ON | LATCHED (timed out, wait for a door cycle)
     slot_since: float = 0.0
 
@@ -125,7 +125,7 @@ class Engine:
                 if remaining <= 0:
                     self.start_job(st)
 
-    # ------------------------------------------------------------------- bay 5
+    # ------------------------------------------------------------------- M.2 bay
 
     def step_m2(self, now: float) -> None:
         """Door shut + PCIe module -> power the slot and rescan; door open -> abort, detach, power off."""
@@ -148,9 +148,9 @@ class Engine:
             return
         if st.slot == "OFF":
             if not self.panel.m2_pedet_pcie():
-                if self.message != "bay 5: SATA M.2 not supported":
+                if self.message != f"bay {bay}: SATA M.2 not supported":
                     log.warning("bay %d: PEDET low, M.2 SATA module refused", bay)
-                self.message = "bay 5: SATA M.2 not supported"
+                self.message = f"bay {bay}: SATA M.2 not supported"
                 return
             self.bay_power.set(bay, True)
             st.slot, st.slot_since = "POWERING", now
@@ -165,7 +165,7 @@ class Engine:
             log.warning("bay %d: no NVMe device appeared within %.0fs; powering slot off", bay, self.cfg.m2_appear_seconds)
             self.bay_power.set(bay, False)
             st.slot = "LATCHED"
-            self.message = "bay 5: no NVMe found, reopen door"
+            self.message = f"bay {bay}: no NVMe found, reopen door"
 
     # --------------------------------------------------------------------- events
 

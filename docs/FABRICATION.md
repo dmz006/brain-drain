@@ -3,7 +3,8 @@
 The owner wants the board fabricated **and fully assembled** (every SMD part and
 every connector) by a small-run service, with at most minimal soldering at home
 (the OLED lead, heat-set inserts, the CM5 itself which just presses on). This
-page lists who can do that for a 4-layer 150 × 112 mm board in quantities of
+page lists who can do that for the two boards of C24, a 4-layer 150 × 122 mm
+brain and a 40 × 46 mm bay card (four per unit, panelised), in quantities of
 2–10, what it costs, and what the design needs before the order can be placed.
 
 Prices are estimates from the vendors' public calculators and 2025–2026 price
@@ -14,11 +15,11 @@ live quote from the design files before deciding.
 
 | Item | Requirement | Why |
 |---|---|---|
-| Layers, size | 4 layers, 150 × 112 mm, 1.6 mm, ENIG | USB 3 / SATA / PCIe pairs on outer layers over solid ground; ENIG for the 0.4 mm connectors |
+| Layers, size | brain: 4 layers, 150 × 122 mm, 1.6 mm, ENIG; bay card: 4 layers, 40 × 46 mm, 1.6 mm, ENIG, panel of 8–16 with the finger tab and key notch routed | USB 3 / SATA / PCIe pairs on outer layers over solid ground; ENIG for the 0.4 mm connectors |
 | Stack-up | vendor's standard 4-layer with controlled impedance (JLC04161H-7628 or equal) | 90 Ω differential pairs without a custom stack-up fee |
 | Minimum features | 0.13 mm track / 0.125 mm space, 0.2 mm drill in a 0.45 mm via (the Raspberry Pi CM5IO rules); power vias 0.6/0.3 | set by the CM5's 0.4 mm connectors and the 0.5 mm M.2 socket; every vendor above quotes these as standard 4-layer capability |
 | Fine pitch | 0.4 mm pitch (Hirose DF40 for the CM5, QFN-48 / QFN-56 at 0.4–0.5 mm) | needs stencil + reflow, not hand soldering; every vendor below handles it |
-| Through-hole | SATA receptacles (SMT with pegs), DIN jack, DIP switch, LEDs, headers, M.2 standoff | ask for **through-hole assembly** too, or these come loose in a bag |
+| Through-hole | brain: eight PCIe x1 sockets, DIN jack, DIP switch, LEDs, headers, M.2 standoff; card: the SATA receptacle (SMT with pegs) | ask for **through-hole assembly** too, or these come loose in a bag |
 | Bottom side | CR2032 holder and two headers | double-sided assembly adds a setup fee; or move them to the top before ordering |
 | Parts sourcing | vendor-stocked passives; the CM5, USB5744, ASM1153E, TPS56637, connectors as consigned or "global sourcing" parts | ASM1153E is not in most in-house catalogues; JLCPCB has it (LCSC C2762919) |
 

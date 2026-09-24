@@ -19,7 +19,7 @@ def test_roundtrip(tmp_path):
 
 def test_missing_file_gives_defaults(tmp_path):
     cfg = Config.load(tmp_path / "nope.json")
-    assert cfg.hal == "real" and cfg.bays == [1, 2, 3, 4, 5]
+    assert cfg.hal == "real" and cfg.bays == [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 
 def test_unknown_key_rejected(tmp_path):

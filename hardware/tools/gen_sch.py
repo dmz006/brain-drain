@@ -22,9 +22,12 @@ import kilib
 import sexp
 from sexp import Str, new_uuid, q
 
-HW = Path(__file__).resolve().parent.parent
-PROJECT = "brain-drain"
-SHEET_DIR = HW / "sheets"
+import project as _project
+
+PRJ = _project.current()
+HW = PRJ.dir
+PROJECT = PRJ.name
+SHEET_DIR = PRJ.sheets
 STUB = 5.08
 GRID = 1.27
 MARGIN_X = 30.0
@@ -272,21 +275,21 @@ def write_project(root_uuid: str, sheet_uuids: dict[str, str]):
         except ValueError:
             pass
     old.write_text(json.dumps(pro, indent=2) + "\n")
-    used_syms = sorted({c.lib_id.split(":")[0] for c in design.build().comps.values()} | {"power"})
-    rows = ['  (lib (name "brain-drain")(type "KiCad")(uri "${KIPRJMOD}/lib/brain-drain.kicad_sym")(options "")(descr "brain-drain project symbols"))']
+    used_syms = sorted({c.lib_id.split(":")[0] for c in design.build(PRJ.key).comps.values()} | {"power"})
+    rows = [f'  (lib (name "brain-drain")(type "KiCad")(uri "{PRJ.lib_uri}/brain-drain.kicad_sym")(options "")(descr "brain-drain project symbols"))']
     rows += [f'  (lib (name "{n}")(type "KiCad")(uri "${{KICAD9_SYMBOL_DIR}}/{n}.kicad_sym")(options "")(descr ""))'
              for n in used_syms if n != "brain-drain"]
     (HW / "sym-lib-table").write_text("(sym_lib_table\n  (version 7)\n" + "\n".join(rows) + "\n)\n")
-    used_fps = sorted({c.footprint.split(":")[0] for c in design.build().comps.values() if ":" in c.footprint})
-    rows = ['  (lib (name "brain-drain")(type "KiCad")(uri "${KIPRJMOD}/lib/brain-drain.pretty")(options "")(descr "brain-drain project footprints"))']
+    used_fps = sorted({c.footprint.split(":")[0] for c in design.build(PRJ.key).comps.values() if ":" in c.footprint})
+    rows = [f'  (lib (name "brain-drain")(type "KiCad")(uri "{PRJ.lib_uri}/brain-drain.pretty")(options "")(descr "brain-drain project footprints"))']
     rows += [f'  (lib (name "{n}")(type "KiCad")(uri "${{KICAD9_FOOTPRINT_DIR}}/{n}.pretty")(options "")(descr ""))'
              for n in used_fps if n != "brain-drain"]
     (HW / "fp-lib-table").write_text("(fp_lib_table\n  (version 7)\n" + "\n".join(rows) + "\n)\n")
-    (HW / "lib" / "brain-drain.pretty").mkdir(exist_ok=True)
+    (_project.HW / "lib" / "brain-drain.pretty").mkdir(exist_ok=True)
 
 
 def main(run_erc=True) -> int:
-    d = design.build()
+    d = design.build(PRJ.key)
     missing = d.check()
     if missing:
         print("design has unassigned pins:", missing[:10])
