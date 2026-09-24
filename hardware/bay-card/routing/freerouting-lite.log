@@ -1,7 +1,7 @@
-2026-09-23 21:06:35.895 INFO   Freerouting v2.4.1 (build-date: 2026-09-03)
-2026-09-23 21:06:35.938 WARN   Couldn't get screen resolution. If you are running in a headless environment, disable the GUI by setting gui.enabled to false.
-2026-09-23 21:06:37.273 INFO   [016B8B\8FEF4B] Loading board file 'bay-card-lite.dsn'...
-2026-09-23 21:06:37.354 WARN   Power-plane validation failed:
+2026-09-23 21:19:55.605 INFO   Freerouting v2.4.1 (build-date: 2026-09-03)
+2026-09-23 21:19:55.646 WARN   Couldn't get screen resolution. If you are running in a headless environment, disable the GUI by setting gui.enabled to false.
+2026-09-23 21:19:56.975 INFO   [3CAA24\BA2AAB] Loading board file 'bay-card-lite.dsn'...
+2026-09-23 21:19:57.056 WARN   Power-plane validation failed:
 - Dedicated power layer 'In2.Cu' has overlapping conduction areas: Area (ID 5, Net(s): [+12V]) and Area (ID 4, Net(s): [5V_HDD]) overlap.
 
 Proper Definition and Best Practices for Power Planes:
@@ -14,33 +14,29 @@ Proper Definition and Best Practices for Power Planes:
    - Destroyed Return Paths: High-speed signals on adjacent layers couple to the solid plane below/above as return paths. Crossing a trace gap detours return currents, causing severe EMI and signal integrity issues.
    - Compromised Power Delivery: Power planes should provide the lowest impedance path. Routing traces chops up the copper, creating bottleneck restrictions and voltage drops.
 
-2026-09-23 21:06:37.367 INFO   [016B8B\8FEF4B] Job '016B8B\8FEF4B' started at 2026-09-24T01:06:37.366855544Z.
-2026-09-23 21:06:37.569 INFO   [016B8B\8FEF4B] Fanout stage started on board '76255938d026e3086cf15ac02a225379' with 95 of 197 SMD pins needing fanout (72 already connected, 30 netless).
-2026-09-23 21:06:38.310 INFO   [016B8B\8FEF4B] Fanout pass #1 on board '63b12546f89e998afac73e500449a7da' completed in 0.65 seconds with 18 SMD pins fanouted, 12 not routed, 0 insert errors, +1 extra via (0 SMD pins still to check in pass, ripup costs=100).
-2026-09-23 21:06:38.796 INFO   [016B8B\8FEF4B] Fanout pass #2 on board 'cea922c7569ee7fe334f0d15dfe99245' completed in 0.48 seconds with 17 SMD pins fanouted, 13 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=200).
-2026-09-23 21:06:39.241 INFO   [016B8B\8FEF4B] Fanout pass #3 on board '25b01802132c600708ebca1f0347743f' completed in 0.44 seconds with 17 SMD pins fanouted, 13 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=300).
-2026-09-23 21:06:39.674 INFO   [016B8B\8FEF4B] Fanout pass #4 on board '35497378b56c404dcfd3bd6f13350ae0' completed in 0.43 seconds with 17 SMD pins fanouted, 13 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=400).
-2026-09-23 21:06:40.052 INFO   [016B8B\8FEF4B] Fanout pass #5 on board '0062b9709beefcc72dd5806644cc2fe8' completed in 0.37 seconds with 17 SMD pins fanouted, 13 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=500).
-2026-09-23 21:06:40.052 INFO   Fanout stopped after 5 passes: no progress for 3 consecutive passes.
-2026-09-23 21:06:40.142 INFO   [016B8B\8FEF4B] Fanout stage completed: started with 167 total SMD pins, completed in 2.49 seconds, escaped pins: 156/167 (93.4%), using 2.65 total CPU seconds, 18.70 GB total allocated, and 896.4 MB peak heap usage.
-2026-09-23 21:06:40.155 INFO   [016B8B\8FEF4B] Auto-routing stage started on board '0062b9709beefcc72dd5806644cc2fe8' for 18 unrouted items.
-2026-09-23 21:06:41.909 INFO   [016B8B\8FEF4B] Auto-routing pass #1 on board '0062b9709beefcc72dd5806644cc2fe8' was completed in 1.54 seconds with score 829.84 (18 unrouted and 24 violations), using 3.96 CPU seconds and the job allocated 29.17 GB of memory so far.
-2026-09-23 21:06:43.560 INFO   [016B8B\8FEF4B] Auto-routing pass #2 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.43 seconds with score 829.84 (18 unrouted and 24 violations), using 5.94 CPU seconds and the job allocated 47.38 GB of memory so far.
-2026-09-23 21:06:45.119 INFO   [016B8B\8FEF4B] Auto-routing pass #3 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.44 seconds with score 829.84 (18 unrouted and 24 violations), using 6.93 CPU seconds and the job allocated 56.84 GB of memory so far.
-2026-09-23 21:06:46.645 INFO   [016B8B\8FEF4B] Auto-routing pass #4 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.41 seconds with score 829.84 (18 unrouted and 24 violations), using 8.91 CPU seconds and the job allocated 74.93 GB of memory so far.
-2026-09-23 21:06:48.183 INFO   [016B8B\8FEF4B] Auto-routing pass #5 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.42 seconds with score 829.84 (18 unrouted and 24 violations), using 9.90 CPU seconds and the job allocated 84.63 GB of memory so far.
-2026-09-23 21:06:49.770 INFO   [016B8B\8FEF4B] Auto-routing pass #6 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.47 seconds with score 829.84 (18 unrouted and 24 violations), using 11.89 CPU seconds and the job allocated 102.34 GB of memory so far.
-2026-09-23 21:06:51.362 INFO   [016B8B\8FEF4B] Auto-routing pass #7 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.47 seconds with score 829.84 (18 unrouted and 24 violations), using 12.88 CPU seconds and the job allocated 111.85 GB of memory so far.
-2026-09-23 21:06:52.920 INFO   [016B8B\8FEF4B] Auto-routing pass #8 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.44 seconds with score 829.84 (18 unrouted and 24 violations), using 14.87 CPU seconds and the job allocated 129.32 GB of memory so far.
-2026-09-23 21:06:54.569 INFO   [016B8B\8FEF4B] Auto-routing pass #9 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.53 seconds with score 829.84 (18 unrouted and 24 violations), using 16.85 CPU seconds and the job allocated 147.04 GB of memory so far.
-2026-09-23 21:06:56.237 INFO   [016B8B\8FEF4B] Auto-routing pass #10 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.54 seconds with score 829.84 (18 unrouted and 24 violations), using 17.85 CPU seconds and the job allocated 155.79 GB of memory so far.
-2026-09-23 21:06:57.839 INFO   [016B8B\8FEF4B] Auto-routing pass #11 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.49 seconds with score 829.84 (18 unrouted and 24 violations), using 19.83 CPU seconds and the job allocated 172.66 GB of memory so far.
-2026-09-23 21:06:59.493 INFO   [016B8B\8FEF4B] Auto-routing pass #12 on board '98c94ed45bc3ec83b4d6ccda001a671f' was completed in 1.45 seconds with score 829.84 (18 unrouted and 24 violations), using 21.82 CPU seconds and the job allocated 191.11 GB of memory so far.
-2026-09-23 21:06:59.716 INFO   [016B8B\8FEF4B] Auto-routing stage completed: started with 20 unrouted nets, completed in 22.21 seconds, final score: 829.84 (18 unrouted and 24 violations), using 21.82 total CPU seconds, 191.11 GB total allocated, and 1185.5 MB peak heap usage.
-2026-09-23 21:06:59.822 INFO   [016B8B\8FEF4B] Optimization stage started on board '98c94ed45bc3ec83b4d6ccda001a671f' with score 829.84 (18 unrouted and 24 violations).
-2026-09-23 21:07:01.806 INFO   [016B8B\8FEF4B] Optimizer pass #1 on board 'f98461257c9edf0c5412daa792da3ef5' was completed in 1.67 seconds with the score of 829.84 (18 unrouted and 24 violations).
-2026-09-23 21:07:01.902 INFO   [016B8B\8FEF4B] Stopping optimizer because the improvement in this pass (0.0000%) is below the threshold (1.00%).
-2026-09-23 21:07:02.005 INFO   [016B8B\8FEF4B] Optimization stage completed: started with score 829.84 (18 unrouted and 24 violations), completed in 2.08 seconds, final score: 829.84 (18 unrouted and 24 violations), using 2.06 total CPU seconds, 19.42 GB total allocated, and 913.8 MB peak heap usage.
-2026-09-23 21:07:02.009 INFO   [016B8B\8FEF4B] Job '016B8B\8FEF4B' finished with state: COMPLETED (elapsed: 24.64 seconds, finished at UTC: 2026-09-24T01:07:02.008937943Z).
-2026-09-23 21:07:02.044 INFO   Saving output file '/home/dmz/workspace/brain-drain/hardware/bay-card/routing/bay-card-lite.ses' (SES)...
-2026-09-23 21:07:02.046 INFO   Successfully saved output file '/home/dmz/workspace/brain-drain/hardware/bay-card/routing/bay-card-lite.ses' (4480 bytes).
+2026-09-23 21:19:57.064 INFO   [3CAA24\BA2AAB] Job '3CAA24\BA2AAB' started at 2026-09-24T01:19:57.064849080Z.
+2026-09-23 21:19:57.265 INFO   [3CAA24\BA2AAB] Fanout stage started on board 'ebd09dfd9565ef912ec51d6be1b77f6c' with 99 of 197 SMD pins needing fanout (68 already connected, 30 netless).
+2026-09-23 21:19:58.013 INFO   [3CAA24\BA2AAB] Fanout pass #1 on board '3958f8ecbd6cd89db2a4c49624cb125a' completed in 0.66 seconds with 18 SMD pins fanouted, 15 not routed, 0 insert errors, +2 extra vias (0 SMD pins still to check in pass, ripup costs=100).
+2026-09-23 21:19:58.468 INFO   [3CAA24\BA2AAB] Fanout pass #2 on board '3958f8ecbd6cd89db2a4c49624cb125a' completed in 0.45 seconds with 17 SMD pins fanouted, 15 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=200).
+2026-09-23 21:19:58.604 INFO   [3CAA24\BA2AAB] Fanout stage completed: started with 167 total SMD pins, completed in 1.26 seconds, escaped pins: 155/167 (92.8%), using 1.45 total CPU seconds, 8.95 GB total allocated, and 880.2 MB peak heap usage.
+2026-09-23 21:19:58.618 INFO   [3CAA24\BA2AAB] Auto-routing stage started on board '3958f8ecbd6cd89db2a4c49624cb125a' for 20 unrouted items.
+2026-09-23 21:20:00.604 INFO   [3CAA24\BA2AAB] Auto-routing pass #1 on board '3958f8ecbd6cd89db2a4c49624cb125a' was completed in 1.77 seconds with score 825.36 (19 unrouted and 22 violations), using 2.96 CPU seconds and the job allocated 20.65 GB of memory so far.
+2026-09-23 21:20:02.368 INFO   [3CAA24\BA2AAB] Auto-routing pass #2 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.53 seconds with score 825.36 (19 unrouted and 22 violations), using 4.94 CPU seconds and the job allocated 38.09 GB of memory so far.
+2026-09-23 21:20:03.993 INFO   [3CAA24\BA2AAB] Auto-routing pass #3 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.51 seconds with score 825.36 (19 unrouted and 22 violations), using 5.93 CPU seconds and the job allocated 47.89 GB of memory so far.
+2026-09-23 21:20:05.624 INFO   [3CAA24\BA2AAB] Auto-routing pass #4 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.51 seconds with score 825.36 (19 unrouted and 22 violations), using 7.92 CPU seconds and the job allocated 65.25 GB of memory so far.
+2026-09-23 21:20:07.236 INFO   [3CAA24\BA2AAB] Auto-routing pass #5 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.50 seconds with score 825.36 (19 unrouted and 22 violations), using 9.91 CPU seconds and the job allocated 83.67 GB of memory so far.
+2026-09-23 21:20:08.804 INFO   [3CAA24\BA2AAB] Auto-routing pass #6 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.45 seconds with score 825.36 (19 unrouted and 22 violations), using 10.90 CPU seconds and the job allocated 93.10 GB of memory so far.
+2026-09-23 21:20:10.411 INFO   [3CAA24\BA2AAB] Auto-routing pass #7 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.49 seconds with score 825.36 (19 unrouted and 22 violations), using 12.88 CPU seconds and the job allocated 111.16 GB of memory so far.
+2026-09-23 21:20:11.999 INFO   [3CAA24\BA2AAB] Auto-routing pass #8 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.47 seconds with score 825.36 (19 unrouted and 22 violations), using 13.88 CPU seconds and the job allocated 121.19 GB of memory so far.
+2026-09-23 21:20:13.562 INFO   [3CAA24\BA2AAB] Auto-routing pass #9 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.45 seconds with score 825.36 (19 unrouted and 22 violations), using 15.86 CPU seconds and the job allocated 139.12 GB of memory so far.
+2026-09-23 21:20:15.129 INFO   [3CAA24\BA2AAB] Auto-routing pass #10 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.45 seconds with score 825.36 (19 unrouted and 22 violations), using 17.84 CPU seconds and the job allocated 158.22 GB of memory so far.
+2026-09-23 21:20:16.673 INFO   [3CAA24\BA2AAB] Auto-routing pass #11 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.43 seconds with score 825.36 (19 unrouted and 22 violations), using 18.84 CPU seconds and the job allocated 167.79 GB of memory so far.
+2026-09-23 21:20:18.316 INFO   [3CAA24\BA2AAB] Auto-routing pass #12 on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' was completed in 1.43 seconds with score 825.36 (19 unrouted and 22 violations), using 20.83 CPU seconds and the job allocated 186.64 GB of memory so far.
+2026-09-23 21:20:18.542 INFO   [3CAA24\BA2AAB] Auto-routing stage completed: started with 20 unrouted nets, completed in 21.34 seconds, final score: 825.36 (19 unrouted and 22 violations), using 20.83 total CPU seconds, 186.64 GB total allocated, and 1345.6 MB peak heap usage.
+2026-09-23 21:20:18.645 INFO   [3CAA24\BA2AAB] Optimization stage started on board '9cfc9dcc74b1e2c8a4ec943cfdd61c79' with score 825.36 (19 unrouted and 22 violations).
+2026-09-23 21:20:19.578 INFO   [3CAA24\BA2AAB] Optimizer pass #1 on board 'b176cd9968081a51b973a704b625f376' was completed in 0.61 seconds with the score of 825.36 (19 unrouted and 22 violations).
+2026-09-23 21:20:19.685 INFO   [3CAA24\BA2AAB] Stopping optimizer because the improvement in this pass (0.0000%) is below the threshold (1.00%).
+2026-09-23 21:20:19.792 INFO   [3CAA24\BA2AAB] Optimization stage completed: started with score 825.36 (19 unrouted and 22 violations), completed in 1.04 seconds, final score: 825.36 (19 unrouted and 22 violations), using 1.04 total CPU seconds, 9.51 GB total allocated, and 657.7 MB peak heap usage.
+2026-09-23 21:20:19.796 INFO   [3CAA24\BA2AAB] Job '3CAA24\BA2AAB' finished with state: COMPLETED (elapsed: 22.73 seconds, finished at UTC: 2026-09-24T01:20:19.795798375Z).
+2026-09-23 21:20:20.246 INFO   Saving output file '/home/dmz/workspace/brain-drain/hardware/bay-card/routing/bay-card-lite.ses' (SES)...
+2026-09-23 21:20:20.248 INFO   Successfully saved output file '/home/dmz/workspace/brain-drain/hardware/bay-card/routing/bay-card-lite.ses' (4055 bytes).

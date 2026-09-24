@@ -228,12 +228,40 @@ class Occupancy:
         self.vias = []   # (x, y, radius)
         for t in board.GetTracks():
             self.add(t)
+        # board edges (board drawings and footprint-owned outlines such as a card-edge tab with its key notch)
+        self.edge_clr = int(board.GetDesignSettings().m_CopperEdgeClearance)
+        self.edges = [d.GetEffectiveShape() for d in board.GetDrawings() if d.GetLayer() == pcbnew.Edge_Cuts]
+        for f in board.GetFootprints():
+            self.edges += [g.GetEffectiveShape() for g in f.GraphicalItems() if g.GetLayer() == pcbnew.Edge_Cuts]
 
     def add(self, t) -> None:
         if t.GetClass() == "PCB_VIA":
-            p = t.GetPosition(); self.vias.append((int(p.x), int(p.y), t.GetWidth(pcbnew.F_Cu) // 2))
+            p = t.GetPosition(); self.vias.append((int(p.x), int(p.y), t.GetWidth(pcbnew.F_Cu) // 2, t.GetNetCode()))
         else:
-            self.segs.append((pcbnew.SEG(t.GetStart(), t.GetEnd()), t.GetWidth() // 2))
+            self.segs.append((pcbnew.SEG(t.GetStart(), t.GetEnd()), t.GetWidth() // 2, t.GetNetCode()))
+
+    def drop_net(self, netcode: int) -> None:
+        self.segs = [s for s in self.segs if s[2] != netcode]
+        self.vias = [v for v in self.vias if v[3] != netcode]
+
+    def blockers(self, x: int, y: int, r: int, own) -> set | None:
+        """Net codes of the tracks / vias that block a disc at (x, y); None when a pad or the board edge
+        blocks it (nothing to rip up)."""
+        pt = pcbnew.VECTOR2I(x, y)
+        if any(e.Collide(pt, r + self.edge_clr) for e in self.edges):
+            return None
+        for b in self.boxes:
+            if b.Intersects(pcbnew.BOX2I(pcbnew.VECTOR2I(x - r - self.clr, y - r - self.clr), pcbnew.VECTOR2I(2 * (r + self.clr), 2 * (r + self.clr)))):
+                if not any(b.Contains(pcbnew.VECTOR2I(*o)) for o in own):
+                    return None
+        out = set()
+        for seg, hw, net in self.segs:
+            if seg.Distance(pt) < r + hw + self.clr and not any(seg.Distance(pcbnew.VECTOR2I(*o)) <= hw + 10 for o in own):
+                out.add(net)
+        for vx, vy, vr, net in self.vias:
+            if (vx - x) ** 2 + (vy - y) ** 2 < (r + vr + self.clr) ** 2 and not any((vx - o[0]) ** 2 + (vy - o[1]) ** 2 <= (vr + 10) ** 2 for o in own):
+                out.add(net)
+        return out
 
     def add_box(self, box) -> None:
         self.boxes.append(box)
@@ -241,15 +269,17 @@ class Occupancy:
     def point_free(self, x: int, y: int, r: int, own) -> bool:
         """A disc of radius r at (x, y) clears everything except copper that touches one of `own`."""
         pt = pcbnew.VECTOR2I(x, y)
+        if any(e.Collide(pt, r + self.edge_clr) for e in self.edges):
+            return False
         for b in self.boxes:
             if b.Intersects(pcbnew.BOX2I(pcbnew.VECTOR2I(x - r - self.clr, y - r - self.clr), pcbnew.VECTOR2I(2 * (r + self.clr), 2 * (r + self.clr)))):
                 if not any(b.Contains(pcbnew.VECTOR2I(*o)) for o in own):
                     return False
-        for seg, hw in self.segs:
+        for seg, hw, _net in self.segs:
             if seg.Distance(pt) < r + hw + self.clr:
                 if not any(seg.Distance(pcbnew.VECTOR2I(*o)) <= hw + 10 for o in own):
                     return False
-        for vx, vy, vr in self.vias:
+        for vx, vy, vr, _net in self.vias:
             if (vx - x) ** 2 + (vy - y) ** 2 < (r + vr + self.clr) ** 2:
                 if not any((vx - o[0]) ** 2 + (vy - o[1]) ** 2 <= (vr + 10) ** 2 for o in own):
                     return False
@@ -347,10 +377,13 @@ def fanout_big(board: pcbnew.BOARD, dogbones: bool = False) -> None:
     for z in board.Zones():
         if not z.GetIsRuleArea():
             zones_by_net.setdefault(z.GetNetname(), []).append(z)
-    done_pads = connected_pads(board)
+    open_pads = open_pads_from_drc(board)
+    done_pads = connected_pads(board) if open_pads is None else None
     via_d, via_drill, stub_w = MM(0.6), MM(0.3), MM(0.25)
     occupied = [pad.GetBoundingBox() for f in board.GetFootprints() for pad in f.Pads()]
     occupied += [t.GetBoundingBox() for t in board.GetTracks()]
+    occ = Occupancy(board)   # for the long-pad branch (card-edge fingers)
+    long_vias = [(int(t.GetPosition().x), int(t.GetPosition().y), t.GetNetCode()) for t in board.GetTracks() if t.GetClass() == "PCB_VIA"]
 
     def free(vx, vy, own_pad):
         box = pcbnew.BOX2I(pcbnew.VECTOR2I(vx - via_d // 2 - MM(0.15), vy - via_d // 2 - MM(0.15)),
@@ -373,15 +406,67 @@ def fanout_big(board: pcbnew.BOARD, dogbones: bool = False) -> None:
         fc = f.GetPosition(); fcx, fcy = int(fc.x), int(fc.y)
         for i, pad in enumerate(pads):
             net = pad.GetNetname()
-            if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD or net not in zones_by_net:
+            if pad.GetAttribute() not in (pcbnew.PAD_ATTRIB_SMD, pcbnew.PAD_ATTRIB_CONN) or net not in zones_by_net:
                 continue
-            if (f.GetReference(), pad.GetNumber()) in done_pads:
+            key = (f.GetReference(), str(pad.GetNumber()))
+            sx, sy = pad_size(pad)
+            long_pad = max(sx, sy) >= MM(3.0) and min(sx, sy) < MM(1.2)
+            if not long_pad and ((open_pads is not None and key not in open_pads) or (open_pads is None and key in done_pads)):
                 continue
             if not any(z.Outline().Contains(pad.GetPosition()) for z in zones_by_net[net]):
                 continue
             ppos = pad.GetPosition(); px, py = int(ppos.x), int(ppos.y)
-            sz = pad.GetSize(); sx, sy = int(sz.x), int(sz.y)
-            sx, sy = pad_size(pad)
+            if long_pad:
+                # long pad (card-edge finger): one via in line with the pad beyond its inner end, where the
+                # neighbours at 1 mm pitch are clear, shared by the A- and B-side fingers of that position
+                # (opposite layers), each with a stub on its own layer. A via the router already put there
+                # is reused; a finger whose layer has no stub to the via gets one.
+                along_x = sx > sy
+                half = max(sx, sy) / 2
+                pad_layer = pcbnew.F_Cu if pad.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu
+                reach = half + via_d / 2 + MM(2.6)
+                near = [(x, y) for x, y, nc in long_vias if nc == pad.GetNetCode() and abs(x - px) <= MM(0.7) and abs(y - py) <= reach] if not along_x else \
+                       [(x, y) for x, y, nc in long_vias if nc == pad.GetNetCode() and abs(y - py) <= MM(0.7) and abs(x - px) <= reach]
+                ok = False
+                if near:
+                    vx, vy = min(near, key=lambda q: (q[0] - px) ** 2 + (q[1] - py) ** 2)
+                    has_stub = any(t.GetClass() != "PCB_VIA" and t.GetLayer() == pad_layer and t.GetNetCode() == pad.GetNetCode()
+                                   and pcbnew.SEG(t.GetStart(), t.GetEnd()).Distance(pcbnew.VECTOR2I(vx, vy)) < MM(0.05)
+                                   and pcbnew.SEG(t.GetStart(), t.GetEnd()).Distance(pcbnew.VECTOR2I(px, py)) < min(sx, sy) for t in board.GetTracks())
+                    if has_stub:
+                        continue
+                    if occ.path_free((px, py), (vx, vy), stub_w // 2, [(px, py), (vx, vy)]):
+                        tr = pcbnew.PCB_TRACK(board)
+                        tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
+                        tr.SetWidth(stub_w); tr.SetLayer(pad_layer); tr.SetNetCode(pad.GetNetCode()); board.Add(tr)
+                        occupied.append(tr.GetBoundingBox()); occ.add(tr)
+                        placed += 1; ok = True
+                else:
+                    for sign in (-1, 1):
+                        for extra, side in ((0.3, 0), (0.8, 0), (1.4, 0), (0.8, 0.6), (0.8, -0.6), (1.6, 0.6), (1.6, -0.6), (2.4, 0), (2.4, 0.6), (2.4, -0.6)):
+                            dist = int(half + via_d / 2 + MM(extra))
+                            vx, vy = (px + sign * dist, py + int(MM(side))) if along_x else (px + int(MM(side)), py + sign * dist)
+                            if not occ.point_free(vx, vy, via_d // 2, [(px, py)]) or not occ.path_free((px, py), (vx, vy), stub_w // 2, [(px, py)]):
+                                continue
+                            if not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
+                                continue
+                            v = add_via(vx, vy, pad.GetNetCode(), pad_layer); occ.add(v)
+                            long_vias.append((vx, vy, pad.GetNetCode()))
+                            twins = [q for q in pads if q.GetNetCode() == pad.GetNetCode()
+                                     and abs(int(q.GetPosition().x) - px) < MM(0.05) and abs(int(q.GetPosition().y) - py) < MM(0.05)]
+                            for q in twins:
+                                ql = pcbnew.F_Cu if q.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu
+                                tr = pcbnew.PCB_TRACK(board)
+                                tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
+                                tr.SetWidth(stub_w); tr.SetLayer(ql); tr.SetNetCode(q.GetNetCode()); board.Add(tr)
+                                occupied.append(tr.GetBoundingBox()); occ.add(tr)
+                            placed += 1; ok = True
+                            break
+                        if ok:
+                            break
+                if not ok:
+                    skipped += 1
+                continue
             if min(sx, sy) >= MM(1.2):   # exposed pad (or a quarter of a split one): vias inside it, 1 mm grid
                 nx, ny = max(1, int((sx - MM(1.0)) // MM(1.0))), max(1, int((sy - MM(1.0)) // MM(1.0)))
                 nx, ny = min(nx, 3), min(ny, 3)
@@ -773,7 +858,7 @@ def fanout_conn(board: pcbnew.BOARD) -> None:
 
 
 def fanout_qfn(board: pcbnew.BOARD) -> None:
-    """D8: dog-bone vias of 0.3/0.15 mm on the 0.4-0.5 mm-pitch QFN pins (the bridges and hubs), for every
+    """D8: dog-bone vias of 0.3/0.15 mm on the 0.4-0.65 mm-pitch QFN / DFN pins (bridges, hubs, the DFN P-FETs), for every
     pin on a net with three or more pads that is not a differential pair. Vias sit on two lines outside
     the pin row (0.75 and 1.35 mm from the pad centre), alternating by pin index so no two vias are
     closer than 0.8 mm along the row and the signal pins between them can still escape. Plane pins land
@@ -802,12 +887,27 @@ def fanout_qfn(board: pcbnew.BOARD) -> None:
     via_d, via_drill, stub_w = MM(0.3), MM(0.15), MM(0.13)
     occ = Occupancy(board)
     placed = skipped = 0
+    ripped = set()   # simple nets (a track between two or three pads, no pair) removed so a plane pin can escape; the router redoes them
+    netinfo = board.GetNetInfo()
+
+    def rip(netcodes) -> bool:
+        """Remove every track and via of the given nets when all are simple point-to-point nets."""
+        names = [netinfo.GetNetItem(n).GetNetname() for n in netcodes]
+        if not netcodes or any(n in pair_nets or pads_per_net.get(n, 0) > 6 or n in zones_by_net for n in names):
+            return False
+        for t in [t for t in board.GetTracks() if t.GetNetCode() in netcodes]:
+            board.Remove(t)
+        for n in netcodes:
+            occ.drop_net(n)
+        ripped.update(names)
+        return True
+
     for f in board.GetFootprints():
         ref = f.GetReference()
         pads = [p for p in f.Pads() if p.GetAttribute() == pcbnew.PAD_ATTRIB_SMD]
         eps = [p for p in pads if min(pad_size(p)) >= MM(1.2) or not str(p.GetNumber())]
-        if not (ref.startswith("U") and eps and len(pads) >= 20):
-            continue   # QFNs only
+        if not (ref.startswith(("U", "Q")) and eps and len(pads) >= 8):
+            continue   # QFNs and DFNs with an exposed pad only
         layer = pcbnew.B_Cu if f.IsFlipped() else pcbnew.F_Cu
         fcx, fcy = f.GetPosition().x, f.GetPosition().y
         ep_keys = {(str(e.GetNumber()), int(e.GetPosition().x), int(e.GetPosition().y)) for e in eps}
@@ -819,7 +919,7 @@ def fanout_qfn(board: pcbnew.BOARD) -> None:
             pos = p.GetPosition()
             rows.setdefault((along_x, int(round((pos.y if along_x else pos.x) / 1e4))), []).append(p)
         for (along_x, k), row in rows.items():
-            if len(row) < 6:
+            if len(row) < 4:
                 continue
             row.sort(key=lambda p: p.GetPosition().x if along_x else p.GetPosition().y)
             pos0 = row[0].GetPosition()
@@ -836,26 +936,35 @@ def fanout_qfn(board: pcbnew.BOARD) -> None:
                 if not is_open(ref, str(p.GetNumber())):
                     continue
                 pp = p.GetPosition(); px, py = int(pp.x), int(pp.y)
-                ok = False
-                for dd in ((d1, d2) if i % 2 == 0 else (d2, d1)):
-                    vx, vy = (px, py + int(outward * dd)) if along_x else (px + int(outward * dd), py)
+
+                def spot(dd):
+                    return (px, py + int(outward * dd)) if along_x else (px + int(outward * dd), py)
+
+                def fits(vx, vy):
                     if not occ.point_free(vx, vy, via_d // 2, [(px, py)]) or not occ.path_free((px, py), (vx, vy), stub_w // 2, [(px, py)]):
-                        continue
-                    if net in zones_by_net and not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]):
-                        continue
-                    v = pcbnew.PCB_VIA(board)
-                    v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
-                    v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
-                    v.SetNetCode(p.GetNetCode()); board.Add(v); occ.add(v)
-                    tr = pcbnew.PCB_TRACK(board)
-                    tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
-                    tr.SetWidth(stub_w); tr.SetLayer(layer); tr.SetNetCode(p.GetNetCode()); board.Add(tr); occ.add(tr)
-                    placed += 1; ok = True
-                    break
-                if not ok:
+                        return False
+                    return not (net in zones_by_net and not any(z.Outline().Contains(pcbnew.VECTOR2I(vx, vy)) for z in zones_by_net[net]))
+
+                order = (d1, d2) if i % 2 == 0 else (d2, d1)
+                found = next((spot(dd) for dd in order if fits(*spot(dd))), None)
+                if found is None:   # rip up a simple net sitting on the closest spot, then look again
+                    blk = occ.blockers(*spot(d1), via_d // 2, [(px, py)])
+                    if blk and p.GetNetCode() not in blk and rip(blk):
+                        found = next((spot(dd) for dd in order if fits(*spot(dd))), None)
+                if found is None:
                     skipped += 1
+                    continue
+                vx, vy = found
+                v = pcbnew.PCB_VIA(board)
+                v.SetPosition(pcbnew.VECTOR2I(vx, vy)); v.SetWidth(via_d); v.SetDrill(via_drill)
+                v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                v.SetNetCode(p.GetNetCode()); board.Add(v); occ.add(v)
+                tr = pcbnew.PCB_TRACK(board)
+                tr.SetStart(pcbnew.VECTOR2I(px, py)); tr.SetEnd(pcbnew.VECTOR2I(vx, vy))
+                tr.SetWidth(stub_w); tr.SetLayer(layer); tr.SetNetCode(p.GetNetCode()); board.Add(tr); occ.add(tr)
+                placed += 1
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
-    print(f"fanout_qfn: {placed} small vias placed, {skipped} QFN pins skipped (no free spot)")
+    print(f"fanout_qfn: {placed} small vias placed, {skipped} QFN pins skipped (no free spot)" + (f", ripped up for the router: {sorted(ripped)}" if ripped else ""))
 
 
 def drc_clean(board: pcbnew.BOARD, rounds: int = 3) -> int:

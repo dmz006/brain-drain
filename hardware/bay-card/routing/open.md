@@ -1,9 +1,9 @@
-# Open connections: 14
+# Open connections: 13
 
 | group | open |
 |---|---|
 | plane (needs a via to its plane) | 10 |
-| differential pair | 4 |
+| differential pair | 3 |
 
 | net | open |
 |---|---|
@@ -12,15 +12,12 @@
 | +12V | 2 |
 | USB2_DM | 1 |
 | USB2_DP | 1 |
-| USB3_RX_P | 1 |
 | USB3_TX_N | 1 |
 
 | part | open pins |
 |---|---|
-| J1 | 10 |
+| J1 | 7 |
 | Q1 | 2 |
-| C20 | 2 |
 | Q2 | 2 |
 | U1 | 2 |
 | R3 | 1 |
-| R5 | 1 |
