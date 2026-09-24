@@ -69,9 +69,68 @@ def layout_brain():
         x = L["SLOT_X0"] + n * L["SLOT_PITCH"]
         F[f"J1{n}"] = (x, 23.7, 90)        # bay slot n+1: socket length along y (card plane front-to-back), y 1-27
         F[f"D1{n}"] = (x, 32.0, 90)        # bay LED right in front of its slot
-    L.update(REGIONS=R, FIXED=F, SPILL=(76, 100, 88, 120), BOTTOM={"BT1", "J6", "J7"},
+    BOT = {"BT1", "J6", "J7"}
+    for hub, sheet in (("U1", "usb3-hub-A"), ("U2", "usb3-hub-B")):
+        placed = bottom_bypass(hub, sheet, F[hub][0], F[hub][1])
+        F.update(placed); BOT |= set(placed)
+    L.update(REGIONS=R, FIXED=F, SPILL=(76, 100, 88, 120), BOTTOM=BOT,
              LABEL=f"brain-drain brain v4  {W:.0f}x{H:.0f}  rear edge = top")
     return L
+
+
+def bottom_bypass(hub: str, sheet: str, cx: float, cy: float, rows=(2.6, 4.6), step=1.6):
+    """Bypass capacitors of a fine-pitch hub on the BOTTOM side, in two rows on all four sides of the chip.
+
+    On the top side these caps compete with the hub's own pin escapes and its via fanout for the same few
+    free spots (the reason a dozen supply pins stayed open). Underneath they have their own layer. A cap is
+    a 2-pad passive (Device:C) of the hub's sheet with one pad on GND and the other on one of the hub's
+    supply nets; series AC-coupling caps of the differential pairs and the crystal load caps stay on top.
+    Caps take the free slot nearest to a pin of their supply net (greedy, nearest pair first); caps beside
+    the east/west sides sit with their long axis along x, beside north/south with it along y. Row 1 starts
+    1.8 mm from the pad tips, outside the dog-bone vias of the fanout (0.75 to 1.35 mm from the pad centre).
+    Returns {ref: (x, y, rotation)} in board millimetres."""
+    import math
+    d = design.build("brain")
+    pin_net = d.pin_net()
+    u = d.comps[hub]
+    node = kifp.load(u.footprint)
+    pads = []
+    for pd in sexp.find_all(node, "pad"):
+        at, size = sexp.find(pd, "at"), sexp.find(pd, "size")
+        pads.append((str(pd[1]), float(at[1]), float(at[2]), float(size[1]), float(size[2])))
+    edge = [q for q in pads if min(q[3], q[4]) < 1.2 and q[0]]       # perimeter pads, not the exposed pad
+    hb = max(max(abs(q[1]) + q[3] / 2, abs(q[2]) + q[4] / 2) for q in edge)
+    supply = {pn.number for pn in u.sym().pins if pn.etype in ("power_in", "power_out")}
+    power = {pin_net.get((hub, q[0])) for q in edge if q[0] in supply} - {None, "GND"}
+    caps = []
+    for c in d.comps.values():
+        if c.sheet != sheet or c.lib_id != "Device:C":
+            continue
+        a, b = pin_net.get((c.ref, "1")), pin_net.get((c.ref, "2"))
+        rail = b if a == "GND" else a if b == "GND" else None
+        if rail in power:
+            caps.append((c.ref, rail))
+    slots = []   # (x, y, rotation, side)
+    n = int(2 * hb / step)
+    for r in rows:
+        for k in range(n):
+            t = -hb + step * (k + 0.5)
+            slots += [(cx + hb + r, cy + t, 0, "E"), (cx - hb - r, cy + t, 0, "W"),
+                      (cx + t, cy - hb - r, 90, "N"), (cx + t, cy + hb + r, 90, "S")]
+    pairs = []
+    for ref, rail in caps:
+        rp = [(cx + q[1], cy + q[2]) for q in edge if pin_net.get((hub, q[0])) == rail]
+        for i, (sx, sy, rot, side) in enumerate(slots):
+            pairs.append((min(math.hypot(sx - px, sy - py) for px, py in rp), ref, i))
+    pairs.sort()
+    out, used_c, used_s = {}, set(), set()
+    for dist, ref, i in pairs:
+        if ref in used_c or i in used_s:
+            continue
+        sx, sy, rot, _side = slots[i]
+        out[ref] = (round(sx, 2), round(sy, 2), rot)
+        used_c.add(ref); used_s.add(i)
+    return out
 
 
 def layout_card():

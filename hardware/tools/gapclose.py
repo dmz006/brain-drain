@@ -39,8 +39,8 @@ class Obstacles:
 
     def __init__(self, board):
         self.pads = []      # (l, t, r, b, layers, net, nm-rect)
-        self.tracks = []    # (ax, ay, bx, by, halfw, layer, net)
-        self.vias = []      # (x, y, r, net)
+        self.tracks = []    # (ax, ay, bx, by, halfw, layer, net, pcbnew object)
+        self.vias = []      # (x, y, r, net, pcbnew object)
         self.edges = []     # pcbnew shapes on Edge.Cuts
         self.keepouts = []  # (polygon outline, bbox)
         for f in board.GetFootprints():
@@ -53,10 +53,10 @@ class Obstacles:
             self.edges += [g.GetEffectiveShape() for g in f.GraphicalItems() if g.GetLayer() == pcbnew.Edge_Cuts]
         for t in board.GetTracks():
             if t.GetClass() == "PCB_VIA":
-                pos = t.GetPosition(); self.vias.append((int(pos.x), int(pos.y), t.GetWidth(pcbnew.F_Cu) // 2, t.GetNetCode()))
+                pos = t.GetPosition(); self.vias.append((int(pos.x), int(pos.y), t.GetWidth(pcbnew.F_Cu) // 2, t.GetNetCode(), t))
             else:
                 a, b = t.GetStart(), t.GetEnd()
-                self.tracks.append((int(a.x), int(a.y), int(b.x), int(b.y), t.GetWidth() // 2, t.GetLayer(), t.GetNetCode()))
+                self.tracks.append((int(a.x), int(a.y), int(b.x), int(b.y), t.GetWidth() // 2, t.GetLayer(), t.GetNetCode(), t))
         self.edges += [d.GetEffectiveShape() for d in board.GetDrawings() if d.GetLayer() == pcbnew.Edge_Cuts]
         for z in board.Zones():
             if z.GetIsRuleArea() and z.GetDoNotAllowTracks():
@@ -82,7 +82,7 @@ class Window:
         self.near = {L: bytearray(self.W * self.H) for L in LAYERS}
         if partner:
             reach = 0.55 / 0.1
-            for ax, ay, bx, by, hw, layer, pn in obs.tracks:
+            for ax, ay, bx, by, hw, layer, pn, _obj in obs.tracks:
                 if pn != partner or layer not in self.near:
                     continue
                 if max(ax, bx) < x0 - MM(1) or min(ax, bx) > x1 + MM(1) or max(ay, by) < y0 - MM(1) or min(ay, by) > y1 + MM(1):
@@ -139,13 +139,13 @@ class Window:
             (cl, ct), (cr, cb) = self._cell(l, t), self._cell(r, b)
             for L in layers:
                 self._stamp_box(L, cl - pad, ct - pad, cr + pad, cb + pad, net if net else -1)
-        for x, y, r, net in obs.vias:
+        for x, y, r, net, _obj in obs.vias:
             if x < x0 - infl - r or x > x1 + infl + r or y < y0 - infl - r or y > y1 + infl + r:
                 continue
             cx, cy = self._cell(x, y)
             for L in LAYERS:
                 self._stamp(L, cx, cy, (r + infl) / RES, net)
-        for ax, ay, bx, by, hw, layer, net in obs.tracks:
+        for ax, ay, bx, by, hw, layer, net, _obj in obs.tracks:
             if max(ax, bx) < x0 - infl - hw or min(ax, bx) > x1 + infl + hw or max(ay, by) < y0 - infl - hw or min(ay, by) > y1 + infl + hw:
                 continue
             if layer not in self.own:
@@ -184,6 +184,17 @@ class Window:
         v = self.own[layer][j * self.W + i]
         return v == 0 or v == self.net
 
+    def step_cost(self, layer, i: int, j: int, rip):
+        """None: blocked. 0: free. With `rip` ({net code: cost}): another net's copper can be crossed at that cost."""
+        if not (0 <= i < self.W and 0 <= j < self.H):
+            return None
+        v = self.own[layer][j * self.W + i]
+        if v == 0 or v == self.net:
+            return 0.0
+        if rip is None or v < 0:
+            return None
+        return rip.get(v, 60.0)
+
     def via_ok(self, i: int, j: int) -> bool:
         n = self.via_cells
         for L in LAYERS:
@@ -194,7 +205,7 @@ class Window:
         return True
 
 
-def astar(win: Window, starts, goals, via_cost: float = 12.0, max_nodes: int = 400000):
+def astar(win: Window, starts, goals, via_cost: float = 12.0, max_nodes: int = 2500000, weight: float = 1.6, rip=None):
     """starts / goals: sets of (i, j, layer). Returns the list of (i, j, layer) from a start to a goal or None."""
     if not goals:
         return None
@@ -208,7 +219,7 @@ def astar(win: Window, starts, goals, via_cost: float = 12.0, max_nodes: int = 4
     parent = {}
     for s in starts:
         best[s] = 0.0
-        heapq.heappush(heap, (h(s[0], s[1]), 0.0, s))
+        heapq.heappush(heap, (weight * h(s[0], s[1]), 0.0, s))
     nodes = 0
     dirs = [(1, 0, 1.0), (-1, 0, 1.0), (0, 1, 1.0), (0, -1, 1.0), (1, 1, 1.414), (1, -1, 1.414), (-1, 1, 1.414), (-1, -1, 1.414)]
     while heap and nodes < max_nodes:
@@ -224,22 +235,23 @@ def astar(win: Window, starts, goals, via_cost: float = 12.0, max_nodes: int = 4
         i, j, L = cur
         for di, dj, c in dirs:
             ni, nj = i + di, j + dj
-            if not win.free(L, ni, nj):
+            extra = win.step_cost(L, ni, nj, rip)
+            if extra is None:
                 continue
-            if di and dj and not (win.free(L, i + di, j) and win.free(L, i, j + dj)):
+            if di and dj and (win.step_cost(L, i + di, j, rip) is None or win.step_cost(L, i, j + dj, rip) is None):
                 continue   # no corner cutting
             nxt = (ni, nj, L)
-            ng = g + (c * 0.6 if win.near[L][nj * win.W + ni] else c)
+            ng = g + (c * 0.6 if win.near[L][nj * win.W + ni] else c) + extra
             if ng < best.get(nxt, 1e18):
                 best[nxt] = ng; parent[nxt] = cur
-                heapq.heappush(heap, (ng + h(ni, nj), ng, nxt))
+                heapq.heappush(heap, (ng + weight * h(ni, nj), ng, nxt))
         other = pcbnew.B_Cu if L == pcbnew.F_Cu else pcbnew.F_Cu
         nxt = (i, j, other)
         if win.free(other, i, j) and win.via_ok(i, j):
             ng = g + via_cost
             if ng < best.get(nxt, 1e18):
                 best[nxt] = ng; parent[nxt] = cur
-                heapq.heappush(heap, (ng + h(i, j), ng, nxt))
+                heapq.heappush(heap, (ng + weight * h(i, j), ng, nxt))
     return None
 
 
@@ -272,7 +284,7 @@ def _anchors(board, item, pads_by_key, tracks_by_net):
     return []
 
 
-def close_gaps(board, d, routing_dir, pcb_path, skip_nets=frozenset(), max_len: float = 45.0, partner_of=None) -> int:
+def close_gaps(board, d, routing_dir, pcb_path, skip_nets=frozenset(), max_len: float = 45.0, partner_of=None, ripup: bool = False, pair_names=frozenset()) -> int:
     """Route every DRC-unconnected pair of one net. Returns the number of gaps closed."""
     rep = routing_dir / "drc.json"
     pcbnew.SaveBoard(str(pcb_path), board)
@@ -338,9 +350,25 @@ def close_gaps(board, d, routing_dir, pcb_path, skip_nets=frozenset(), max_len: 
                     return {(ci + di, cj + dj, L) for L in a[2] for di in (-1, 0, 1) for dj in (-1, 0, 1) if win.free(L, ci + di, cj + dj)}
 
                 path = astar(win, cells(p), cells(q))
+                victims = []
+                if not path and ripup:
+                    # negotiate: cross other nets' copper at a price, take their crossed segments out, and let
+                    # the next round reconnect them around the new route
+                    costs = {}
+                    for _ax, _ay, _bx, _by, _hw, _ly, nn, _o in obs.tracks:
+                        if nn != code and nn not in costs:
+                            nm = nets.GetNetItem(nn).GetNetname() if nets.GetNetItem(nn) else ""
+                            costs[nn] = 150.0 if nm in pair_names else 70.0
+                    path = astar(win, cells(p), cells(q), rip=costs)
+                    if path:
+                        victims = "rip"
                 if not path:
                     continue
-                made.append((net, _emit(board, obs, win, path, p, q, code, w, via_d, via_drill)))
+                created = _emit(board, obs, win, path, p, q, code, w, via_d, via_drill)
+                made.append((net, created))
+                if victims == "rip":
+                    ripped = _rip_crossed(board, obs, created, code, w, via_d)
+                    log.append(f"{net}: ripped up {ripped} segments/vias of other nets to get through")
                 closed += 1; done = True
                 break
             if done:
@@ -387,6 +415,44 @@ def close_gaps(board, d, routing_dir, pcb_path, skip_nets=frozenset(), max_len: 
     return closed
 
 
+def _rip_crossed(board, obs, created, code, w, via_d) -> int:
+    """Remove the other nets' tracks and vias that the new route violates clearance with (the closest copper
+    was priced in the search; this is the exact check)."""
+    clr = MM(CLR)
+    new_segs = [(pcbnew.SEG(t.GetStart(), t.GetEnd()), t.GetWidth() // 2, t.GetLayer()) for t in created if t.GetClass() != "PCB_VIA"]
+    new_vias = [(t.GetPosition(), t.GetWidth(pcbnew.F_Cu) // 2) for t in created if t.GetClass() == "PCB_VIA"]
+    gone = 0
+    keep_t = []
+    for row in obs.tracks:
+        ax, ay, bx, by, hw, layer, net, obj = row
+        if net == code or obj in created:
+            keep_t.append(row); continue
+        seg = pcbnew.SEG(pcbnew.VECTOR2I(ax, ay), pcbnew.VECTOR2I(bx, by))
+        hit = any(nl == layer and seg.Distance(ns) < hw + nhw + clr for ns, nhw, nl in new_segs)
+        if not hit:
+            for vp, vr in new_vias:
+                if seg.Distance(vp) < hw + vr + clr:
+                    hit = True; break
+        if hit:
+            board.Remove(obj); gone += 1
+        else:
+            keep_t.append(row)
+    obs.tracks = keep_t
+    keep_v = []
+    for row in obs.vias:
+        x, y, r, net, obj = row
+        if net == code or obj in created:
+            keep_v.append(row); continue
+        pt = pcbnew.VECTOR2I(x, y)
+        hit = any(ns.Distance(pt) < r + nhw + clr for ns, nhw, _l in new_segs) or any((vp.x - x) ** 2 + (vp.y - y) ** 2 < (r + vr + clr) ** 2 for vp, vr in new_vias)
+        if hit:
+            board.Remove(obj); gone += 1
+        else:
+            keep_v.append(row)
+    obs.vias = keep_v
+    return gone
+
+
 def _emit(board, obs, win, path, p, q, code, w, via_d, via_drill) -> list:
     """Turn a cell path into tracks and vias; merge straight runs; the first and last points are the exact anchors."""
     pts = []   # (x, y, layer)
@@ -401,7 +467,7 @@ def _emit(board, obs, win, path, p, q, code, w, via_d, via_drill) -> list:
             v = pcbnew.PCB_VIA(board)
             v.SetPosition(pcbnew.VECTOR2I(prev[0], prev[1])); v.SetWidth(MM(via_d)); v.SetDrill(MM(via_drill))
             v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetNetCode(code)
-            board.Add(v); obs.vias.append((prev[0], prev[1], MM(via_d) // 2, code)); created.append(v)
+            board.Add(v); obs.vias.append((prev[0], prev[1], MM(via_d) // 2, code, v)); created.append(v)
             runs.append([pt])
         else:
             runs[-1].append(pt)
@@ -419,5 +485,5 @@ def _emit(board, obs, win, path, p, q, code, w, via_d, via_drill) -> list:
             t = pcbnew.PCB_TRACK(board)
             t.SetStart(pcbnew.VECTOR2I(s[0], s[1])); t.SetEnd(pcbnew.VECTOR2I(e[0], e[1]))
             t.SetWidth(MM(w)); t.SetLayer(s[2]); t.SetNetCode(code)
-            board.Add(t); obs.tracks.append((s[0], s[1], e[0], e[1], MM(w) // 2, s[2], code)); created.append(t)
+            board.Add(t); obs.tracks.append((s[0], s[1], e[0], e[1], MM(w) // 2, s[2], code, t)); created.append(t)
     return created

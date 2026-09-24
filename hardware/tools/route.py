@@ -1340,8 +1340,10 @@ def main(cmd: str) -> int:
         for a_, b_ in pairs_of(d):
             partner[a_] = b_; partner[b_] = a_
         # single-ended nets first, then the pair sides (each hugging its partner's copper); tune afterwards
-        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=diff_pair_nets(d), max_len=160.0)
-        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=frozenset(), max_len=160.0, partner_of=partner)
+        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=diff_pair_nets(d), max_len=160.0,
+                            ripup=os.environ.get("BD_RIPUP") == "1", pair_names=frozenset(partner))
+        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=frozenset(), max_len=160.0, partner_of=partner,
+                            ripup=os.environ.get("BD_RIPUP") == "1", pair_names=frozenset(partner))
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "tune":
         tune_pairs(board, d)
