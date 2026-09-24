@@ -265,7 +265,7 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
   LEFT wall; bucks and input block in the middle; the M.2 socket front-left with
   the 2280 module lying along the front (its small passives under the SSD); DIP
   switch and fan header front-right; CR2032 holder and service headers on the
-  bottom under the CM5. Rules from the CM5IO reference (0.13 / 0.125 mm,
+  bottom under the CM5. Each hub's ten bypass capacitors sit on the BOTTOM side in two rows around the chip (`gen_pcb.bottom_bypass`), so the top layer keeps its space for pin escapes; the pair coupling caps and crystal caps stay on top. Rules from the CM5IO reference (0.13 / 0.125 mm,
   0.45/0.2 vias) plus 0.3/0.15 vias for the QFN supply pins (D8).
 * **Bay card, 40 × 46 mm (C24), same 4-layer stack-up.** Receptacle on the top
   edge, bridge QFN behind its data pads, passives in the middle, switch block
