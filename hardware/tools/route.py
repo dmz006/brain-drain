@@ -1325,6 +1325,10 @@ def main(cmd: str) -> int:
     if cmd == "rip-pairs":   # tools/reroute_pairs.sh: rip, then stage3 / drc-clean / tune in fresh processes
         rip_bad_pairs(board, d)
         pcbnew.SaveBoard(str(PCB), board)
+    if cmd == "close-gaps":   # small grid router for the open connections the autorouter left (pads, rails, links)
+        import gapclose
+        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=diff_pair_nets(d))
+        pcbnew.SaveBoard(str(PCB), board)
     if cmd == "tune":
         tune_pairs(board, d)
         pcbnew.SaveBoard(str(PCB), board)

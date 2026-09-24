@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-09-24T11:02:55-0400",
+    "date": "2026-09-24T11:06:00-0400",
     "included_severities": [
         "error",
         "warning",
@@ -11,52 +11,6 @@
     "schematic_parity": [],
     "source": "bay-card.kicad_pcb",
     "unconnected_items": [
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Pad 1 [5V_HDD] of R5 on F.Cu",
-                    "pos": {
-                        "x": 22.42,
-                        "y": 53.77
-                    },
-                    "uuid": "fd3d0544-dacd-4df2-a813-9f63df0a8a17"
-                },
-                {
-                    "description": "Track [5V_HDD] on F.Cu, length 0.8850 mm",
-                    "pos": {
-                        "x": 33.69,
-                        "y": 53.76
-                    },
-                    "uuid": "5bef3971-0254-4940-a28b-35157e0c6edc"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Pad 1 [5V_HDD] of C20 on F.Cu",
-                    "pos": {
-                        "x": 33.69,
-                        "y": 53.76
-                    },
-                    "uuid": "a319dbc7-1a1a-49b8-a608-335c472c0b30"
-                },
-                {
-                    "description": "Via [5V_HDD] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 39.125,
-                        "y": 51.075
-                    },
-                    "uuid": "422498fc-1dbc-4a31-bf05-a380c2e9454b"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
         {
             "description": "Missing connection between items",
             "items": [
@@ -678,21 +632,6 @@
                         "y": 53.77
                     },
                     "uuid": "3f565f17-a345-481b-aa37-0dde49e3b3f8"
-                }
-            ],
-            "severity": "warning",
-            "type": "via_dangling"
-        },
-        {
-            "description": "Via is not connected or connected on only one layer",
-            "items": [
-                {
-                    "description": "Via [5V_HDD] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 33.69,
-                        "y": 54.645
-                    },
-                    "uuid": "4451432f-ea1c-4f31-9e61-1fd62d18ec12"
                 }
             ],
             "severity": "warning",
