@@ -2,7 +2,7 @@
   (base_design "bay-card-lite")
   (placement
     (resolution um 10)
-    (component "Capacitor_SMD:C_0402_1005Metric"
+    (component Capacitor_SMD:C_0402_1005Metric
       (place C9 451100 -448600 front 0)
       (place C13 251300 -448600 front 0)
       (place C14 273500 -448600 front 0)
@@ -27,11 +27,11 @@
       (place Q1 367000 -507500 front 0)
       (place Q2 413000 -507500 front 0)
     )
-    (component "Fuse:Fuse_1812_4532Metric"
+    (component Fuse:Fuse_1812_4532Metric
       (place F2 312500 -509500 front 0)
       (place F1 249500 -509500 front 0)
     )
-    (component "Resistor_SMD:R_0402_1005Metric"
+    (component Resistor_SMD:R_0402_1005Metric
       (place R6 251900 -537700 front 0)
       (place R8 297100 -537700 front 0)
       (place R7 274500 -537700 front 0)
@@ -41,12 +41,12 @@
       (place R2 494500 -399700 front 0)
       (place R4 555100 -494700 front 0)
     )
-    (component "Capacitor_SMD:C_0805_2012Metric"
+    (component Capacitor_SMD:C_0805_2012Metric
       (place C6 408000 -404800 front 0)
       (place C5 370000 -404800 front 0)
       (place C4 332000 -404800 front 0)
     )
-    (component "Connector_PCBEdge:BUS_PCIexpress_x1"
+    (component Connector_PCBEdge:BUS_PCIexpress_x1
       (place J1 300000 -625500 front 0)
     )
     (component "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm"
@@ -56,7 +56,7 @@
       (place Q3 457300 -507000 front 0)
       (place Q4 499900 -507000 front 0)
     )
-    (component "Capacitor_SMD:C_0603_1608Metric"
+    (component Capacitor_SMD:C_0603_1608Metric
       (place C3 443800 -402300 front 0)
     )
     (component "brain-drain:SATA_22pin_Receptacle_RA"
@@ -120,65 +120,90 @@
         )
         (attach off)
       )
+      (padstack "Via[0-3]_450:200_um"
+        (shape
+          (circle F.Cu 4500 0 0)
+        )
+        (shape
+          (circle In1.Cu 4500 0 0)
+        )
+        (shape
+          (circle In2.Cu 4500 0 0)
+        )
+        (shape
+          (circle B.Cu 4500 0 0)
+        )
+        (attach off)
+      )
+      (padstack "Via[0-3]_450:200_um"
+        (shape
+          (circle F.Cu 4500 0 0)
+        )
+        (shape
+          (circle In1.Cu 4500 0 0)
+        )
+        (shape
+          (circle In2.Cu 4500 0 0)
+        )
+        (shape
+          (circle B.Cu 4500 0 0)
+        )
+        (attach off)
+      )
+      (padstack "Via[0-3]_450:200_um"
+        (shape
+          (circle F.Cu 4500 0 0)
+        )
+        (shape
+          (circle In1.Cu 4500 0 0)
+        )
+        (shape
+          (circle In2.Cu 4500 0 0)
+        )
+        (shape
+          (circle B.Cu 4500 0 0)
+        )
+        (attach off)
+      )
+      (padstack "Via[0-3]_600:300_um"
+        (shape
+          (circle F.Cu 6000 0 0)
+        )
+        (shape
+          (circle In1.Cu 6000 0 0)
+        )
+        (shape
+          (circle In2.Cu 6000 0 0)
+        )
+        (shape
+          (circle B.Cu 6000 0 0)
+        )
+        (attach off)
+      )
     )
     (network_out 
-      (net "USB3_TX_N"
+      (net +12V
         (wire
-          (path F.Cu 1470
-            447869 -598941
-            447869 -567323
-            445164 -564618
+          (path B.Cu 3000
+            300000 -620000
+            300000 -601233
           )
         )
         (wire
-          (path B.Cu 1470
-            282334 -457531
-            300164 -475361
-            332128 -475361
-            421385 -564618
-            445164 -564618
-          )
-        )
-        (wire
-          (path B.Cu 1470
-            447869 -598941
-            450000 -601072
-            450000 -625500
-          )
-        )
-        (via "Via[0-3]_450:200_um" 447869 -598941
-        )
-        (via "Via[0-3]_450:200_um" 445164 -564618
-        )
-        (via "Via[0-3]_450:200_um" 282334 -457531
-        )
-        (wire
-          (path F.Cu 1470
-            278300 -448600
-            282334 -452634
-            282334 -457531
+          (path B.Cu 3000
+            310083 -593048
+            301898 -601233
+            300000 -601233
           )
         )
       )
-      (net "USB3_TX_P"
+      (net U1_VCCO
         (wire
-          (path B.Cu 1470
-            256100 -454593
-            258081 -452612
-            298569 -452612
-            318324 -472367
-            374182 -472367
-            460000 -558185
-            460000 -625500
+          (path B.Cu 2000
+            516193 -341443
+            516193 -357443
+            516750 -358000
           )
-        )
-        (wire
-          (path F.Cu 1470
-            256100 -454593
-            256100 -448600
-          )
-        )
-        (via "Via[0-3]_300:150_um" 256100 -454593
         )
       )
     )

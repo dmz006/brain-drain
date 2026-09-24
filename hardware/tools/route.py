@@ -12,6 +12,7 @@ after import: their routing is redone once the real SATA footprint lands.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -1284,13 +1285,22 @@ def main(cmd: str) -> int:
     if cmd in ("import", "all"):
         import_ses(board, d)
         pcbnew.SaveBoard(str(PCB), board)
+    pairs_first = os.environ.get("BD_PAIRS_FIRST") == "1"   # pairs are routed first on the empty board (stage0); later stages keep them
+    if cmd == "stage0":   # differential pairs alone, first: the other classes are ignored
+        if stage(board, d, set(), "0 (pairs first)", ignore_classes=("kicad_default", "Bay", "Power")):
+            return 1
+        pcbnew.SaveBoard(str(PCB), board)
+        pair_report(board, d)
     if cmd == "stage1":   # the single-ended signal nets (no planes, bays or pairs)
         lite = bay_nets(d) | diff_pair_nets(d) | POWER_NETS | {n for n in d.nets if n.startswith(("12V_BAY", "5V_BAY"))}
-        if stage(board, d, lite, "1 (signals)"):
+        if pairs_first:
+            lite -= diff_pair_nets(d)
+        if stage(board, d, lite, "1 (signals)", ignore_classes=("DiffPair90",) if pairs_first else ()):
             return 1
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "stage2":   # everything single-ended: planes, bridge rails, bay power and control
-        if stage(board, d, diff_pair_nets(d), "2 (single-ended, planes, bays)"):
+        if stage(board, d, set() if pairs_first else diff_pair_nets(d), "2 (single-ended, planes, bays)",
+                 ignore_classes=("DiffPair90",) if pairs_first else ()):
             return 1
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "stage3":   # the differential pairs alone: the other classes are ignored, their copper stays

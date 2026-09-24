@@ -1,0 +1,4 @@
+project net classes written: 4 classes, 37 patterns; min rules {'min_clearance': 0.125, 'min_track_width': 0.1, 'min_via_diameter': 0.3, 'min_through_hole_diameter': 0.15, 'min_via_annular_width': 0.075, 'min_hole_clearance': 0.2, 'min_copper_edge_clearance': 0.3}
+net classes come from the project file (37 patterns)
+zones and keep-outs created and filled
+tracks 0 (0 mm), vias 0, zones 4

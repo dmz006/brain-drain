@@ -1,21 +1,19 @@
-chain start Wed Sep 23 09:39:11 PM EDT 2026
-stage1 done Wed Sep 23 09:39:11 PM EDT 2026
-pre fanout_big: 0 vias placed, 6 plane pads skipped (no free spot)
-pre fanout_qfn: 3 small vias placed, 1 QFN pins skipped (no free spot), ripped up for the router: ['5V_BAY_SW']
-stage2 done Wed Sep 23 09:43:59 PM EDT 2026: tracks 532 (1141 mm), vias 119, zones 4
-stage3 done Wed Sep 23 09:44:37 PM EDT 2026: tracks 544 (1162 mm), vias 121, zones 4
+full chain start Thu Sep 24 10:59:52 AM EDT 2026
+fanout_big: 24 vias placed, 21 plane pads skipped (no free spot)
+fanout_conn: 6 vias, 6 pad-to-pad links, 0 pins tied into exposed pads, 0 plane pins left for the router
+fanout: 22 vias placed, 0 pads skipped (no free spot)
+fanout_qfn: 39 small vias placed, 0 QFN pins skipped (no free spot), ripped up for the router: ['12V_BAY_SW', 'U1_XO']
+fanouts done Thu Sep 24 10:59:59 AM EDT 2026
+stage0 (pairs first) done Thu Sep 24 11:00:52 AM EDT 2026: tracks 540 (1243 mm), vias 148, zones 4
+stage1 done Thu Sep 24 11:01:45 AM EDT 2026: tracks 549 (1282 mm), vias 149, zones 4
+stage2 done Thu Sep 24 11:02:43 AM EDT 2026: tracks 554 (1287 mm), vias 149, zones 4
 drc_clean: 0 copper errors left
 fanout: 2 vias placed, 0 pads skipped (no free spot)
-fanout_big: 0 vias placed, 6 plane pads skipped (no free spot)
+fanout_big: 0 vias placed, 0 plane pads skipped (no free spot)
 fanout_conn: 0 vias, 0 pad-to-pad links, 0 pins tied into exposed pads, 0 plane pins left for the router
 fanout_qfn: 0 small vias placed, 0 QFN pins skipped (no free spot)
-open connections: 6; groups: {'plane (needs a via to its plane)': 2, 'bay power / control': 1, 'differential pair': 3}; report routing/open.md
-pairs: 8, 7 beyond the 0.15 mm match, report routing/pairs.md
-chain done Wed Sep 23 09:44:47 PM EDT 2026
-rip_pairs: 3 pairs, 0 tracks/vias removed: U1_SRXP/U1_SRXN, USB2_DP/USB2_DM, USB3_TX_P/USB3_TX_N
-reroute stage3: tracks 597 (1156 mm), vias 123, zones 4
-drc_clean: 0 copper errors left
-tune: 1 pairs meandered, 0 left as routed
-open connections: 7; groups: {'plane (needs a via to its plane)': 2, 'bay power / control': 1, 'differential pair': 4}; report routing/open.md
+tune: 8 pairs meandered, 0 left as routed
 pairs: 8, 0 beyond the 0.15 mm match, report routing/pairs.md
-reroute done Thu Sep 24 10:59:06 AM EDT 2026
+open connections: 3; groups: {'plane (needs a via to its plane)': 2, 'bay power / control': 1}; report routing/open.md
+pairs: 8, 0 beyond the 0.15 mm match, report routing/pairs.md
+chain done Thu Sep 24 11:02:58 AM EDT 2026
