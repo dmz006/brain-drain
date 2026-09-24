@@ -41,7 +41,7 @@ all three workstreams; change it before changing the hardware.
       └────────── I2C1 ──► SSD1306 OLED
 ```
 
-Everything except the drives lives on one 4-layer carrier board inside a printed
+Everything except the drives lives on one carrier board (the brain, six layers) and the bay cards (four layers) inside a printed
 box about 157 × 105 × 39 mm (C21). The box, its 12 V brick and four cables travel
 in a backpack; drives lie loose on the bench and connect with 0.5 m 22-pin SATA
 (7 data + 15 power) extension cables. There is no rack, dock or chassis.
@@ -272,8 +272,7 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
   above the finger tab. The finger footprint carries the tab outline and key.
   Both boards come from the same generators (`BD_PROJECT=brain|card`) and go
   through the same fanout and routing pipeline.
-* **Stack:** 4-layer, 1.6 mm, ENIG. Sig / GND / PWR / Sig. Target the JLCPCB
-  JLC04161H-7628 stackup so controlled impedance is free: 90 Ω differential for
+* **Stack (brain, six layers, C26):** F.Cu signal / In1 GND plane / In2 signal / In3 signal / In4 power islands (5V_SYS, 5V_HDD, +12V, +3V3) / B.Cu signal with a GND pour, 1.6 mm, ENIG. The two inner signal layers give the pairs and the fine-pitch escapes routing room; In2 sits on the GND plane, In3 on the power layer. The bay card stays four layers (Sig / GND / PWR / Sig). Target the fab's standard controlled-impedance stack-up (JLC06161H-series for six layers, JLC04161H-7628 for the card); the pair widths below were set for the four-layer stack-up and must be recalculated with the fab's impedance calculator before ordering: 90 Ω differential for
   USB 3 SS and SATA pairs, 85 Ω for the PCIe Gen3 pair to the M.2 slot. Length-match
   within a pair to ±0.15 mm; USB 2.0 pairs to 90 Ω as well. Design rules are
   the CM5IO reference's: 0.13 mm tracks, 0.125 mm clearance, 0.45/0.2 mm vias,

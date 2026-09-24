@@ -37,7 +37,7 @@ hardware/
 
 ## Board rules
 
-* 4-layer, 1.6 mm, JLC04161H-7628 stackup, ENIG.
+* Brain: 6 layers (F sig, In1 GND, In2 sig, In3 sig, In4 power, B sig), 1.6 mm, ENIG, the fab's 6-layer impedance stack-up. Bay card: 4 layers, JLC04161H-7628, ENIG.
 * Design rules follow the CM5IO reference: 0.13 mm tracks, 0.125 mm clearance, 0.45/0.2 mm vias
   (power: 0.5 mm tracks, 0.6/0.3 vias). They are written into the project file by `route.py prepare`.
 * Diff pairs: USB 3 SS and SATA at 90 Ω (0.147 mm / 0.253 mm gap on the JLC 7628 stack-up), PCIe Gen3 at 85 Ω, USB 2.0 at 90 Ω.

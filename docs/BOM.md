@@ -110,7 +110,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 
 | Item | Qty | Description | ~USD | Note |
 |---|---|---|---|---|
-| PCB | 5 | 4-layer 136×100 mm, 1.6 mm, ENIG, JLC04161H-7628 | 60–90 / 5 | controlled impedance; outline C21–C23 |
+| PCB (brain) | 5 | 6-layer 150×122 mm, 1.6 mm, ENIG, JLC06161H-series | 150–230 / 5 | controlled impedance; C24, six layers C26 |
 | Assembly | 2 | full assembly, both sides, SMD and through-hole (owner solders nothing on the board) | 80–140 / 2 + parts | see `FABRICATION.md` for vendors and the full estimate |
 
 ## H. Enclosure

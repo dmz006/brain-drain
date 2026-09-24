@@ -15,8 +15,8 @@ live quote from the design files before deciding.
 
 | Item | Requirement | Why |
 |---|---|---|
-| Layers, size | brain: 4 layers, 150 × 122 mm, 1.6 mm, ENIG; bay card: 4 layers, 40 × 46 mm, 1.6 mm, ENIG, panel of 8–16 with the finger tab and key notch routed | USB 3 / SATA / PCIe pairs on outer layers over solid ground; ENIG for the 0.4 mm connectors |
-| Stack-up | vendor's standard 4-layer with controlled impedance (JLC04161H-7628 or equal) | 90 Ω differential pairs without a custom stack-up fee |
+| Layers, size | brain: 6 layers, 150 × 122 mm, 1.6 mm, ENIG; bay card: 4 layers, 40 × 46 mm, 1.6 mm, ENIG, panel of 8–16 with the finger tab and key notch routed | USB 3 / SATA / PCIe pairs on outer layers over solid ground; ENIG for the 0.4 mm connectors |
+| Stack-up | brain: vendor's standard 6-layer with controlled impedance (JLC06161H-series or equal; recalculate the pair widths with their calculator, the design's 0.147 / 0.253 mm were set for four layers); card: standard 4-layer (JLC04161H-7628) | 90 Ω differential pairs without a custom stack-up fee |
 | Minimum features | 0.13 mm track / 0.125 mm space, 0.2 mm drill in a 0.45 mm via (the Raspberry Pi CM5IO rules); power vias 0.6/0.3 | set by the CM5's 0.4 mm connectors and the 0.5 mm M.2 socket; every vendor above quotes these as standard 4-layer capability |
 | Fine pitch | 0.4 mm pitch (Hirose DF40 for the CM5, QFN-48 / QFN-56 at 0.4–0.5 mm) | needs stencil + reflow, not hand soldering; every vendor below handles it |
 | Through-hole | brain: eight PCIe x1 sockets, DIN jack, DIP switch, LEDs, headers, M.2 standoff; card: the SATA receptacle (SMT with pegs) | ask for **through-hole assembly** too, or these come loose in a bag |
@@ -49,12 +49,12 @@ Two assembled units plus three bare spares, at JLCPCB-class pricing.
 
 | Item | Estimate (USD) | Basis |
 |---|---|---|
-| 5 × bare 4-layer 150 × 112 mm, ENIG, impedance stack-up | 70–100 | calculator: 4-layer, 112 × 150 mm, ENIG, 5 pcs |
+| 5 × bare 6-layer 150 × 122 mm, ENIG, impedance stack-up | 150–230 | calculator: 6-layer, 122 × 150 mm, ENIG, 5 pcs (a four-layer board would be 70–100) |
 | Assembly setup + stencil, both sides | 50–80 | SMT setup fee, through-hole setup, extended-parts fees (a few dollars per unique part) |
 | Assembly labour, 2 boards, ~300 placements each | 30–60 | per-joint pricing, 0402 heavy |
 | Board-mounted parts, per board | 55–70 | BOM section B–F: hubs 2 × 2.44, bridges 4 × 3, bucks, switches, PTCs, crystals, connectors, passives |
 | Shipping and import (DHL to the US) | 35–60 | 2 assembled + 3 bare, 1–2 kg |
-| **Subtotal, 2 assembled + 3 bare** | **~290–450** | |
+| **Subtotal, 2 assembled + 3 bare** | **~360–580** | six layers add about 70–130 to the run |
 | CM5 wireless, 2 GB / 16 GB eMMC, per unit | 60–70 | Raspberry Pi list price; Lite (no eMMC) about 10 less, wireless adds 5 |
 | CM5 passive cooler, per unit | 6 | |
 | OLED module, CR2032, heat-set inserts, feet, per unit | 8 | |
@@ -82,7 +82,7 @@ boards would be about $450–600 for the boards and $120–150 per unit on top.
 ## Ordering checklist (JLCPCB flow)
 
 1. `sh hardware/tools/export_fab.sh`: gerber + drill zip, placement CSV, BOM CSV, assembly PDFs, an errors-only DRC report. Add LCSC numbers to the BOM lines first (gate 5).
-2. Upload the zip, pick 4 layers, 1.6 mm, ENIG, the impedance stack-up, 5 pcs.
+2. Upload the zip, pick 6 layers (brain) or 4 layers (card), 1.6 mm, ENIG, the impedance stack-up, 5 pcs.
 3. Tick "PCB assembly", 2 pcs, both sides, standard tier; upload BOM + placement.
 4. In the parts matcher, confirm every line; for anything out of stock choose an
    equivalent or mark DNP and note it in `docs/BOM.md`.
