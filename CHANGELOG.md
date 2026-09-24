@@ -26,6 +26,8 @@ revisions are noted in the entries.
 - `docs/FABRICATION.md`: small-run assembly vendors, cost estimate, order gates and checklist.
 
 ### Added
+- **Pairs-first routing and gap closer (2026-09-24):** `tools/route_full.sh` regenerates the board and routes the differential pairs first on the empty board (`stage0`, `BD_PAIRS_FIRST=1`) so their escapes from the 0.4 mm-pitch pins are free; single-ended stages route around them. `route.py close-gaps` (`tools/gapclose.py`) is a small grid A* router (0.1 mm cells, both outer layers, vias, adaptive search window, pair sides hug their partner) that closes what the autorouter leaves; every route is DRC-checked and removed whole if flagged. `route.py rip-pairs` and `tools/reroute_pairs.sh` handle pairs the tuner cannot fix. Results: card 1 open, 0 DRC errors, 8/8 pairs matched; brain 9 open (was 43), 0 copper errors, 41/44 pairs matched.
+- `tools/pcbfix.py`: generated boards carried duplicate pad UUIDs (363 on the brain), so DRC reported the wrong slot pad; they are now made unique at generation.
 - **Length tuner (`route.py tune`, 2026-09-24):** meanders the shorter side of every routed differential pair (rectangular bumps 0.5 mm wide, up to 4 mm tall, layer-aware collision checks, keep-outs respected, last bump cut to the exact remainder). Skew now counts 0.6 mm per via. Bay card: 5 of 8 pairs matched to under 0.01 mm; brain: 26 pairs tuned, 10 left (sides unrouted or more than 40 mm apart). No new DRC errors on either board. Part of `route_chain.sh`.
 
 ### Fixed

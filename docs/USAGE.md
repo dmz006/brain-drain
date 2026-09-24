@@ -50,7 +50,7 @@ that needs the carrier board. Config lives in `/etc/brain-drain/config.json`.
 
 ## Hardware: regenerate everything from the netlist
 
-Length matching of the differential pairs is `python3 tools/route.py tune` (part of the chain).
+Unattended, from placement to finished routing: `BD_PROJECT=brain sh tools/route_full.sh` (card about 10 min, brain about 3.5 h: pairs first, then signals and planes, gap closer, tuner, reports, renders). Length matching is `route.py tune`, the small-gap router is `route.py close-gaps`.
 
 Two boards share one pipeline: `BD_PROJECT=brain` (default, files in `hardware/`)
 and `BD_PROJECT=card` (the bay card, files in `hardware/bay-card/`).
