@@ -599,8 +599,8 @@ def build_card() -> Design:
     s = "bay-switch"
     d.part("F1", "Device:Polyfuse", "3A hold 1812", s, FP["PTC1812"])
     d.part("F2", "Device:Polyfuse", "2A hold 1812", s, FP["PTC1812"])
-    d.part("Q1", "brain-drain:PMOS_SSSGDDDD_EP", "P-FET -30V 6A DFN3x3", s, FP["DFN8"], note="12 V switch; DFN 3x3-8 power pin-out S 1-3, G 4, D 5-8 + EP")
-    d.part("Q2", "brain-drain:PMOS_SSSGDDDD_EP", "P-FET -30V 6A DFN3x3", s, FP["DFN8"], note="5 V switch; same pin-out")
+    d.part("Q1", "brain-drain:PMOS_SSSGDDDD_EP", "AON7403", s, FP["DFN8"], note="12 V switch (AOS AON7403, -30 V, DFN 3x3-8); DFN 3x3-8 power pin-out S 1-3, G 4, D 5-8 + EP")
+    d.part("Q2", "brain-drain:PMOS_SSSGDDDD_EP", "AON7403", s, FP["DFN8"], note="5 V switch (AOS AON7403); same pin-out")
     d.part("Q3", "Transistor_FET:2N7002", "2N7002", s, FP["SOT23"], note="12 V gate driver")
     d.part("Q4", "Transistor_FET:2N7002", "2N7002", s, FP["SOT23"], note="5 V gate driver")
     d.part("R3", "Device:R", "100k", s, FP["R0402"], note="Q1 gate pull-up (off)")

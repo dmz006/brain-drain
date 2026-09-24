@@ -41,4 +41,4 @@ from pip.raspberrypi.com myself when the enclosure work starts.
 | Part | Where | Why |
 |---|---|---|
 | AO4407A (Q20, SO-8) | https://www.aosmd.com/res/datasheets/AO4407A.pdf | confirm S 1–3, G 4, D 5–8 (symbol `PMOS_SSSGDDDD`) |
-| bay-card P-FET (Q1, Q2, DFN 3x3-8) | vendor PDF of the chosen part (R24), e.g. AON7403 https://www.aosmd.com/res/datasheets/AON7403.pdf | confirm S 1–3, G 4, D 5–8 + EP and the DFN land pattern |
+| AON7403 (bay-card Q1, Q2, DFN 3x3-8), chosen 2026-09-23 | https://www.aosmd.com/res/datasheets/AON7403.pdf | confirm S 1–3, G 4, D 5–8 + EP and the DFN land pattern |

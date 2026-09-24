@@ -47,7 +47,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 |---|---|---|---|---|---|
 | U1 | 1 | ASMedia ASM1153E (QFN-48) | USB 3 → SATA bridge | 3 | as U10–U13 before |
 | Y1, L1, C1–C18, R1–R2 | — | crystal 30 MHz, 4.7 µH, passives | bridge support | 1.2 | |
-| Q1, Q2 | 2 | P-FET −30 V ≥6 A DFN3×3, pin-out S 1–3 / G 4 / D 5–8 + EP | 12 V and 5 V switches | 0.8 | part number to be chosen (R24); candidates AON7403 (AOS), Vishay / Nexperia equivalents with the same pin-out |
+| Q1, Q2 | 2 | AOS AON7403 (P-FET −30 V, DFN 3×3-8, S 1–3 / G 4 / D 5–8 + EP) | 12 V and 5 V switches | 0.8 | chosen by the owner 2026-09-23 (R24); verify the pin table and land pattern against the AOS datasheet |
 | Q3, Q4 | 2 | 2N7002 | gate drivers | 0.1 | |
 | F1, F2 | 2 | PTC 1812, 3 A and 2 A hold | per-bay fuses | 0.6 | |
 | R3–R8, C19, C20 | — | switch passives | soft-start, pull-ups, BAY_EN pull-down | 0.2 | |
