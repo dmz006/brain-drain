@@ -30,8 +30,14 @@ EDGE_CLR = 0.3         # mm copper to board edge
 MARGIN = 6.0           # mm searched around the two anchors
 VIA = {"power": (0.6, 0.3), "signal": (0.45, 0.2)}
 POWERISH = ("+12V", "5V_", "+5V", "+3V3", "3V3", "+1V2", "VDD", "12V_BAY", "5V_BAY", "GND", "VIN")
-LAYERS = (pcbnew.F_Cu, pcbnew.B_Cu)
+LAYERS = [pcbnew.F_Cu, pcbnew.B_Cu]   # signal copper layers; set_layers() fills in the inner signal layers of a six-layer board
 ITEM = re.compile(r"^(?:PTH pad|Pad|Track|Via) ")
+
+
+def set_layers(board) -> None:
+    """Route on every signal-type copper layer of the board (F, B and any inner signal layers)."""
+    LAYERS[:] = [L for L in (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu)
+                 if board.IsLayerEnabled(L) and board.GetLayerType(L) == pcbnew.LT_SIGNAL]
 
 
 class Obstacles:
@@ -245,9 +251,17 @@ def astar(win: Window, starts, goals, via_cost: float = 12.0, max_nodes: int = 2
             if ng < best.get(nxt, 1e18):
                 best[nxt] = ng; parent[nxt] = cur
                 heapq.heappush(heap, (ng + weight * h(ni, nj), ng, nxt))
-        other = pcbnew.B_Cu if L == pcbnew.F_Cu else pcbnew.F_Cu
-        nxt = (i, j, other)
-        if win.free(other, i, j) and win.via_ok(i, j):
+        via_ready = None
+        for other in LAYERS:   # a through via: to any other signal layer, if all of them are clear there
+            if other == L:
+                continue
+            nxt = (i, j, other)
+            if not win.free(other, i, j):
+                continue
+            if via_ready is None:
+                via_ready = win.via_ok(i, j)
+            if not via_ready:
+                break
             ng = g + via_cost
             if ng < best.get(nxt, 1e18):
                 best[nxt] = ng; parent[nxt] = cur
@@ -279,13 +293,14 @@ def _anchors(board, item, pads_by_key, tracks_by_net):
         if not cands:
             return []
         d, ax, ay, bx, by = min(cands)
-        layer = pcbnew.F_Cu if lname == "F.Cu" else pcbnew.B_Cu
+        layer = board.GetLayerID(lname)
         return [(ax, ay, {layer}), (bx, by, {layer})]
     return []
 
 
 def close_gaps(board, d, routing_dir, pcb_path, skip_nets=frozenset(), max_len: float = 45.0, partner_of=None, ripup: bool = False, pair_names=frozenset()) -> int:
     """Route every DRC-unconnected pair of one net. Returns the number of gaps closed."""
+    set_layers(board)
     rep = routing_dir / "drc.json"
     pcbnew.SaveBoard(str(pcb_path), board)
     sp.run(["kicad-cli", "pcb", "drc", "--format", "json", "--severity-all", "-o", str(rep), str(pcb_path)], capture_output=True)

@@ -175,20 +175,20 @@ def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
         zone("5V_HDD", pcbnew.In2_Cu, (0, 0, W, H), 1)
         zone("+12V", pcbnew.In2_Cu, (0, 29, 18, 37.5), 2)
     else:
-        # brain v4 (150x122, gen_pcb.layout_brain): 5V_SYS almost everywhere on In2, 5V_HDD behind the slots,
+        # brain v4 (150x122, gen_pcb.layout_brain): 5V_SYS almost everywhere on In4 (six-layer brain: F sig, In1 GND, In2/In3 sig, In4 power, B sig), 5V_HDD behind the slots,
         # +3V3 around the hubs, +12V under the bucks / input block. A higher priority island wins overlaps.
-        zone("5V_SYS", pcbnew.In2_Cu, (0, 0, W, H), 1)
-        zone("5V_HDD", pcbnew.In2_Cu, (0, 0, 122, 30), 2)          # slot row: card 5 V through the slots
-        zone("+12V", pcbnew.In2_Cu, [(0, 0), (12, 0), (12, 30), (58, 30), (58, 35), (0, 35)], 3)   # unused corner + strip feeding the slot row
-        zone("+12V", pcbnew.In2_Cu, (56, 55, 95, 100), 3)          # bucks, input block, bulk caps
-        zone("+3V3", pcbnew.In2_Cu, (30, 35, 122, 55), 2)          # hub band
+        zone("5V_SYS", pcbnew.In4_Cu, (0, 0, W, H), 1)
+        zone("5V_HDD", pcbnew.In4_Cu, (0, 0, 122, 30), 2)          # slot row: card 5 V through the slots
+        zone("+12V", pcbnew.In4_Cu, [(0, 0), (12, 0), (12, 30), (58, 30), (58, 35), (0, 35)], 3)   # unused corner + strip feeding the slot row
+        zone("+12V", pcbnew.In4_Cu, (56, 55, 95, 100), 3)          # bucks, input block, bulk caps
+        zone("+3V3", pcbnew.In4_Cu, (30, 35, 122, 55), 2)          # hub band
     if gen_pcb.ANTENNA_STRIP:
         # CM5 antenna strip: no copper on any layer, nothing routed (CM5 datasheet 4.1.2)
         ax0, ay0, ax1, ay1 = gen_pcb.ANTENNA_STRIP
         ka = pcbnew.ZONE(board)
         ka.SetIsRuleArea(True); ka.SetDoNotAllowTracks(True); ka.SetDoNotAllowVias(True)
         ka.SetDoNotAllowCopperPour(True); ka.SetDoNotAllowPads(False); ka.SetDoNotAllowFootprints(True)   # the CM5 standoff holes sit in the strip
-        ka.SetLayer(pcbnew.F_Cu); ka.SetLayerSet(pcbnew.LSET.AllCuMask(4))
+        ka.SetLayer(pcbnew.F_Cu); ka.SetLayerSet(pcbnew.LSET.AllCuMask(board.GetCopperLayerCount()))
         o = ka.Outline(); o.RemoveAllContours(); o.NewOutline()
         for x, y in ((ax0, ay0), (ax1, ay0), (ax1, ay1), (ax0, ay1)):
             o.Append(MM(ox + x), MM(oy + y))
@@ -204,7 +204,7 @@ def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
                 z = pcbnew.ZONE(board)
                 z.SetIsRuleArea(True); z.SetDoNotAllowTracks(True); z.SetDoNotAllowVias(True)
                 z.SetDoNotAllowCopperPour(False); z.SetDoNotAllowPads(False); z.SetDoNotAllowFootprints(False)
-                z.SetLayer(pcbnew.F_Cu); z.SetLayerSet(pcbnew.LSET.AllCuMask(4))
+                z.SetLayer(pcbnew.F_Cu); z.SetLayerSet(pcbnew.LSET.AllCuMask(board.GetCopperLayerCount()))
                 import math
                 r = MM(1.35 + 1.7)   # hole radius + the footprint's 1.7 mm hole clearance
                 o = z.Outline(); o.RemoveAllContours(); o.NewOutline()
@@ -225,7 +225,7 @@ class Occupancy:
     def __init__(self, board: pcbnew.BOARD, clearance: float = 0.125):
         self.clr = MM(clearance)
         self.boxes = [pad.GetBoundingBox() for f in board.GetFootprints() for pad in f.Pads()]
-        self.box_layers = [{L for L in (pcbnew.F_Cu, pcbnew.B_Cu) if pad.IsOnLayer(L)} for f in board.GetFootprints() for pad in f.Pads()]
+        self.box_layers = [{L for L in (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu) if pad.IsOnLayer(L)} for f in board.GetFootprints() for pad in f.Pads()]
         self.segs = []   # (SEG, half width, net code, layer)
         self.vias = []   # (x, y, radius, net code)
         for t in board.GetTracks():
@@ -1203,7 +1203,7 @@ def update_nets(board: pcbnew.BOARD, d: design.Design) -> int:
         for p in f.Pads():
             bb = p.GetBoundingBox()
             box = (int(bb.GetLeft()), int(bb.GetTop()), int(bb.GetRight()), int(bb.GetBottom()))
-            layers = {L for L in (pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu) if p.IsOnLayer(L)}
+            layers = {L for L in (pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.In3_Cu, pcbnew.In4_Cu) if p.IsOnLayer(L)}
             pads.append((p, f.GetReference(), str(p.GetNumber()), p.GetNetname(), p.GetNetCode(), box, layers))
     codes = {}
     for _p, ref, num, netname, _c, _b, _l in pads:

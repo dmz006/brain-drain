@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "$0")/.."
 OUT="fab/$(date +%Y-%m-%d)"
 rm -rf "$OUT"; mkdir -p "$OUT/gerbers"
-kicad-cli pcb export gerbers --board-plot-params --subtract-soldermask -l F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts -o "$OUT/gerbers/" brain-drain.kicad_pcb
+kicad-cli pcb export gerbers --board-plot-params --subtract-soldermask -l ${COPPER:-F.Cu,In1.Cu,In2.Cu,In3.Cu,In4.Cu,B.Cu},F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts -o "$OUT/gerbers/" brain-drain.kicad_pcb
 kicad-cli pcb export drill --format excellon --excellon-separate-th --generate-map --map-format gerberx2 -o "$OUT/gerbers/" brain-drain.kicad_pcb
 kicad-cli pcb export pos --format csv --units mm --side both --use-drill-file-origin -o "$OUT/brain-drain-pos.csv" brain-drain.kicad_pcb
 cp bom/brain-drain-bom.csv "$OUT/brain-drain-bom.csv"

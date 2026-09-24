@@ -5,9 +5,10 @@ cd "$(dirname "$0")/.."
 VENV_PY="$(pwd)/../software/.venv/bin/python"
 # project-aware: BD_PROJECT=brain (default, hardware/) or card (hardware/bay-card/)
 if [ "${BD_PROJECT:-brain}" = card ]; then cd bay-card; N=bay-card; else N=brain-drain; fi
+INNER=In1.Cu,In2.Cu,B.Cu; [ "${BD_PROJECT:-brain}" = brain ] && INNER=In1.Cu,In2.Cu,In3.Cu,In4.Cu,B.Cu
 mkdir -p renders renders/schematic
 kicad-cli pcb export pdf -l F.Cu,F.SilkS,F.Mask,Edge.Cuts,F.CrtYd -o renders/board-top.pdf $N.kicad_pcb
-kicad-cli pcb export pdf -l In1.Cu,In2.Cu,B.Cu,Edge.Cuts -o renders/board-inner.pdf $N.kicad_pcb
+kicad-cli pcb export pdf -l $INNER,Edge.Cuts -o renders/board-inner.pdf $N.kicad_pcb
 kicad-cli pcb render -w 1800 -h 1200 --side top --background opaque -o renders/board-3d-top.png $N.kicad_pcb
 kicad-cli pcb render -w 1800 -h 1200 --side bottom --background opaque -o renders/board-3d-bottom.png $N.kicad_pcb
 kicad-cli pcb render -w 1800 -h 1200 --perspective --rotate '-30,0,35' --zoom 1.1 --background opaque -o renders/board-3d-iso.png $N.kicad_pcb

@@ -156,8 +156,12 @@ def layout_card():
 LAYOUT = layout_card() if PRJ.key == "card" else layout_brain()
 BOARD_W, BOARD_H, HOLES, REGIONS, FIXED, SPILL, BOTTOM = (LAYOUT[k] for k in ("BOARD_W", "BOARD_H", "HOLES", "REGIONS", "FIXED", "SPILL", "BOTTOM"))
 ANTENNA_STRIP = LAYOUT["ANTENNA_STRIP"]
-LAYERS = [(0, "F.Cu", "signal"), (1, "In1.Cu", "power"), (2, "In2.Cu", "power"), (31, "B.Cu", "signal"),
-          (32, "B.Adhes", "user"), (33, "F.Adhes", "user"), (34, "B.Paste", "user"), (35, "F.Paste", "user"),
+# Brain: six copper layers (F signal, In1 GND plane, In2 + In3 signal, In4 power islands, B signal + GND pour);
+# the bay card stays four (F signal, In1 GND, In2 power, B signal).
+COPPER = ([(0, "F.Cu", "signal"), (1, "In1.Cu", "power"), (2, "In2.Cu", "signal"), (3, "In3.Cu", "signal"), (4, "In4.Cu", "power"), (31, "B.Cu", "signal")]
+          if PRJ.key == "brain" else
+          [(0, "F.Cu", "signal"), (1, "In1.Cu", "power"), (2, "In2.Cu", "power"), (31, "B.Cu", "signal")])
+LAYERS = COPPER + [(32, "B.Adhes", "user"), (33, "F.Adhes", "user"), (34, "B.Paste", "user"), (35, "F.Paste", "user"),
           (36, "B.SilkS", "user"), (37, "F.SilkS", "user"), (38, "B.Mask", "user"), (39, "F.Mask", "user"),
           (40, "Dwgs.User", "user"), (41, "Cmts.User", "user"), (44, "Edge.Cuts", "user"), (45, "Margin", "user"),
           (46, "B.CrtYd", "user"), (47, "F.CrtYd", "user"), (48, "B.Fab", "user"), (49, "F.Fab", "user")]
