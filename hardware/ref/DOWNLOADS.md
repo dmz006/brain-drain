@@ -33,7 +33,7 @@ from pip.raspberrypi.com myself when the enclosure work starts.
 
 | What | Part | Where | Why |
 |---|---|---|---|
-| PCI Express x1 card-edge socket, through-hole, customer drawing | Amphenol 10018783-10100TLF (or TE 1-1734774-1) | amphenol-cs.com / te.com product page, "Drawing" | the eight bay slots on the brain: pin rows, peg holes, housing outline. Footprint is generated from the PCI Express CEM spec meanwhile and checked against the drawing before ordering |
+| PCI Express x1 card-edge socket, through-hole, customer drawing | Amphenol FCI 10018783-10100TLF (TE 1-1734774-1 is a 98-position x8 socket, not usable) | amphenol-cs.com / te.com product page, "Drawing" | the eight bay slots on the brain: pin rows, peg holes, housing outline. Footprint is generated from the PCI Express CEM spec meanwhile and checked against the drawing before ordering |
 | 12 V brick, 150–180 W, with its DIN pinout | your choice | vendor page | eight spinning 3.5" drives draw about 9 A at 12 V |
 
 ## P-FET datasheets (pin tables, before ordering)
@@ -42,3 +42,10 @@ from pip.raspberrypi.com myself when the enclosure work starts.
 |---|---|---|
 | AO4407A (Q20, SO-8) | https://www.aosmd.com/res/datasheets/AO4407A.pdf | confirm S 1–3, G 4, D 5–8 (symbol `PMOS_SSSGDDDD`) |
 | AON7403 (bay-card Q1, Q2, DFN 3x3-8), chosen 2026-09-23 | https://www.aosmd.com/res/datasheets/AON7403.pdf | confirm S 1–3, G 4, D 5–8 + EP and the DFN land pattern |
+
+## Status 2026-09-24 (files received)
+
+Footprints are now generated from the vendor drawings in `datasheets/`:
+PCIe x1 socket from the Amphenol FCI customer drawing 10018784 (`amphenol-10018784-10103TLF-pds.pdf`, sheets 1, 3, 5; same footprint as 10018783),
+SATA receptacle from Molex SD-47018-001 (`470184001_sd.pdf`). Still open: the 12 V brick datasheet (DIN pin table),
+the Molex 3D model for a mating-face check (`192051795-659-0470184001.zip`, STEP inside), and the M.2 socket check against `te-2199230-4-drawing.pdf`.

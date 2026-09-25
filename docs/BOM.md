@@ -60,7 +60,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 
 | Ref | Qty | Part | Description | ~USD | Note |
 |---|---|---|---|---|---|
-| J10–J17 | 8 | PCI Express x1 socket, through-hole (Amphenol 10018783-10100TLF or TE 1-1734774-1) | bay slots on the brain, custom pinout | 1 ea | placeholder footprint until the drawing arrives (`ref/DOWNLOADS.md`) |
+| J10–J17 | 8 | PCI Express x1 socket, through-hole, 36 contacts (Amphenol FCI 10018783-10100TLF; TE 1-1734774-1 is a 98-position x8 part and does not fit) | bay slots on the brain, custom pinout | 1 ea | placeholder footprint until the drawing arrives (`ref/DOWNLOADS.md`) |
 | D10–D17, R60–R67 | 8 + 8 | 3 mm blue LED, 470 Ω | bay activity LEDs on the brain, sunk by the card | 0.15 ea | |
 | CBL1–4 (–8) | 4 (8) | SATA 22-pin male→female extension cable, 0.5 m | drive cables; the drive end plugs straight onto a bare drive | 3 ea | off-the-shelf |
 
