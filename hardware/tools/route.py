@@ -1334,16 +1334,16 @@ def main(cmd: str) -> int:
     if cmd == "rip-pairs":   # tools/reroute_pairs.sh: rip, then stage3 / drc-clean / tune in fresh processes
         rip_bad_pairs(board, d)
         pcbnew.SaveBoard(str(PCB), board)
-    if cmd == "close-gaps":   # small grid router for the open connections the autorouter left (pads, rails, links)
+    if cmd in ("close-gaps", "close-gaps-pairs"):   # small grid router for the open connections the autorouter left
         import gapclose
         partner = {}
         for a_, b_ in pairs_of(d):
             partner[a_] = b_; partner[b_] = a_
-        # single-ended nets first, then the pair sides (each hugging its partner's copper); tune afterwards
-        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=diff_pair_nets(d), max_len=160.0,
-                            ripup=os.environ.get("BD_RIPUP") == "1", pair_names=frozenset(partner))
-        gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=frozenset(), max_len=160.0, partner_of=partner,
-                            ripup=os.environ.get("BD_RIPUP") == "1", pair_names=frozenset(partner))
+        rip = os.environ.get("BD_RIPUP") == "1"   # experimental: does not converge, off by default
+        if cmd == "close-gaps":          # single-ended nets
+            gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=diff_pair_nets(d), max_len=160.0, ripup=rip, pair_names=frozenset(partner))
+        else:                            # pair sides, each hugging its partner's copper; tune afterwards
+            gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=frozenset(), max_len=160.0, partner_of=partner, ripup=rip, pair_names=frozenset(partner))
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "tune":
         tune_pairs(board, d)

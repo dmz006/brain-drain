@@ -27,7 +27,7 @@ python3 tools/route.py stage2 > $RD/stage2.log 2>&1
 echo "stage2 done $(date): $(grep -v 'memory leak\|assert\|Debug' $RD/stage2.log | tail -1)" >> $log
 run drc-clean; drc
 run fanout; run fanout-big; run fanout-conn; run fanout-qfn
-run close-gaps; run drc-clean; run tune
+run close-gaps; run close-gaps-pairs; run drc-clean; run tune
 drc
 python3 tools/open_report.py 2>&1 | tail -1 >> $log
 run pairs

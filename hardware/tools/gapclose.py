@@ -15,6 +15,7 @@ the copper at the end.
 from __future__ import annotations
 
 import heapq
+import os
 import json
 import math
 import re
@@ -329,6 +330,9 @@ def close_gaps(board, d, routing_dir, pcb_path, skip_nets=frozenset(), max_len: 
             continue
         net = mnet.group(1)
         if net in skip_nets:
+            continue
+        only = os.environ.get("BD_ONLY")   # comma-separated net names: work on those gaps only
+        if only and net not in only.split(","):
             continue
         other = re.search(r"\[(.*?)\]", its[1]["description"])
         if not other or other.group(1) != net:   # never join two different nets
