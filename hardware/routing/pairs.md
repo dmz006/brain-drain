@@ -26,14 +26,14 @@
 | BAY8_USB2_DP / BAY8_USB2_DM | 55.74 | 55.74 | 0.00 | 2/2 |  |
 | BAY8_USB3_RX_P / BAY8_USB3_RX_N | 46.17 | 46.17 | 0.00 | 1/1 |  |
 | BAY8_USB3_TX_P / BAY8_USB3_TX_N | 53.03 | 53.03 | 0.00 | 1/1 |  |
-| PCIE_CLK_P / PCIE_CLK_N | 149.07 | 149.07 | 0.00 | 3/3 |  |
+| PCIE_CLK_P / PCIE_CLK_N | 171.39 | 171.39 | 0.00 | 3/4 |  |
 | PCIE_RX_P / PCIE_RX_N | 96.29 | 96.29 | 0.00 | 3/3 |  |
 | PCIE_TX_P / PCIE_TX_N | 165.08 | 165.08 | 0.00 | 3/3 |  |
 | U1_DN1_TXDP / U1_DN1_TXDM | 16.45 | 16.45 | 0.00 | 2/2 |  |
 | U1_DN2_TXDP / U1_DN2_TXDM | 23.62 | 23.62 | 0.00 | 2/3 |  |
 | U1_DN3_TXDP / U1_DN3_TXDM | 27.79 | 27.79 | 0.00 | 3/3 |  |
 | U1_DN4_TXDP / U1_DN4_TXDM | 14.56 | 14.56 | 0.00 | 3/2 |  |
-| U1_UP_TXDP / U1_UP_TXDM | 15.12 | 21.20 | 6.08 | 2/2 | match > 0.15 mm |
+| U1_UP_TXDP / U1_UP_TXDM | 20.40 | 20.40 | 0.00 | 4/2 |  |
 | U2_DN1_TXDP / U2_DN1_TXDM | 16.84 | 16.84 | 0.00 | 2/2 |  |
 | U2_DN2_TXDP / U2_DN2_TXDM | 27.11 | 27.11 | 0.00 | 3/3 |  |
 | U2_DN3_TXDP / U2_DN3_TXDM | 29.96 | 29.96 | 0.00 | 3/3 |  |

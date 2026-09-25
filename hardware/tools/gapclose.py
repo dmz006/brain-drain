@@ -25,9 +25,11 @@ from array import array
 import pcbnew
 
 MM = pcbnew.FromMM
-RES = MM(0.1)          # grid cell, nm
-CLR = 0.125 + 0.04     # mm copper clearance plus a margin for the 0.1 mm grid
-EDGE_CLR = 0.3         # mm copper to board edge
+RES_MM = float(os.environ.get("BD_RES", "0.1"))   # grid cell in mm; 0.05 for pins with almost no room (slower)
+RES = MM(RES_MM)       # grid cell, nm
+_M = float(os.environ.get("BD_MARGIN", "1.0"))   # scale of the grid margins; 0.3 for pins with almost no room (DRC still checks the result)
+CLR = 0.125 + 0.04 * _M    # mm copper clearance plus a margin for the 0.1 mm grid
+EDGE_CLR = 0.3 + 0.06 * _M   # mm copper to board edge (0.3 rule plus a margin for the 0.1 mm grid)
 MARGIN = 6.0           # mm searched around the two anchors
 VIA = {"power": (0.6, 0.3), "signal": (0.45, 0.2)}
 POWERISH = ("+12V", "5V_", "+5V", "+3V3", "3V3", "+1V2", "VDD", "12V_BAY", "5V_BAY", "GND", "VIN")
@@ -56,7 +58,8 @@ class Obstacles:
                 layers = {L for L in LAYERS if p.IsOnLayer(L)}
                 if p.GetAttribute() in (pcbnew.PAD_ATTRIB_PTH, pcbnew.PAD_ATTRIB_NPTH):
                     layers = set(LAYERS)
-                self.pads.append((int(bb.GetLeft()), int(bb.GetTop()), int(bb.GetRight()), int(bb.GetBottom()), layers, p.GetNetCode()))
+                grow = MM(max(0.0, EDGE_CLR - CLR)) if p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH else 0   # a plain hole counts as a board edge
+                self.pads.append((int(bb.GetLeft()), int(bb.GetTop()), int(bb.GetRight()), int(bb.GetBottom()), layers, p.GetNetCode(), grow))
             self.edges += [g.GetEffectiveShape() for g in f.GraphicalItems() if g.GetLayer() == pcbnew.Edge_Cuts]
         for t in board.GetTracks():
             if t.GetClass() == "PCB_VIA":
@@ -84,11 +87,11 @@ class Window:
         infl = MM(CLR + w_mm / 2)
         self._build(obs, x0, y0, x1, y1, infl)
         # a via needs more room than a track: cells within this many cells of anything else block it
-        self.via_cells = max(1, int(math.ceil((via_r_mm - w_mm / 2 + 0.08) / 0.1)))
+        self.via_cells = max(1, int(math.ceil((via_r_mm - w_mm / 2 + 0.08 * _M) / RES_MM)))
         # cells close to the partner net's copper are cheaper: a pair's second side hugs the first
         self.near = {L: bytearray(self.W * self.H) for L in LAYERS}
         if partner:
-            reach = 0.55 / 0.1
+            reach = 0.55 / RES_MM
             for ax, ay, bx, by, hw, layer, pn, _obj in obs.tracks:
                 if pn != partner or layer not in self.near:
                     continue
@@ -140,12 +143,13 @@ class Window:
 
     def _build(self, obs: Obstacles, x0, y0, x1, y1, infl) -> None:
         pad = infl / RES
-        for l, t, r, b, layers, net in obs.pads:
-            if r < x0 - infl or l > x1 + infl or b < y0 - infl or t > y1 + infl:
+        for l, t, r, b, layers, net, grow in obs.pads:
+            if r < x0 - infl - grow or l > x1 + infl + grow or b < y0 - infl - grow or t > y1 + infl + grow:
                 continue
             (cl, ct), (cr, cb) = self._cell(l, t), self._cell(r, b)
+            g = pad + grow / RES
             for L in layers:
-                self._stamp_box(L, cl - pad, ct - pad, cr + pad, cb + pad, net if net else -1)
+                self._stamp_box(L, cl - g, ct - g, cr + g, cb + g, net if net else -1)
         for x, y, r, net, _obj in obs.vias:
             if x < x0 - infl - r or x > x1 + infl + r or y < y0 - infl - r or y > y1 + infl + r:
                 continue
@@ -212,7 +216,7 @@ class Window:
         return True
 
 
-def astar(win: Window, starts, goals, via_cost: float = 12.0, max_nodes: int = 2500000, weight: float = 1.6, rip=None):
+def astar(win: Window, starts, goals, via_cost: float = 12.0 * 0.1 / RES_MM, max_nodes: int = 2500000, weight: float = 1.6, rip=None):
     """starts / goals: sets of (i, j, layer). Returns the list of (i, j, layer) from a start to a goal or None."""
     if not goals:
         return None
@@ -357,7 +361,8 @@ def close_gaps(board, d, routing_dir, pcb_path, skip_nets=frozenset(), max_len: 
         done = False
         # try the closest anchor pairs first
         pairs = sorted(((math.hypot(p[0] - q[0], p[1] - q[1]), p, q) for p in a1 for q in a2), key=lambda r: r[0])[:4]
-        for w, margin in [(w, m) for m in (MARGIN, 18.0) for w in widths]:
+        via_opts = [(via_d, via_drill)] + ([(0.3, 0.15)] if not power else [])   # then the small D8 via, for pins with no room
+        for w, margin, via_d, via_drill in [(w, m, vd, vdr) for vd, vdr in via_opts for m in (MARGIN, 18.0) for w in widths]:
             for _d, p, q in pairs:
                 x0 = min(p[0], q[0]) - MM(margin); x1 = max(p[0], q[0]) + MM(margin)
                 y0 = min(p[1], q[1]) - MM(margin); y1 = max(p[1], q[1]) + MM(margin)

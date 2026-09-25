@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-09-25T09:49:10-0400",
+    "date": "2026-09-25T10:13:37-0400",
     "included_severities": [
         "error",
         "warning",
@@ -52,29 +52,6 @@
                         "y": 20.0
                     },
                     "uuid": "73825ada-c758-48e2-80f7-2a301107dded"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Track [PCIE_CLK_N] on In2.Cu, length 8.4316 mm",
-                    "pos": {
-                        "x": 26.209,
-                        "y": 96.3463
-                    },
-                    "uuid": "ea5cac0c-4683-43d2-b0ed-c953f9da00b4"
-                },
-                {
-                    "description": "Track [PCIE_CLK_N] on In3.Cu, length 104.5108 mm",
-                    "pos": {
-                        "x": 130.7053,
-                        "y": 77.3679
-                    },
-                    "uuid": "62c35020-2451-4316-a47d-d9cfc92d5abe"
                 }
             ],
             "severity": "error",
@@ -6066,6 +6043,29 @@
             "type": "hole_to_hole"
         },
         {
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.2495 mm; actual 0.0121 mm)",
+            "items": [
+                {
+                    "description": "Via [PCIE_CLK_N] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 26.3445,
+                        "y": 77.5179
+                    },
+                    "uuid": "9b38eeaf-4470-4138-ac01-1692628524e1"
+                },
+                {
+                    "description": "Via [PCIE_CLK_N] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 26.1945,
+                        "y": 77.3679
+                    },
+                    "uuid": "f779b599-ef92-43ca-b4e6-051c4dcc1b2c"
+                }
+            ],
+            "severity": "warning",
+            "type": "hole_to_hole"
+        },
+        {
             "description": "Drilled hole too close to other hole (board setup constraints min 0.2495 mm; actual 0.0000 mm)",
             "items": [
                 {
@@ -6270,36 +6270,6 @@
             ],
             "severity": "warning",
             "type": "via_dangling"
-        },
-        {
-            "description": "Via is not connected or connected on only one layer",
-            "items": [
-                {
-                    "description": "Via [PCIE_CLK_N] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 26.1945,
-                        "y": 77.3679
-                    },
-                    "uuid": "f779b599-ef92-43ca-b4e6-051c4dcc1b2c"
-                }
-            ],
-            "severity": "warning",
-            "type": "via_dangling"
-        },
-        {
-            "description": "Track has unconnected end",
-            "items": [
-                {
-                    "description": "Track [PCIE_CLK_N] on In2.Cu, length 8.4316 mm",
-                    "pos": {
-                        "x": 26.209,
-                        "y": 96.3463
-                    },
-                    "uuid": "ea5cac0c-4683-43d2-b0ed-c953f9da00b4"
-                }
-            ],
-            "severity": "warning",
-            "type": "track_dangling"
         }
     ]
 }
