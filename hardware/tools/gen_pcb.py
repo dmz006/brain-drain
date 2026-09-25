@@ -235,6 +235,17 @@ def flip_bottom():
     print("duplicate UUIDs replaced:", pcbfix.uniquify_uuids(OUT))
 
 
+def pair_key(comp, pin_net):
+    """Sort key that puts the two series (AC-coupling) caps of one differential pair next to each other: the
+    base name of their net without the P / N suffix. Other parts keep their reference order."""
+    import re
+    for pin in ("1", "2"):
+        net = pin_net.get((comp.ref, pin), "")
+        if re.search(r"(_TXDP|_TXDM|_RXDP|_RXDM|_DP|_DM|_P|_N)$", net) and comp.lib_id == "Device:C":
+            return re.sub(r"(_TXDP|_TXDM|_RXDP|_RXDM|_DP|_DM|_P|_N)$", "", net)
+    return "~" + comp.ref
+
+
 def main():
     sexp._counter[0] = 5000000
     d = design.build(PRJ.key)
@@ -293,7 +304,7 @@ def main():
         body.append(set_props(node, comp, ox + x, oy + y, rot, nets, pin_net)); placed += 1
     spill_cursor = [SPILL[0], SPILL[1], 0.0]
     for sheet, items in groups.items():
-        items.sort(key=lambda t: (-t[3], -t[2], t[0].ref))
+        items.sort(key=lambda t: (-t[3], -t[2], pair_key(t[0], pin_net) if PRJ.key == "brain" else "", t[0].ref))
         rx0, ry0, rx1, ry1 = REGIONS[sheet]
         cx, cy, rowh = rx0, ry0, 0.0
         for comp, node, w, h, fx0, fy0 in items:

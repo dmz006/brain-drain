@@ -26,7 +26,7 @@ import pcbnew
 
 MM = pcbnew.FromMM
 RES = MM(0.1)          # grid cell, nm
-CLR = 0.125            # mm copper clearance
+CLR = 0.125 + 0.04     # mm copper clearance plus a margin for the 0.1 mm grid
 EDGE_CLR = 0.3         # mm copper to board edge
 MARGIN = 6.0           # mm searched around the two anchors
 VIA = {"power": (0.6, 0.3), "signal": (0.45, 0.2)}
@@ -84,7 +84,7 @@ class Window:
         infl = MM(CLR + w_mm / 2)
         self._build(obs, x0, y0, x1, y1, infl)
         # a via needs more room than a track: cells within this many cells of anything else block it
-        self.via_cells = max(1, int(math.ceil((via_r_mm - w_mm / 2) / 0.1)))
+        self.via_cells = max(1, int(math.ceil((via_r_mm - w_mm / 2 + 0.08) / 0.1)))
         # cells close to the partner net's copper are cheaper: a pair's second side hugs the first
         self.near = {L: bytearray(self.W * self.H) for L in LAYERS}
         if partner:
@@ -414,6 +414,8 @@ def close_gaps(board, d, routing_dir, pcb_path, skip_nets=frozenset(), max_len: 
         if v["type"] in ("clearance", "shorting_items", "tracks_crossing", "copper_edge_clearance", "items_not_allowed", "hole_clearance",
                          "track_width", "via_diameter", "annular_width", "drill_out_of_range", "hole_to_hole", "via_dangling_x"):
             kinds[v["type"]] = kinds.get(v["type"], 0) + 1
+            if os.environ.get("BD_DEBUG"):
+                print("   DRC:", v["type"], v["description"][:110], [(i["description"][:40], i.get("pos")) for i in v["items"]])
             for i in v["items"]:
                 if "pos" in i:
                     bad_pos.add((round(i["pos"]["x"], 3), round(i["pos"]["y"], 3)))

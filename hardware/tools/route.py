@@ -777,7 +777,7 @@ def tune_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.1, max_extr
             (t, (int(a.x), int(a.y)), (int(b.x), int(b.y)), t.GetLayer(), t.GetWidth(), t.GetNetCode(), t.GetLength()))
     A_W = MM(0.5)      # bump width and gap between bumps
     MARGIN = MM(0.45)  # straight run kept at each end of a segment
-    H_MAX, H_MIN, STEP = MM(4.0), MM(0.1), MM(0.1)
+    H_MAX, H_MIN, STEP = MM(7.0), MM(0.1), MM(0.1)
 
     def in_keepout(pt, layer) -> bool:
         return any(z.IsOnLayer(layer) and z.Outline().Contains(pcbnew.VECTOR2I(int(pt[0]), int(pt[1]))) for z in keepouts)
@@ -828,7 +828,7 @@ def tune_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.1, max_extr
             notes.append(f"{a}/{b}: {need:.1f} mm apart, more than {max_extra:.0f} mm; reroute the long side")
             failed += 1
             continue
-        segs = sorted(by_net.get(short, []), key=lambda s: -s[6])[:8]
+        segs = sorted(by_net.get(short, []), key=lambda s: -s[6])[:40]
         chosen = []   # (seg, side, bumps)
         got = 0.0
         for seg in segs:
