@@ -53,7 +53,7 @@ Machine-readable copy: `hardware/bom/brain-drain-bom.csv`. The schematic-level p
 | R3–R8, C19, C20 | — | switch passives | soft-start, pull-ups, BAY_EN pull-down | 0.2 | |
 | J2 | 1 | Molex 47018-4001 SATA 22-pin receptacle | drive cable | 1.5 | C17 |
 | J1 | — | card-edge fingers (PCIe x1 pattern), ENIG | into the brain's slot | 0 | chamfer the tab |
-| PCB | 1 | 4-layer 40 × 46 mm, panelised | | 3–4 | share of a panel of 8–16 |
+| PCB | 1 | 4-layer 45 × 46 mm, panelised | | 3–4 | share of a panel of 8–16 |
 | **Card total** | | | | **~11 + PCB** | |
 
 ## D. Slots and drive cables

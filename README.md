@@ -53,9 +53,9 @@ board, a Python service, and a 3D-printed enclosure.
 
 | Directory | Workstream | State |
 |---|---|---|
-| [`hardware/`](hardware/README.md) | KiCad 9: brain board 150 × 122 mm (CM5 wireless, 2× USB5744, eight bay slots, M.2) and the 40 × 46 mm bay card (ASM1153E, switched power, SATA receptacle) | schematic 0 ERC errors; v3 outline placed, 83 % of connections autorouted (all signal nets, most plane pins, 21 of 48 pairs), the QFN supply pins and pair matching remain (STATUS R4/R22, D7/D8); SATA footprint pending a drawing |
+| [`hardware/`](hardware/README.md) | KiCad 9: brain board 150 × 122 mm (CM5 wireless, 2× USB5744, eight bay slots, M.2) and the 45 × 46 mm bay card (ASM1153E, switched power, SATA receptacle) | schematic 0 ERC errors; v3 outline placed, 83 % of connections autorouted (all signal nets, most plane pins, 21 of 48 pairs), the QFN supply pins and pair matching remain (STATUS R4/R22, D7/D8); SATA footprint pending a drawing |
 | [`software/`](software/README.md) | `braindrain` Python service, simulator, bench tool, Wi-Fi access point + phone page, Pi deployment | 74 tests, ready for the first bench |
-| [`enclosure/`](enclosure/README.md) | OpenSCAD "brain box": tray, hinged lid with eight cable windows and a snap latch, OLED bezel; about 157 × 129 × 62 mm | STLs export, renders, not printed |
+| [`enclosure/`](enclosure/README.md) | OpenSCAD "brain box": tray, hinged lid with eight cable windows and a snap latch, OLED bezel; about 157 × 145 × 62 mm | STLs export, renders, not printed |
 | [`docs/`](docs/README.md) | architecture, BOM, decisions, status, usage, diagrams | |
 
 ## Quick start

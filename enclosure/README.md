@@ -1,6 +1,6 @@
 # enclosure — parametric OpenSCAD "brain box"
 
-The unit is a printed box (about 157 × 129 × 62 mm outside; the bay cards stand 46 mm tall) that goes in a
+The unit is a printed box (about 157 × 145 × 62 mm outside; the 45 × 46 mm bay cards stand 49 mm above the board and overhang its rear edge by 15 mm, so the box is 16 mm deeper behind the board) that goes in a
 backpack with its 12 V brick and four 22-pin cables; drives lie loose on the
 bench while they are wiped (decisions C21–C23). The lid is hinged along the rear
 edge and snaps shut at the front: open it to fit an M.2 SSD. Printed parts are

@@ -17,7 +17,7 @@ $fn = 48;
 // enclosure's -y wall; z = 0 is the tray floor's underside.
 z_board_top = floor_t + below_board + board_t;
 function bx(x) = wall + clear + x;
-function by(y) = wall + clear + y;
+function by(y) = wall + clear + rear_ext + y;
 
 module rounded_box(w, h, z, r) {
     linear_extrude(z) offset(r) offset(-r) square([w, h]);

@@ -11,6 +11,7 @@ and honours any reference it finds there.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -134,22 +135,25 @@ def bottom_bypass(hub: str, sheet: str, cx: float, cy: float, rows=(2.6, 4.6), s
 
 
 def layout_card():
-    """Bay card (C24): 40 x 40 mm, fingers on the bottom edge (into the brain's slot), the 22-pin SATA
-    receptacle on the top edge (cables leave upward at the rear of the box), bridge QFN behind the
-    receptacle's data pads, switch block below."""
+    """Bay card (C24, widened for the Molex 47018-4001 receptacle, 45 x 46 mm): fingers on the bottom edge (into the
+    brain's slot), the SATA receptacle centred on the top edge (its 40.46 mm body, cable leaving upward), the bridge
+    QFN below the receptacle body, the switch block under that.
+    The card's +x runs toward the REAR of the brain (slot orientation): fingers at x = 6 .. 25 put the card's front
+    edge 6 mm in front of the slot's first contact and let it overhang the board's rear edge (option A, 2026-09-24),
+    so the bay LEDs in front of the slots stay visible under the lid."""
     # The finger footprint carries its own Edge.Cuts: a 20.3 mm-wide tab that sticks out 8.4 mm below the
     # main body (edge at footprint y +3.45, main body edge at y -4.95, key notch between contacts 11/12).
-    W, H = 40.0, 46.0
-    J1 = (10.0, 42.55)                    # fingers: tab bottom at y 46, main body edge at y 37.6
-    L = dict(BOARD_W=W, BOARD_H=H, HOLES=[], ANTENNA_STRIP=None,
+    W, H = 45.0, 46.0
+    J1 = (6.0, 42.55)                     # fingers: tab bottom at y 46, main body edge at y 37.6
+    L = dict(BOARD_W=W, BOARD_H=H, HOLES=[], ANTENNA_STRIP=None, CORNER_R=1.0,
              TAB=(J1[0] - 0.65, J1[0] + 19.65, J1[1] - 4.95))
-    R = {"bridge": (2, 19.5, 38, 28), "bay-switch": (2, 29, 38, 36.5), "edge": (2, 37, 8, 37.5)}
+    R = {"bridge": (2, 24.5, 43, 30.2), "bay-switch": (2, 30.6, 43, 36.8), "edge": (2, 37.0, 4.5, 37.5)}
     F = {
-        "J2": (20.0, 4.5, 0),             # SATA 22-pin receptacle on the top edge (cable leaves upward)
-        "U1": (28.0, 14.0, 90),           # bridge: SATA pins face the receptacle's data pads (its right end)
-        "J1": (J1[0], J1[1], 0),          # PCIe x1 fingers, contacts x 10-29
+        "J2": (W / 2, 0.0, 0),            # SATA receptacle: footprint origin = body centre on the PCB edge line
+        "U1": tuple(float(v) for v in os.environ.get("BD_CARD_U1", "38.0,20.5,180").split(",")),   # bridge: below the receptacle body, under the data pads (S1..S7 at x 30.7 .. 38.4)
+        "J1": (J1[0], J1[1], 0),          # PCIe x1 fingers, contacts x 6-25
     }
-    L.update(REGIONS=R, FIXED=F, SPILL=(2, 12, 18, 19), BOTTOM=set(), LABEL=f"brain-drain bay card v1  {W:.0f}x{H:.0f}")
+    L.update(REGIONS=R, FIXED=F, SPILL=(2, 16.0, 28, 24.0), BOTTOM=set(), LABEL=f"brain-drain bay card v2  {W:.0f}x{H:.0f}")
     return L
 
 
@@ -241,7 +245,7 @@ def main():
     ox, oy = ORIGIN
     body = []
     # outline with rounded corners
-    r = CORNER_R
+    r = LAYOUT.get("CORNER_R", CORNER_R)
     W, H = BOARD_W, BOARD_H
     tab = LAYOUT.get("TAB")
     if tab:   # main body ends at the tab line; the finger footprint draws the tab's own edge

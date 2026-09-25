@@ -56,11 +56,11 @@ module cables() {
     zl = tray_height + lid_t;
     for (f = board_features) if (f[1] == "slot" && (f[0] == "J10" || f[0] == "J11" || f[0] == "J12" || f[0] == "J13"))
         let (i = f[0] == "J10" ? 0 : f[0] == "J11" ? 1 : f[0] == "J12" ? 2 : 3,
-             x0 = wall + clear + f[2], y0 = wall + clear + f[3], dx = drive_cx(i) + 12, zd = drive_size(i)[2] / 2,
+             x0 = bx(f[2]), y0 = by(f[3]), dx = drive_cx(i) + 12, zd = drive_size(i)[2] / 2,
              p0 = [x0, y0, zl + 2], p3 = [dx, drive_front(i) + 1, zd])
             cable(p0, [x0, y0 - 5, zl + 45], [dx, drive_front(i) + 40, zd + 30], p3, 9);
     // power cable (DIN) leaves the LEFT wall and trails off to -x
-    for (f = board_features) if (f[0] == "J21") let (y0 = wall + clear + f[3]) cable([0, y0, zc + 4], [-40, y0 + 10, 25], [-140, y0 + 60, 10], [-240, y0 + 120, 4], 7);
+    for (f = board_features) if (f[0] == "J21") let (y0 = by(f[3])) cable([0, y0, zc + 4], [-40, y0 + 10, 25], [-140, y0 + 60, 10], [-240, y0 + 120, 4], 7);
 }
 
 if (group == "unit" || group == "all") unit();

@@ -7,13 +7,14 @@ wall       = 2.4;     // outer wall thickness
 floor_t    = 2.4;     // tray floor
 lid_t      = 2.4;     // lid plate
 clear      = 1.0;     // board edge to inner wall
+rear_ext   = 16.0;    // extra depth behind the board: the 45 mm bay cards overhang its rear edge by 15.3 mm (option A, 2026-09-24)
 cut_clear  = 0.6;     // added around each connector cutout
 fit        = 0.25;    // lid-to-tray sliding fit per side
 
 // heights (z = 0 at the board top surface)
 below_board = 6.0;    // standoff height: THT leads, the CR2032 holder and buzzer on the bottom side
 board_t     = 1.6;
-above_board = 50.0;   // bay cards (C24): socket ~8 + card body 37.6 = ~46 above the board; their receptacles pass through the lid
+above_board = 50.0;   // bay cards (C24): socket 11.25 + card body 37.6 = 48.9 above the board; the plugs pass through the lid windows
 lid_lip     = 3.0;    // skirt on the front and side edges only (the rear edge is the hinge)
 
 // mounting
@@ -41,7 +42,7 @@ latch_bump_d = 1.6;
 
 // derived
 inner_w = board_w + 2 * clear;
-inner_h = board_h + 2 * clear;
+inner_h = board_h + 2 * clear + rear_ext;
 outer_w = inner_w + 2 * wall;
 outer_h = inner_h + 2 * wall;
 tray_height = floor_t + below_board + board_t + above_board;   // to the top of the tray wall

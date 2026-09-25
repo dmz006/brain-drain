@@ -115,8 +115,8 @@ def sata22_receptacle():
     L += [npth(16.6, 2.08, 1.6), npth(-16.6, 2.08, 1.6)]
     for x in (18.73, -18.73):
         L.append(tht("", x, 2.08, 1.0, 2.15, 1.85, 3.05, "oval"))
-    L += [rect(-20.23, 0, 20.23, 14.9, "F.Fab", 0.1), rect(-20.5, -0.3, 20.5, 15.2, "F.CrtYd", 0.05),
-          line(-20.23, 0, 20.23, 0, "Dwgs.User", 0.2), text("User", "PCB edge", 0, -1.0, "Dwgs.User", 0.7),
+    L += [rect(-20.23, 0, 20.23, 14.9, "F.Fab", 0.1), rect(-20.5, 0, 20.5, 15.2, "F.CrtYd", 0.05),
+          line(-20.23, 0, 20.23, 0, "Dwgs.User", 0.2), text("User", "PCB edge", 0, 0.8, "Dwgs.User", 0.7),
           line(-20.23, 0, -20.23, 14.9, "F.SilkS"), line(20.23, 0, 20.23, 14.9, "F.SilkS"), line(-20.23, 14.9, 20.23, 14.9, "F.SilkS")]
     write(n, L)
 

@@ -3,67 +3,67 @@
   (placement
     (resolution um 10)
     (component Capacitor_SMD:C_0402_1005Metric
-      (place C9 451100 -448600 front 0)
-      (place C13 251300 -448600 front 0)
-      (place C14 273500 -448600 front 0)
-      (place C16 317900 -448600 front 0)
-      (place C11 561300 -399600 front 0)
-      (place C18 362300 -448600 front 0)
-      (place C12 229100 -448600 front 0)
-      (place C10 539100 -399600 front 0)
-      (place C1 516900 -399600 front 0)
-      (place C15 295700 -448600 front 0)
-      (place C17 340100 -448600 front 0)
-      (place C7 406700 -448600 front 0)
-      (place C19 319500 -537600 front 0)
-      (place C8 428900 -448600 front 0)
-      (place C20 341700 -537600 front 0)
-      (place C2 384500 -448600 front 0)
+      (place C9 406700 -364600 front 0)
+      (place C13 605700 -449600 front 0)
+      (place C14 229100 -364600 front 0)
+      (place C16 273500 -364600 front 0)
+      (place C11 561300 -449600 front 0)
+      (place C18 317900 -364600 front 0)
+      (place C12 583500 -449600 front 0)
+      (place C10 539100 -449600 front 0)
+      (place C1 516900 -449600 front 0)
+      (place C15 251300 -364600 front 0)
+      (place C17 295700 -364600 front 0)
+      (place C7 362300 -364600 front 0)
+      (place C19 274300 -553600 front 0)
+      (place C8 384500 -364600 front 0)
+      (place C20 296500 -553600 front 0)
+      (place C2 340100 -364600 front 0)
     )
     (component "Inductor_SMD:L_Taiyo-Yuden_NR-40xx"
-      (place L1 242500 -417500 front 0)
+      (place L1 242500 -467500 front 0)
     )
     (component "Package_DFN_QFN:DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm"
-      (place Q1 367000 -507500 front 0)
-      (place Q2 413000 -507500 front 0)
+      (place Q1 367000 -523500 front 0)
+      (place Q2 413000 -523500 front 0)
     )
     (component Fuse:Fuse_1812_4532Metric
-      (place F2 312500 -509500 front 0)
-      (place F1 249500 -509500 front 0)
+      (place F2 312500 -525500 front 0)
+      (place F1 249500 -525500 front 0)
     )
     (component Resistor_SMD:R_0402_1005Metric
-      (place R6 251900 -537700 front 0)
-      (place R8 297100 -537700 front 0)
-      (place R7 274500 -537700 front 0)
-      (place R3 532500 -494700 front 0)
-      (place R5 229300 -537700 front 0)
-      (place R1 471900 -399700 front 0)
-      (place R2 494500 -399700 front 0)
-      (place R4 555100 -494700 front 0)
+      (place R6 600300 -510700 front 0)
+      (place R8 251900 -553700 front 0)
+      (place R7 229300 -553700 front 0)
+      (place R3 532500 -510700 front 0)
+      (place R5 577700 -510700 front 0)
+      (place R1 471900 -449700 front 0)
+      (place R2 494500 -449700 front 0)
+      (place R4 555100 -510700 front 0)
     )
     (component Capacitor_SMD:C_0805_2012Metric
-      (place C6 408000 -404800 front 0)
-      (place C5 370000 -404800 front 0)
-      (place C4 332000 -404800 front 0)
+      (place C6 408000 -454800 front 0)
+      (place C5 370000 -454800 front 0)
+      (place C4 332000 -454800 front 0)
     )
     (component Connector_PCBEdge:BUS_PCIexpress_x1
-      (place J1 300000 -625500 front 0)
+      (place J1 260000 -625500 front 0)
     )
     (component "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm"
-      (place Y1 290000 -412500 front 0)
+      (place Y1 290000 -462500 front 0)
     )
     (component "Package_TO_SOT_SMD:SOT-23"
-      (place Q3 457300 -507000 front 0)
-      (place Q4 499900 -507000 front 0)
+      (place Q3 457300 -523000 front 0)
+      (place Q4 499900 -523000 front 0)
     )
     (component Capacitor_SMD:C_0603_1608Metric
-      (place C3 443800 -402300 front 0)
+      (place C3 443800 -452300 front 0)
     )
     (component "brain-drain:SATA_22pin_Receptacle_RA"
-      (place J2 400000 -245000 front 0)
+      (place J2 425000 -200000 front 0)
     )
     (component "Package_DFN_QFN:QFN-48-1EP_6x6mm_P0.4mm_EP4.6x4.6mm"
-      (place U1 480000 -340000 front 90)
+      (place U1 580000 -405000 front 180)
     )
   )
   (was_is
@@ -182,27 +182,18 @@
       )
     )
     (network_out 
-      (net +12V
+      (net GND
         (wire
-          (path B.Cu 3000
-            300000 -620000
-            300000 -601233
+          (path F.Cu 3000
+            450000 -625500
+            450000 -649767
           )
         )
         (wire
-          (path B.Cu 3000
-            310083 -593048
-            301898 -601233
-            300000 -601233
-          )
-        )
-      )
-      (net U1_VCCO
-        (wire
-          (path B.Cu 2000
-            516193 -341443
-            516193 -357443
-            516750 -358000
+          (path F.Cu 3000
+            446376 -651575
+            448184 -649767
+            450000 -649767
           )
         )
       )

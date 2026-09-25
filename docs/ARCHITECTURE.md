@@ -128,7 +128,7 @@ pins; no SPI ROM.
 
 ### 3.4 Bay cards, slots and drive cables (C24)
 
-* The bays are **cards**: one 40 × 46 mm board per bay carrying the ASM1153E
+* The bays are **cards**: one 45 × 46 mm board per bay carrying the ASM1153E
   bridge, its crystal and passives, the switched 12 V / 5 V block with PTC fuses,
   and the 22-pin SATA receptacle on its top edge. Its bottom edge is a PCI
   Express x1 finger pattern (KiCad's stock footprint) that plugs into one of
@@ -267,7 +267,7 @@ Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
   switch and fan header front-right; CR2032 holder and service headers on the
   bottom under the CM5. Each hub's ten bypass capacitors sit on the BOTTOM side in two rows around the chip (`gen_pcb.bottom_bypass`), so the top layer keeps its space for pin escapes; the pair coupling caps and crystal caps stay on top. Rules from the CM5IO reference (0.13 / 0.125 mm,
   0.45/0.2 vias) plus 0.3/0.15 vias for the QFN supply pins (D8).
-* **Bay card, 40 × 46 mm (C24), same 4-layer stack-up.** Receptacle on the top
+* **Bay card, 45 × 46 mm (C24, widened by C27), same 4-layer stack-up.** Receptacle on the top
   edge, bridge QFN behind its data pads, passives in the middle, switch block
   above the finger tab. The finger footprint carries the tab outline and key.
   Both boards come from the same generators (`BD_PROJECT=brain|card`) and go
@@ -455,7 +455,7 @@ schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
 * **Tool:** OpenSCAD, everything driven from `enclosure/params.scad`. Connector
   positions are generated from the KiCad PCB by a small script
   (`enclosure/tools/kicad_to_scad.py`) so the shell tracks the board.
-* **Form (C21–C24):** a box about 157 × 129 × 62 mm (the bay cards stand
+* **Form (C21–C24):** a box about 157 × 145 × 62 mm (the bay cards stand
   46 mm tall), bottom tray + a lid hinged
   along the rear top edge (filament pin) with a snap latch at the front, so it
   pops open for the M.2 SSD; a lid microswitch is the bay-5 "door". Board on

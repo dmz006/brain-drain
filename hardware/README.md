@@ -9,7 +9,7 @@ regenerate / route commands.
 Two boards (C24). **Brain**, 150 × 122 mm: eight bay slots (PCIe x1 sockets) along
 the rear edge, hubs behind them, CM5 on the right edge with its antenna edge out,
 DIN / USB-C / microSD on the left wall, M.2 front-left under the lid. **Bay card**,
-40 × 46 mm in `bay-card/`: ASM1153E, switched 12 V / 5 V, SATA 22-pin receptacle on
+45 × 46 mm in `bay-card/`: ASM1153E, switched 12 V / 5 V, SATA 22-pin receptacle on
 top, PCIe-x1 fingers below. Generate either with `BD_PROJECT=brain|card`. Top view with the copper and silkscreen:
 [`renders/board-top.png`](renders/board-top.png); bottom side (CR2032 holder, service
 headers): [`renders/board-3d-bottom.png`](renders/board-3d-bottom.png).
