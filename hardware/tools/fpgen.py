@@ -89,6 +89,38 @@ def pcie_x1_socket():
     write("PCIe_x1_Socket_THT", lines)
 
 
+def sata22_receptacle():
+    """Molex 47018-4001 SATA 22-pin (7 + 15) host receptacle, top mount, PCB-edge type, from the Molex customer
+    drawing SD-47018-001 sheets 1 and 2 (recommended PCB layout, component side).
+    Origin: middle of the connector along x, the recommended PCB edge along y (y = 0), the board interior at
+    +y. The drawing has the interior at the top; this footprint is the drawing turned 180 degrees so the
+    connector sits on a board's TOP edge with its cable leaving the top edge.
+    Pads: 22 SMD 0.90 x 2.40 at 1.27 mm pitch, y centres 5.08 (P4 and P12 sit 0.5 mm nearer the edge, 4.58).
+    S1..S7 at x = +15.86 .. +8.24, P1..P15 at x = +1.89 .. -15.89. Two 1.60 mm locating holes (x = +-16.60) and
+    two plated 1.00 x 2.15 mm slots for the fork locks (x = +-18.73) all at y = 2.08. Body 40.46 wide (fork-lock
+    slot spacing 37.42 plus 1.5 each side); depth 14.9 is the drawing's overall REF, and the position of the
+    mating face relative to the PCB edge is assumed to be the edge itself (check the 3D model)."""
+    xc = -16.61                                     # body centre in drawing coordinates (measured from datum B)
+    def X(xd):
+        return round(-(xd + 16.61), 3)
+    n = "SATA_22pin_Receptacle_RA"
+    L = header(n, "Molex 47018-4001 SATA 22-pin host receptacle, top mount PCB-edge type (drawing SD-47018-001), board top edge at y = 0",
+               "sata 22 pin receptacle molex 47018", "smd")
+    L += [text("Reference", "REF**", 0, -2.5, "F.SilkS"), text("Value", n, 0, 17.5, "F.Fab")]
+    for k in range(7):
+        L.append(smd(f"S{k + 1}", X(-32.47 + 1.27 * k), 5.08, 0.9, 2.4, "rect"))
+    for k in range(15):
+        y = 4.58 if k + 1 in (4, 12) else 5.08
+        L.append(smd(f"P{k + 1}", X(-18.50 + 1.27 * k), y, 0.9, 2.4, "rect"))
+    L += [npth(16.6, 2.08, 1.6), npth(-16.6, 2.08, 1.6)]
+    for x in (18.73, -18.73):
+        L.append(tht("", x, 2.08, 1.0, 2.15, 1.85, 3.05, "oval"))
+    L += [rect(-20.23, 0, 20.23, 14.9, "F.Fab", 0.1), rect(-20.5, -0.3, 20.5, 15.2, "F.CrtYd", 0.05),
+          line(-20.23, 0, 20.23, 0, "Dwgs.User", 0.2), text("User", "PCB edge", 0, -1.0, "Dwgs.User", 0.7),
+          line(-20.23, 0, -20.23, 14.9, "F.SilkS"), line(20.23, 0, 20.23, 14.9, "F.SilkS"), line(-20.23, 14.9, 20.23, 14.9, "F.SilkS")]
+    write(n, L)
+
+
 def kycon_kpjx_4s_s():
     """Origin: the jack's front face line (Kycon 'reference' line), +y into the board (away from the panel).
     Kycon's layout is a BOTTOM view; x is mirrored here for the top view."""
@@ -154,5 +186,6 @@ if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
     kycon_kpjx_4s_s()
     pcie_x1_socket()
+    sata22_receptacle()
     fingers = json.loads(sys.argv[1]) if len(sys.argv) > 1 else [(0.50, 0.25), (0.0, -0.25), (-0.50, -0.75)]
     texas_rpa0010a(fingers)
