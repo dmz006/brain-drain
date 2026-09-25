@@ -17,7 +17,6 @@ from pathlib import Path
 
 import design
 import kifp
-import kilib
 import sexp
 from sexp import Str, new_uuid
 

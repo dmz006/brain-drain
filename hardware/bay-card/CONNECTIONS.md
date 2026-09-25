@@ -88,8 +88,8 @@ Totals: 39 components, 37 nets.
 | C20 | `Device:C` | 100n | `Capacitor_SMD:C_0402_1005Metric` | soft-start G-S |
 | F1 | `Device:Polyfuse` | 3A hold 1812 | `Fuse:Fuse_1812_4532Metric` |  |
 | F2 | `Device:Polyfuse` | 2A hold 1812 | `Fuse:Fuse_1812_4532Metric` |  |
-| Q1 | `Transistor_FET:Q_PMOS_GSD` | P-FET -30V 6A DFN3x3 | `Package_DFN_QFN:DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm` | 12 V switch |
-| Q2 | `Transistor_FET:Q_PMOS_GSD` | P-FET -30V 6A DFN3x3 | `Package_DFN_QFN:DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm` | 5 V switch |
+| Q1 | `brain-drain:PMOS_SSSGDDDD_EP` | AON7403 | `Package_DFN_QFN:DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm` | 12 V switch (AOS AON7403, -30 V, DFN 3x3-8); DFN 3x3-8 power pin-out S 1-3, G 4, D 5-8 + EP |
+| Q2 | `brain-drain:PMOS_SSSGDDDD_EP` | AON7403 | `Package_DFN_QFN:DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm` | 5 V switch (AOS AON7403); same pin-out |
 | Q3 | `Transistor_FET:2N7002` | 2N7002 | `Package_TO_SOT_SMD:SOT-23` | 12 V gate driver |
 | Q4 | `Transistor_FET:2N7002` | 2N7002 | `Package_TO_SOT_SMD:SOT-23` | 5 V gate driver |
 | R3 | `Device:R` | 100k | `Resistor_SMD:R_0402_1005Metric` | Q1 gate pull-up (off) |
@@ -106,16 +106,16 @@ Totals: 39 components, 37 nets.
 | `BAY_EN` | **global** | R8.1, R7.1 | edge |
 | `EN_G` | local | R8.2, Q3.1 (G), Q4.1 (G) |  |
 | `GND` | **global** | R7.2, Q3.2 (S), Q4.2 (S) | bridge, edge |
-| `Q1_G` | local | Q1.1 (G), R3.2, C19.2, R4.1 |  |
-| `Q2_G` | local | Q2.1 (G), R5.2, C20.2, R6.1 |  |
+| `Q1_G` | local | Q1.4 (G), R3.2, C19.2, R4.1 |  |
+| `Q2_G` | local | Q2.4 (G), R5.2, C20.2, R6.1 |  |
 | `Q3_D` | local | R4.2, Q3.3 (D) |  |
 | `Q4_D` | local | R6.2, Q4.3 (D) |  |
-| `+12V` | **global** | Q1.2 (S), R3.1, C19.1 | edge |
+| `+12V` | **global** | Q1.1 (S), Q1.2 (S), Q1.3 (S), R3.1, C19.1 | edge |
 | `12V_BAY` | **global** | F1.2 | edge |
-| `12V_BAY_SW` | local | Q1.3 (D), F1.1 |  |
+| `12V_BAY_SW` | local | Q1.5 (D), Q1.6 (D), Q1.7 (D), Q1.8 (D), Q1.9 (D), F1.1 |  |
 | `5V_BAY` | **global** | F2.2 | edge |
-| `5V_BAY_SW` | local | Q2.3 (D), F2.1 |  |
-| `5V_HDD` | **global** | Q2.2 (S), R5.1, C20.1 | bridge, edge |
+| `5V_BAY_SW` | local | Q2.5 (D), Q2.6 (D), Q2.7 (D), Q2.8 (D), Q2.9 (D), F2.1 |  |
+| `5V_HDD` | **global** | Q2.1 (S), Q2.2 (S), Q2.3 (S), R5.1, C20.1 | bridge, edge |
 
 ### Notes
 

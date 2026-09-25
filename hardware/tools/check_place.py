@@ -3,7 +3,6 @@ between fixed parts (packed parts are checked against fixed parts too). Run afte
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 import pcbnew
 

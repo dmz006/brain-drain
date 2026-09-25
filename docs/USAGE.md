@@ -50,47 +50,50 @@ that needs the carrier board. Config lives in `/etc/brain-drain/config.json`.
 
 ## Hardware: regenerate everything from the netlist
 
-Unattended, from placement to finished routing: `BD_PROJECT=brain sh tools/route_full.sh` (card about 10 min, brain about 3.5 h: pairs first, then signals and planes, gap closer, tuner, reports, renders). Length matching is `route.py tune`, the small-gap router is `route.py close-gaps`.
+Needs KiCad 9 (`kicad-cli` and the `pcbnew` Python module of the system Python 3), Python packages `numpy` and `Pillow`, poppler-utils (`pdftoppm`),
+and, for routing only, Java 21 and Java 25 plus the two freerouting jars downloaded from https://github.com/freerouting/freerouting/releases
+(v2.1.0 and v2.4.1) into `hardware/tools/freerouting/` (they are not in the repository). Two boards share one pipeline:
+`BD_PROJECT=brain` (default, files in `hardware/`) and `BD_PROJECT=card` (the bay card, files in `hardware/bay-card/`).
 
-Two boards share one pipeline: `BD_PROJECT=brain` (default, files in `hardware/`)
-and `BD_PROJECT=card` (the bay card, files in `hardware/bay-card/`).
+**Everything from the netlist to a routed board, unattended** (card about 10 minutes, brain about 1.5 hours):
 
 ```
 cd hardware
-python3 tools/symgen.py          # lib/brain-drain.kicad_sym from ref/*.csv
-python3 tools/design.py          # pin coverage check
-python3 tools/gen_sch.py         # brain-drain.kicad_sch + sheets/, ERC via kicad-cli
-python3 tools/gen_connections.py # CONNECTIONS.md
-python3 tools/gen_pcb.py         # brain-drain.kicad_pcb: outline, holes, placed footprints with nets
-python3 tools/check_place.py     # every courtyard inside the outline, no clashes (-v lists positions)
-python3 tools/route.py prepare   # net classes (written into brain-drain.kicad_pro, which is where KiCad keeps them),
-                                 # diff-pair rules, copper zones, CM5 hole and antenna keep-outs (zones only on a fresh board)
-python3 tools/route.py fanout    # via + stub next to every SMD pad on a plane net (small parts only)
-python3 tools/route.py dsn       # Specctra DSN -> routing/ (full, and lite = no diff pairs / bay nets)
-java -Djava.awt.headless=true -jar tools/freerouting/freerouting-2.1.0.jar -de routing/brain-drain-lite.dsn -do routing/brain-drain-lite.ses -mp 8 -oit 2
-                                 # (or `route.py all` which runs the whole chain); -oit 2 stops the optimizer looping forever
-python3 tools/route.py import    # session back into the board; anything crossing a keep-out stripped; zones filled
-# staged flow used for the v2 board (each stage locks what exists and routes on top of it):
-python3 tools/route.py fanout-big && python3 tools/route.py fanout-conn   # exposed-pad vias, connector-row vias
-python3 tools/route.py stage1    # signal nets            (2.1.0, ~12 min)
-python3 tools/route.py stage2    # planes, rails, bays    (2.1.0, ~3.5 h: it stops only at pass 999)
-BD_ROUTER=2.4.1 BD_PASSES=12 python3 tools/route.py stage3   # pairs, bounded run on Java 25 (~45 min)
-python3 tools/route.py drc-clean # remove any copper the router left in violation
-python3 tools/open_report.py     # routing/open.md; pairs: python3 tools/route.py pairs -> routing/pairs.md
-python3 tools/fpgen.py           # project footprints from vendor drawings
-sh tools/render_board.sh         # renders/board-top.png, board-inner.png, board-3d-{top,bottom,iso}.png, schematic PDF + PNGs
-sh tools/export_fab.sh           # fab/<date>/: gerbers + drill zip, placement CSV, BOM CSV, assembly PDFs (order pack)
-kicad-cli pcb drc --format json --severity-all -o routing/drc.json brain-drain.kicad_pcb
+python3 tools/symgen.py                               # lib/brain-drain.kicad_sym (symbols, incl. the bay slot and the P-FETs)
+python3 tools/fpgen.py                                # lib/brain-drain.pretty (PCIe slot, SATA receptacle, DIN, TPS56637)
+BD_PROJECT=brain python3 tools/gen_sch.py             # schematic files + ERC     (repeat with BD_PROJECT=card)
+BD_PROJECT=brain sh tools/route_full.sh               # gen_pcb, rules and planes, fanout, pairs first (stage 0), signals, planes,
+                                                      # gap router, tuner, pair fixer, via clean-up, reports, renders
+tail -f routing/chain.log                             # progress (bay-card/routing/chain.log for the card)
 ```
 
-Open `hardware/brain-drain.kicad_pro` in KiCad 9 to inspect or tidy. Hand
-placement survives regeneration if written to `tools/placement.json`. Check the
-DSN before a long router run: its `(rule` block must say `clearance 150` and
-the `(class` list must have four classes; a DSN exported without the project's
-net classes carries KiCad's 0.2 mm default, which makes every 0.4 mm-pitch pad
-a violation and the router routes nothing. Freerouting reads its own limits from
-`/tmp/freerouting/freerouting.json` (`router.max_passes`, default 9999): the run
-ends when the optimizer gives up, which took about 12 minutes here.
+The log ends with the open-connection and pair counts; the results are in `routing/open.md`, `routing/pairs.md` and `routing/drc.json`.
+**Regenerating overwrites the board.** Once a designer edits a board in KiCad, keep that copy and do not run `route_full.sh` on it.
+
+**The individual steps** (each is one `python3 tools/route.py <command>` in `hardware/`):
+
+| Command | Does |
+|---|---|
+| `python3 tools/gen_pcb.py`, `check_place.py` | placement, courtyard and outline check (`-v` lists positions) |
+| `route.py prepare` | net classes into the `.kicad_pro`, pair rules, zones (fresh board only), CM5 hole and antenna keep-outs |
+| `route.py fanout`, `fanout-big`, `fanout-conn`, `fanout-qfn`, `fanout-qfn-rip` | plane and supply vias for small parts, exposed pads, connector rows, 0.4 mm QFN pins |
+| `route.py stage0` (pairs alone, first), `stage1` (signals), `stage2` (planes, rails, bays) | freerouting stages; each locks what exists (`BD_PAIRS_FIRST=1`, `BD_ROUTER=2.4.1 BD_PASSES=12` for the bounded router) |
+| `route.py drc-clean` | removes copper the router left in violation, widens slivers |
+| `route.py close-gaps`, `close-gaps-pairs` | our grid router for what is left; `BD_RES=0.05 BD_MARGIN=0.2 BD_ONLY=net,net` for a tight pin |
+| `route.py tune` | meanders the shorter side of every pair, end to end across the series caps; `sh tools/fix_pairs.sh` retries stubborn pairs |
+| `route.py via-clean` | removes overlapping and dangling vias when connectivity is unchanged |
+| `python3 tools/open_report.py`, `route.py pairs` | `routing/open.md`, `routing/pairs.md` |
+| `sh tools/render_board.sh` | KiCad 3D views, per-layer PNGs in `renders/layers/`, schematic PDF and PNGs |
+| `python3 tools/gen_bom.py` | BOM of both boards: `bom/*.csv` and `docs/BOM.md` |
+| `python3 tools/make_review_pack.py` | `hardware/review/`: rules, stack-up, planes, keep-outs, routing statistics, DRC / ERC, footprint provenance, netlists, placement CSV |
+| `sh tools/export_fab.sh` | `fab/<date>/`: gerbers and drill zip, placement CSV, BOM, assembly PDFs (order pack, gitignored) |
+| `kicad-cli pcb drc --format json --severity-all -o routing/drc.json brain-drain.kicad_pcb` | the DRC report used everywhere |
+
+Open `hardware/brain-drain.kicad_pro` (or `hardware/bay-card/bay-card.kicad_pro`) in KiCad 9 to inspect or edit. Before any routing run, check the
+DSN: its `(rule` block must say `clearance 150` and the `(class` list must have the project's classes; a DSN exported without the project's net
+classes carries KiCad's 0.2 mm default, which makes every 0.4 mm-pitch pad a violation and the router routes nothing. Freerouting 2.1.0 ignores its
+pass limit and stops only when its board history is exhausted; the scripts allow for that. After heavy edits pcbnew's Python proxies break, so the
+tools run each edit step in a fresh process. Details of the tool set: [LAYOUT-REVIEW.md](LAYOUT-REVIEW.md) section 6.
 
 ## The phone page and Wi-Fi
 
@@ -117,15 +120,18 @@ the wireless backend is a file in the sim directory.
 
 ```
 cd enclosure
-make            # board.scad from the board file, then stl/{tray,lid,bezel}.stl
-make renders    # scene STLs (closed unit with four loose drives and cables, lid open) and renders/*.png (no display needed)
+make            # board.scad from the board file (x mirrored, see ARCHITECTURE 5), then stl/{tray,lid,bezel}.stl
+make renders    # scene STLs, then every image of the case, the electronics inside it and the complete system into docs/img/renders/
 ```
 
-Edit `params.scad` for print parameters; never edit `board.scad`.
+Edit `params.scad` for print parameters; never edit `board.scad`. `python3 enclosure/tools/gallery.py [boards|electronics|case|unit|all]` renders one set;
+it needs pcbnew, numpy and Pillow (no display). The 3D proxy model of the boards is `hardware/tools/board_model.py`.
 
 ## Documentation images
 
 ```
-software/.venv/bin/python docs/tools/diagrams.py        # system-block, rear/right panels, bay-flow (SVG + PNG)
+software/.venv/bin/python docs/tools/diagrams.py        # system block, lid plan, wall panel, bay flow (SVG + PNG)
 software/.venv/bin/python software/tools/oled_mockup.py docs/img
+python3 enclosure/tools/gallery.py all                   # docs/img/renders/*.png
+python3 hardware/tools/make_review_pack.py               # hardware/review/
 ```

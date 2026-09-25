@@ -1,13 +1,17 @@
-# brain-drain — Architecture
+# brain-drain: architecture
 
-Standalone, headless, four-bay disk sanitizer built on a Raspberry Pi Compute Module 5. Set the wipe policy on a DIP switch,
-plug a drive into any bay and it is wiped as soon as it is ready; the OLED
-shows per-bay progress; unplugging a drive aborts it; each finished drive
-gets a sanitization certificate. No buttons, no menus. Wipe methods follow
-NIST SP 800-88 Rev. 2.
+Standalone, headless disk sanitizer built on a Raspberry Pi Compute Module 5. A brain board carries the compute, two USB 3
+hubs, eight bay slots, an M.2 socket and the user interface; a small bay card plugs into a slot for each SATA drive (four cards
+in version 1, up to eight). Set the wipe policy on a DIP switch, plug a drive into a bay and it is wiped as soon as it is
+ready; the OLED shows per-bay progress; unplugging a drive aborts it; each finished drive gets a sanitization certificate.
+A Wi-Fi access point with a QR code on the OLED gives a phone the status page, the certificates and the network setup.
+No buttons, no menus. Wipe methods follow NIST SP 800-88 Rev. 2.
 
-Status: **v0 design, nothing built yet.** This document is the source of truth for
-all three workstreams; change it before changing the hardware.
+Status: **design complete enough for layout review, nothing fabricated.** Both boards are routed with 0 DRC errors in KiCad
+(see [STATUS.md](STATUS.md) and [LAYOUT-REVIEW.md](LAYOUT-REVIEW.md) for the caveats). This document is the source of truth
+for intent; change it before changing the hardware. The hardware sources are generated (`hardware/tools/`), never hand-edited.
+
+![system](img/renders/system-iso.png)
 
 ---
 
@@ -15,275 +19,203 @@ all three workstreams; change it before changing the hardware.
 
 | In scope | Out of scope (for v1) |
 |---|---|
-| 4× SATA HDD/SSD (3.5" and 2.5") over USB-SATA bridges | Direct NVMe bays (see §3.3 for the path to add one) |
-| NIST 800-88 Rev. 2 Clear and Purge for ATA media | Physical destruction, degaussing |
-| Overwrite (host-side) and firmware Sanitize / Security Erase | Wiping the CM5's own boot medium (explicitly forbidden) |
-| Per-drive progress/ETA on a small OLED | Touchscreen, web UI (a read-only status page is a cheap later add) |
-| JSON certificate per drive, optional network push | Signed/PKI certificates |
-| Staggered spin-up, per-bay power control | Hot-swap backplane / drive caddies |
+| Up to eight SATA HDD/SSD bays (3.5" and 2.5") on plug-in bay cards, four cards fitted | Physical destruction, degaussing |
+| One M.2 NVMe bay (bay 9), PCIe Gen3 x1, under the lid | Wiping the CM5's own boot medium (explicitly forbidden) |
+| NIST 800-88 Rev. 2 Clear and Purge for ATA and NVMe media | Signed / PKI certificates |
+| Overwrite (host-side) and firmware Sanitize / Security Erase | Ethernet, buzzer, fan (header only), touchscreen |
+| Per-drive progress and ETA on a 128 x 64 OLED | Hot-swap backplane, drive caddies, a rack |
+| Wi-Fi access point, QR code, phone page with certificates and network setup | Cloud services |
+| JSON certificate per drive, optional push | Drive power beyond 120 W with four cards (see 3.5) |
+| Staggered spin-up, per-bay power control | |
 
 ## 2. System overview
 
 ```
-                 12 V DC in ──► protection ──┬──► 5V_SYS buck ──► CM5, hubs, bridges, UI
-                                            ├──► 5V_HDD buck ──► bay switches ──┐
-                                            ├──► 3V3 buck    ──► hubs, bridges  │
-                                            └──► 12V_HDD     ──► bay switches ──┤
-                                                                                │
-   ┌──────────────┐  USB 3.0 #0  ┌─────────────┐  USB 3.0 ×2  ┌──────────────┐ │  SATA 22-pin
-   │ RPi CM5      │◄────────────►│ USB5744  A  │◄────────────►│ ASM1153E ×2  │◄┼──► pigtail ──► bays 1, 2
-   │ (eMMC/Lite,  │  USB 3.0 #1  ├─────────────┤  USB 3.0 ×2  ├──────────────┤ │  (data + 5 V + 12 V)
-   │  GbE, RTC)   │◄────────────►│ USB5744  B  │◄────────────►│ ASM1153E ×2  │◄┼──► pigtail ──► bays 3, 4
-   └──┬───┬───┬─┬─┘              └─────────────┘              └──────────────┘ │
-      │   │   │ └── PCIe Gen3 x1 ──► (free; optional M.2 NVMe bay, see D10)    │
-      │   │   └── GPIO ×4 BAY_EN ──► per-bay 12 V / 5 V P-FET switches ────────┘
-      │   └────── GPIO ×8 DIP, ×1 LED
-      └────────── I2C1 ──► SSD1306 OLED
+   12 V brick ──DIN──► fuse, TVS, reverse-polarity FET ──┬─► U20 buck 5V_SYS ──► CM5, hubs, OLED, DIP
+                                                           ├─► U21 buck 5V_HDD ──► slots (5 V per bay)
+                                                           ├─► U22 buck 3V3    ──► hubs, IO, U3 (1.2 V LDO for the hubs)
+                                                           ├─► U51 buck 3V3_M2 ─► U50 switch ─► M.2 socket
+                                                           └─► +12V ────────────► slots (12 V per bay)
+
+   Raspberry Pi CM5 (wireless, 2 GB / 16 GB eMMC)
+      ├── USB 3.0 port 0 ──► U1 USB5744 hub A ── 4 downstream ports ──► slots 1-4 ┐
+      ├── USB 3.0 port 1 ──► U2 USB5744 hub B ── 4 downstream ports ──► slots 5-8 ┤  per slot (PCIe x1-style socket,
+      ├── PCIe Gen3 x1 ───► J50 M.2 M-key socket (bay 9, SSD lies under the lid)   │   custom pinout): USB 3 + USB 2 pairs,
+      ├── GPIO BAY_EN 1-8 ─► slot pin B5 ─► bay-card power switch                  │   12 V, 5 V, GND, BAY_EN, LED_K
+      ├── GPIO DIP x8, status LED, M2_DOOR, M2_PWR_EN                              ┘
+      ├── I2C1 ──► OLED (SSD1306 / SH1106), Wi-Fi AP + phone page (nmcli, QR on the OLED)
+      └── USB 2.0 ──► USB-C (rpiboot, spare host), microSD (CM5 Lite boot)
+
+   Bay card (one per drive):  slot fingers ─► ASM1153E USB 3 to SATA bridge ─► SATA 22-pin receptacle ─► 0.5 m cable ─► drive
+                              slot 12 V / 5 V ─► two P-FET switches + PTC fuses, enabled by BAY_EN ─► receptacle power pins
 ```
 
-Everything except the drives lives on one carrier board (the brain, six layers) and the bay cards (four layers) inside a printed
-box about 157 × 105 × 39 mm (C21). The box, its 12 V brick and four cables travel
-in a backpack; drives lie loose on the bench and connect with 0.5 m 22-pin SATA
-(7 data + 15 power) extension cables. There is no rack, dock or chassis.
+The brain board (six layers, 150 x 122 mm) and the bay cards (four layers, 45 x 46 mm) sit in a printed box about
+157 x 145 x 62 mm. The box, its 12 V brick and the 22-pin cables travel in a backpack; the drives lie loose on the bench and
+connect with off-the-shelf 0.5 m SATA extension cables that rise through windows in the lid. There is no rack, dock or chassis.
 
-## 3. Workstream 1 — Carrier board (KiCad)
+![electronics](img/renders/electronics-iso.png)
+
+## 3. Workstream 1: the boards (KiCad)
 
 ### 3.1 Compute: Raspberry Pi Compute Module 5
 
-* **Variant:** CM5002016 (no wireless, 2 GB RAM, 16 GB eMMC) for production
-  units. The service needs well under 1 GB, so 2 GB is the right size. Wireless
-  is not wanted on a sanitization appliance.
-* **Lite works on the same carrier.** A microSD socket is fitted and wired to the
-  CM5's SD pins; Lite variants (CM5002000) boot from it, eMMC variants ignore it.
-  Use Lite for development boards and eMMC for units that run 20-hour jobs.
-  The boot order is pinned to eMMC/SD only, never USB or NVMe, so a drive in a
-  bay can never become the boot medium.
-* **Connectors:** 2× Hirose DF40C-100DS-0.4V(51), same footprint as CM4.
-* **Interfaces used:** 2× native USB 3.0 (RP1) for the drive hubs, USB 2.0 (to
-  USB-C for `rpiboot` eMMC flashing and as a spare host port), GbE (RJ45 magjack,
-  for NTP, SSH and certificate push), I2C1, UART0 (debug header), 20 GPIO,
-  on-module RTC with backup-battery pin. PCIe Gen3 x1 is left free (see D10).
-  HDMI is not populated.
-* **CM4 fallback:** the carrier is electrically CM4-compatible except that a CM4
-  has no USB 3 on those pins, so bays would not enumerate. Do not plan on it.
-* **Thermal:** CM5 runs hotter than CM4. The official CM5 cooler or an
-  equivalent heatsink plus the fan header is required, not optional.
-* **nRPIBOOT** jumper next to the USB-C port.
+* **Variant:** CM5 with wireless, 2 GB RAM, 16 GB eMMC (SKU CM5102016; the schematic's value field still reads CM5002016 and is
+  corrected at the next regeneration, confirm the SKU when ordering). The service needs well under 1 GB.
+* **Lite works on the same board.** A microSD socket is wired to the CM5's SD pins; Lite variants boot from it, eMMC variants
+  ignore it. The boot order is pinned to eMMC / SD only, never USB or NVMe, so a drive in a bay can never become the boot medium.
+* **Connectors:** 2 x Hirose DF40C-100DS-0.4V(51), 0.4 mm pitch, on the brain's right edge. The wireless module's PCB antenna is
+  on the short edge that carries mounting hole MH1; that edge sits on the board's right edge with an 8 mm copper-free strip on
+  every layer and no metal within 10 mm (CM5 datasheet 4.1.2). The rule area `keepout_CM5_antenna` enforces it.
+* **Interfaces used:** two native USB 3.0 ports (from RP1) for the hubs, USB 2.0 to the USB-C port, PCIe Gen3 x1 to the M.2 socket,
+  I2C1, UART0 (debug header), 20 GPIO, SD, the on-module RTC (CR2032 holder on the battery pin). Ethernet and HDMI are not used.
+* **Thermal:** a passive CM5 cooler under a convection grille in the lid; a 4-pin fan header is kept for a summer bench (C23).
+* **nRPIBOOT** jumper (J6) and a UART header (J7) sit on the bottom side under the CM5.
 
-### 3.2 USB topology (decision D1, closed)
+### 3.2 USB topology (decision D1, closed; C11, C24)
 
-The CM5 has **two native USB 3.0 ports** (5 Gbit/s each, via the RP1 I/O
-controller) plus a PCIe Gen3 x1 lane. The CM4 had neither USB 3 port, which is
-why an earlier draft needed a PCIe xHCI controller; that is gone.
-
-Chosen topology: **one Microchip USB5744 hub per native USB 3.0 port, two
-ASM1153E bridges per hub** (decisions C11, C12). The USB5744 was chosen over the
-originally specified VL817 because it has the same 4-port 5 Gbit/s spec and a
-fully public datasheet; the VL817's is only available on request.
+One Microchip **USB5744** hub per native USB 3.0 port. Each hub has four downstream ports and all four are used:
+hub A (U1) feeds slots 1-4, hub B (U2) slots 5-8. Each USB5744 has its own 25 MHz crystal and needs 3.3 V plus an external 1.2 V
+core rail (one AP2112K-1.2 LDO, U3, serves both). Port power enables and overcurrent pins are unused: bay power is switched on the
+drive rails, on the card. Configuration is by strap pins, no SPI ROM.
 
 | Link | Practical rate | Shared by |
 |---|---|---|
-| CM5 USB 3.0 port → USB5744 | ~400 MB/s | two bays |
-| USB5744 → ASM1153E, per port | ~400 MB/s | one bay |
-| RP1 upstream to the SoC (PCIe Gen2 x4) | ~1.4 GB/s | both ports, Ethernet |
-| ASM1153E → drive (SATA III) | ~550 MB/s | one bay |
-| A 3.5" HDD | 100–200 MB/s, ~150 average | — |
+| CM5 USB 3.0 port to hub | about 400 MB/s | up to four bays |
+| Hub port to bridge (ASM1153E on the card) | about 400 MB/s | one bay |
+| ASM1153E to drive (SATA III) | about 550 MB/s | one bay |
+| A 3.5" HDD | 100-200 MB/s, about 150 average | |
 
-Two HDDs per hub want at most ~400 MB/s together, so **all four bays run at
-native drive speed** in host-overwrite mode. Aggregate ~800 MB/s.
+Four drives on **one** hub share about 400 MB/s, roughly 100 MB/s each, below a modern HDD's speed. **Populate slots 1, 2, 5 and 6**
+instead of 1-4 to give each pair of drives its own 5 Gb/s link; the software identifies a bay by its USB port path (`config.py`),
+so nothing else changes. With eight bays busy every drive sees about 100 MB/s.
 
-Why not the alternatives:
+### 3.3 The bay card (C24, C27)
 
-* *Native ports direct to bays 1–2 plus a VL805 on PCIe for bays 3–4:* more
-  bandwidth on paper (~1.1 GB/s) but never used by HDDs, adds a PCIe device that
-  needs firmware loading and Gen2 routing, and spends the PCIe lane.
-* *One hub on one port for all four bays:* ~100 MB/s per bay under load, and
-  the second native port idle. Cheaper by one hub, slower by ~1.5×.
+One 45 x 46 mm four-layer board per bay, one design for every slot:
 
-Each USB5744 has its own 25 MHz crystal and needs 3.3 V plus an external
-1.2 V core rail (one shared LDO serves both hubs). Its per-port power-enable and
-overcurrent pins are left unused since bay power is switched on the drive rails
-(§3.6), not the USB side. Bridges are always powered. Configuration is by strap
-pins; no SPI ROM.
+* **ASM1153E** (ASMedia, QFN-48) USB 3.0 to SATA 6G bridge with SAT passthrough, which makes SANITIZE / SECURITY ERASE possible over USB.
+  30 MHz crystal (default strap, no strap resistors), 4.7 uH core inductor, SATA AC-coupling caps. ASM1153E runs from 5 V alone.
+* **Power switch:** two AON7403 P-MOSFETs (12 V and 5 V, -30 V, DFN 3x3) driven through 2N7002s from `BAY_EN`, with a gate RC for
+  about 1 ms of soft start and 100 k pull-ups that keep the bay off; a 10 k pull-down on `BAY_EN` keeps an empty or half-inserted
+  slot off. PTC fuses: 3 A hold on 12 V, 2 A hold on 5 V.
+* **Receptacle:** Molex 47018-4001, SATA 22-pin (7 data + 15 power) host receptacle, top-mount PCB-edge type, centred on the
+  card's top edge; the cable leaves upward. It is 40.46 mm wide, which sets the card width. P3 (PWDIS) and P11 (staggered spin-up)
+  are not connected.
+* **Fingers:** KiCad's stock `BUS_PCIexpress_x1` pattern with its own tab outline and key notch, ENIG. The contacts are not PCIe:
+  the pinout below is our own.
+* **Bay LED** stays on the brain (in front of the slot); the bridge's LED pin sinks it through finger B6 (`LED_K`).
 
-### 3.3 USB→SATA bridges
+| Finger | Signal | Finger | Signal |
+|---|---|---|---|
+| A1, A2 | +12V | B1, B2, B3 | +12V |
+| A3, A4, A7, A10-A13, A16-A18 | GND | B4, B7, B11, B14, B17, B18 | GND |
+| A5, A6 | not connected | B5 | BAY_EN (in, from the brain) |
+| A8, A9 | 5V (5V_HDD) | B6 | LED_K (bridge LED output, sunk on the brain) |
+| A14, A15 | USB3_TX_N, USB3_TX_P (hub to bridge) | B8, B9, B10 | 5V (5V_HDD) |
+| | | B12, B13 | USB2_DM, USB2_DP |
+| | | B15, B16 | USB3_RX_N, USB3_RX_P (bridge to hub) |
 
-* **ASMedia ASM1153E** ×4, one per bay. Chosen for reliable SCSI-ATA Translation
-  (ATA PASS-THROUGH 12/16), UASP, and support for SANITIZE / SECURITY ERASE
-  passthrough, which is what makes firmware wipes possible over USB.
-* Each bridge has its own 25 MHz crystal, LED output (routed to a front-panel bay
-  LED), and SATA AC-coupling caps.
-* Alternate: ASM235CM (newer, USB 3.2 Gen2, also SAT-capable) if ASM1153E stock
-  is poor. Pin-incompatible; decide before layout.
-* **NVMe, bay 5 (decision C15, populated in v1):** the CM5's PCIe Gen3 x1
-  lane feeds an M.2 M-key slot with its own switched 3V3 rail, giving native
-  NVMe wipes (`nvme sanitize`, `nvme format --ses`). PCIe is not hot-plug: the
-  service keeps the slot unpowered while idle, and a job is started by closing
-  the access door (a microswitch on a spare GPIO), which powers the slot,
-  rescans the PCIe bus, and treats the device that appears as bay 5. Opening the
-  door removes power and aborts. The boot order excludes NVMe. M.2 SATA (B+M
-  key) drives will not work in this slot and are reported as such.
-  USB-NVMe bridges (RTL9210 etc.) present as SCSI and cannot receive NVMe
-  Sanitize; they fall back to SCSI SANITIZE or overwrite.
+The pinout lives in `hardware/tools/symgen.py` (`SLOT_PINS`) and feeds both the card and the slot symbols. The connector is rated
+1.1 A per contact (TE/Amphenol PCI Express specification); five contacts per rail carry 5.5 A per bay.
 
-### 3.4 Bay cards, slots and drive cables (C24)
+### 3.4 Slots, drive cables and the M.2 bay
 
-* The bays are **cards**: one 45 × 46 mm board per bay carrying the ASM1153E
-  bridge, its crystal and passives, the switched 12 V / 5 V block with PTC fuses,
-  and the 22-pin SATA receptacle on its top edge. Its bottom edge is a PCI
-  Express x1 finger pattern (KiCad's stock footprint) that plugs into one of
-  eight sockets on the brain. Pinout (symgen `SLOT_PINS`): one USB 3 TX pair,
-  one RX pair, USB 2 D+/D−, five 12 V contacts, five 5 V contacts, sixteen
-  grounds, BAY_EN, LED cathode, two spares. Not PCIe signalling.
-* The brain has eight slots at 14.5 mm pitch behind the rear edge; hub A's four
-  downstream ports are slots 1–4, hub B's are 5–8. v1 populates four cards;
-  the other slots are empty until a bigger brick is fitted.
-* The card stands vertically, its plane front-to-back, so the receptacle on its
-  top edge points up: the drive cable rises through a window in the lid at the
-  rear and bends back to the drive. A 22-pin plug is 9 mm thick, so eight plugs
-  fit side by side at the slot pitch.
-* Bay LEDs sit on the brain (lid) and are sunk by the card's bridge LED pin
-  through the edge connector; BAY_EN comes from a CM5 GPIO through the edge to
-  the card's gate drivers, with the pull-down on the card so an empty or
-  half-inserted slot is off.
-
-### 3.4a Drive connectors and pigtails
-
-* Card side: one **SATA 22-pin (7+15) right-angle receptacle** per bay card, on
-  the card's top edge.
-* Pigtail: off-the-shelf **22-pin male-to-female SATA extension, 0.5 m**. No
-  custom cable. The drive end plugs straight onto the drive.
-* Pin 11 of the 15-pin power segment (staggered-spin-up / activity) is left
-  floating so drives spin up on power, which the board controls itself (§3.6).
-* Bays are numbered 1–4 left to right, and the software maps each bay to a
-  fixed USB port path (§4.3), so bay numbers on the OLED match the silkscreen.
+* **Slots:** eight Amphenol FCI 10018783-10100TLF PCI Express x1 vertical through-hole sockets (36 contacts, 1.0 mm pitch, board
+  locks/pegs) at 14.5 mm pitch along the brain's rear edge. The footprint follows the Amphenol customer drawing 10018784: four rows
+  of 0.70 mm holes at 2.0 mm pitch, pegs at 11.65 and 20.80 mm. The cards stand vertically, plane front to back, with the receptacle
+  facing the next slot; the 45 mm card overhangs the board's rear edge by 15 mm (C27), which keeps the bay LEDs in front of the slots visible.
+* **Drive cables:** off-the-shelf 22-pin male-to-female SATA extensions, 0.5 m; the drive end plugs straight onto a bare drive.
+  The cable rises through a window in the lid over each receptacle.
+* **M.2 (bay 9, C15):** TE 2199230-4 M-key socket at the front left, PCIe Gen3 x1 from the CM5 (REFCLK pair, PERST#, CLKREQ#),
+  3V3_M2 from a dedicated AP63203 buck (U51) through a TPS22965 load switch (U50) enabled by GPIO. The module lies under the lid
+  along the front; the lid hinge with a microswitch (SW3) is the "door": closing it powers the slot and rescans the PCIe bus.
+  M.2 SATA (B+M key) modules are refused. USB-NVMe bridges present as SCSI and fall back to SCSI SANITIZE or overwrite.
 
 ### 3.5 Power tree and budget
 
-Input: **12 V DC**, single rail. Everything else is derived on-board.
+Input: **12 V DC**, one rail; everything else is derived on the brain. Input connector J21: Kycon KPJX-4S-S 4-pin DIN, 7.5 A per
+pin with two pins per polarity (barrel jacks were dropped at 5 A). The brick is chosen before layout is frozen because DIN pin
+assignments differ between vendors (STATUS R3).
 
-| Rail | Source | Loads | Typical | Peak (staggered) | Peak (worst, all spin-up) |
-|---|---|---|---|---|---|
-| 12V_HDD | input, via per-bay switch | 4× HDD 12 V | 4×0.8 = 3.2 A | 2.0 + 3×0.8 = 4.4 A | 4×2.0 = 8.0 A |
-| 5V_SYS | TPS56637 buck | CM5 (≤3.0 A), 2× USB5744 (0.4 A), 4× ASM1153E (0.4 A), UI (0.1 A) | 2.0 A | 3.8 A | 3.8 A |
-| 5V_HDD | TPS56637 buck, via per-bay switch | 4× HDD 5 V | 4×0.6 = 2.4 A | 1.0 + 3×0.6 = 2.8 A | 4×1.0 = 4.0 A |
-| 3V3 | AP63203 buck | hubs, bridges' IO, OLED | 0.6 A | 1.0 A | 1.0 A |
-| 12 V input total | | 12V_HDD + (5 V loads / 0.92 eff / 12 V) | ≈ 5.3 A | ≈ 7.4 A | ≈ 11.5 A |
+| Rail | Source | Loads | Notes |
+|---|---|---|---|
+| +12V | input after F1 (10 A slow), D20 (SMBJ15A), Q20 (AO4407A reverse-polarity FET), 2 x 680 uF bulk | the slots' 12 V pins | per-bay switch on the card |
+| 5V_SYS | U20 TPS56637 (6 A) | CM5 (up to 3 A), 2 hubs, OLED, DIP, U22 | keeps drive spin-up ripple off the CM5 rail |
+| 5V_HDD | U21 TPS56637 (6 A) | the slots' 5 V pins | per-bay switch on the card |
+| 3V3 | U22 AP63203 (2 A) | hubs, IO, U3 | |
+| 1V2 | U3 AP2112K-1.2 | both hubs' core | |
+| 3V3_M2 | U51 AP63203, switched by U50 | M.2 socket | slot power is off while idle |
 
-Design conclusions:
+Budget, four drives: 12 V about 3.2 A typical, 4.4 A staggered peak; 5 V drives about 2.4 A typical, 2.8 A peak; the 12 V input
+is about 5.3 A typical and 7.4 A staggered peak (11.5 A if all four spun up together, which the software never does). The 120 W brick,
+the 10 A fuse and the DIN rating cover four bays. **Eight simultaneous drives need about 9.5 A typical and 11.7 A at a staggered peak:
+a 150-180 W brick, a larger input fuse, two parallel DIN pins for 12 V and heavier bulk capacitors, and 5V_HDD at 6 A is at its limit
+for eight drives.** Do not fit eight cards before those are revisited (STATUS R23).
 
-1. **Staggered spin-up is mandatory**, not optional: it is the difference between
-   a 7 A and an 11.5 A input. The software never enables two bays within 4 s of
-   each other.
-2. **Supply:** 12 V / 10 A (120 W) desktop brick.
-3. **Input connector (C13):** 4-pin DIN, Kycon KPJX-4S-S, 7.5 A per pin with
-   two pins per polarity. Barrel jacks, including Kycon's "high-current" KLDHCX,
-   are rated 5 A and were dropped. The brick is chosen before layout and the
-   DIN pins are wired to match it, because DIN pin assignments differ between
-   brick vendors.
-4. **Input protection:** 10 A SMD fuse, SMBJ15A TVS, P-FET reverse-polarity
-   protection (a Schottky would burn ~4 W at 8 A), 2× 680 µF 25 V low-ESR bulk
-   near the SATA power pins for spin-up transients.
-5. **Two separate 5 V bucks** so HDD spin-up ripple stays off the CM5 rail. The
-   same TPS56637 (4.5–28 V in, 6 A) is used for both to keep one part number.
-   Raspberry Pi specifies a 5 A-capable 5 V supply for CM5; 5V_SYS carries the
-   CM5 plus ~0.8 A of hubs, bridges and UI, so the 6 A buck has ~1.4 A margin.
-   If the M.2 bay (D10) is populated, move it to 5V_HDD.
-6. The USB5744 1.2 V core rail and any ASM1153E core rail come from small LDOs off
-   3V3 per the vendor reference designs (verify against the datasheets; both parts
-   are documented mainly through reference schematics).
+Staggered spin-up is mandatory: the software never enables two bays within 4 s of each other.
 
-### 3.6 Per-bay power switching (staggered spin-up)
+### 3.6 Per-bay power switching
 
-Each bay's 12 V and 5 V are switched by a logic-level P-MOSFET (−30 V, ≥6 A,
-≤30 mΩ, DFN 3×3) driven through a 2N7002 from one CM5 GPIO (`BAY_EN[n]`),
-with an RC on the gate for ~5 ms soft-start so the drive's bulk caps don't trip
-the upstream fuse. A 10 kΩ pull-down on each `BAY_EN` keeps all bays **off** during
-boot and while the service is not running.
-
-Per-bay 1812 PTC resettable fuses (3 A hold on 12 V, 2 A hold on 5 V) catch a
-shorted drive. An alternate footprint for a TPS25982 eFuse is documented but not
-in the v1 BOM.
-
-Per-bay power control also gives the software two things it needs anyway:
-
-* **Un-freezing** a drive whose SECURITY/SANITIZE state is frozen (power cycle the
-  bay, not the whole unit).
-* **Resetting** a hung bridge without disturbing the other three wipes.
-
-Optional (DNP): INA3221 current monitors on 12V_HDD to detect spin-up completion
-and drive presence electrically. v1 detects presence through USB enumeration.
+On each card, `BAY_EN` (from a CM5 GPIO, active high) turns on both P-FETs through the 2N7002 gate drivers. The gate RC gives about 1 ms
+of ramp so a drive's bulk capacitors do not trip the upstream fuse; the pull-down keeps everything off during boot. Per-bay
+resettable fuses catch a shorted drive. Power control also lets the software un-freeze a drive (cycle its bay) or reset a hung
+bridge without disturbing the others.
 
 ### 3.7 GPIO map (BCM numbering)
 
 | GPIO | Function | Direction | Notes |
 |---|---|---|---|
-| 2, 3 | I2C1 SDA/SCL | — | OLED (0x3C), optional INA3221, optional PCF85063 (0x51) |
-| 4 | M2_DOOR | in, pull-up | bay 5 access-door microswitch, closed = low |
-| 5, 6, 12, 13 | BAY_EN 1–4 | out | active high, 10 k pull-down |
-| 14, 15 | UART0 TX/RX | — | debug console header |
-| 16, 17, 20, 21, 22, 23, 24, 25 | DIP 1–8 | in, pull-up | ON = low |
-| 18 | (free) | — | buzzer removed (C23) |
-| 26 | STATUS_LED | out | green/red bicolour, front panel |
+| 2, 3 | I2C1 SDA / SCL | | OLED (0x3C) |
+| 4 | M2_DOOR | in, pull-up | lid microswitch, closed = low |
+| 5, 6, 12, 13 | BAY_EN 1-4 | out | active high, 10 k pull-down on each card |
+| 7, 8, 9, 10 | BAY_EN 5-8 | out | same |
+| 14, 15 | UART0 TX / RX | | debug header J7 |
+| 16, 17, 20, 21, 22, 23, 24, 25 | DIP 1-8 | in, pull-up | ON = low |
+| 26 | STATUS_LED | out | red status LED |
 | 27 | M2_PWR_EN | out | 3V3_M2 load switch enable, 10 k pull-down |
-| 0, 1 | reserved | — | ID EEPROM per Pi convention, not populated |
+| 18 | free | | buzzer removed (C23) |
+| 0, 1 | reserved | | ID EEPROM per Pi convention, not populated |
 
-Bay activity LEDs are driven directly by each ASM1153E's LED pin, not by GPIO.
+Bay activity LEDs are driven by each bridge's LED pin through the slot, not by GPIO.
 
-### 3.8 Front-panel UI
+### 3.8 User interface
 
-* **OLED:** 128×64 I2C, SSD1306 (0.96") or SH1106 (1.3"), on a 4-pin header so
-  either module fits. Eight text rows: header, four bay rows
-  (`B1 WD40EFRX 4.0T  OVW 42% 6h12m`), a footer with mode and unit status.
-  A 2.42" SSD1309 is a drop-in option for readability if the enclosure grows.
-* **DIP switch:** 8-way, through-hole, reachable through an enclosure slot.
-  Semantics in §4.5. This is the only control on the unit.
-* **LEDs (C14):** power, status (bicolour), 4× SATA bay activity, 1× M.2 bay
-  activity, all 3 mm through-hole standing through 3.2 mm holes in the lid.
-* **Buzzer:** completion chirp, error pattern.
+* **OLED:** 128 x 64 I2C (SSD1306 0.96" or SH1106 1.3") on a 4-pin header (J41), in a recess in the lid. Idle it shows the Wi-Fi QR
+  code, the key and the address; running, one row per bay in two columns when more than five bays are configured.
+* **DIP switch:** 8-way, through-hole, reachable through a lid slot. Semantics in 4.5. The only control on the unit.
+* **LEDs:** power (green), activity (green), status (red), eight bay LEDs (blue), M.2 (blue), all 3 mm through-hole standing in 3.2 mm lid holes.
 
 ### 3.9 Other on-board
 
-* **RTC:** the CM5 has an on-module RTC; the carrier provides a CR2032 holder on
-  the CM5 battery pin. Certificates need trustworthy timestamps off-network. A
-  PCF85063AT footprint stays on the I2C bus, unpopulated, as a fallback.
-* **Fan header:** 4-pin 5 V PWM (Pi fan pinout), driven from the CM5 fan
-  control. A fan is expected on CM5 during 20-hour jobs.
-* **M.2 M-key slot, bay 5 (C15):** PCIe Gen3 x1 from the CM5 (REFCLK pair,
-  PERST#, CLKREQ#, PCIE_PWR_EN), 3V3_M2 from a dedicated AP63203 buck through
-  a TPS22965 load switch enabled by GPIO, door microswitch input, activity LED
-  from the slot's LED pin (via a transistor, it is an open-drain sink).
-* **Test points** on every rail and each bay's BAY_EN.
+* **RTC:** the CM5's on-module RTC with a CR2032 holder (BT1) on the CM5 battery pin, so certificates carry trustworthy times off-network.
+* **Fan header** (J40): 4-pin 5 V PWM, optional.
+* **microSD** (J3), **USB-C** (J5, USB 2.0 only: rpiboot and a spare host port).
+* **Test points:** none placed yet; the layout engineer should add them on the rails and each `BAY_EN` (see LAYOUT-REVIEW.md).
 
-### 3.10 PCB
+### 3.10 PCBs
 
-* **Brain, 150 × 122 mm (v4, C24).** Eight PCIe x1 sockets along the rear edge
-  at 14.5 mm pitch, their bay LEDs right in front of them; the two hubs behind
-  their slots; the CM5 in landscape on the RIGHT edge with its antenna edge out
-  (8 mm copper-free strip, no metal within 10 mm, CM5 datasheet 4.1.2), turned
-  so its USB 3 / PCIe row faces the hubs; DIN 12 V, USB-C and microSD on the
-  LEFT wall; bucks and input block in the middle; the M.2 socket front-left with
-  the 2280 module lying along the front (its small passives under the SSD); DIP
-  switch and fan header front-right; CR2032 holder and service headers on the
-  bottom under the CM5. Each hub's ten bypass capacitors sit on the BOTTOM side in two rows around the chip (`gen_pcb.bottom_bypass`), so the top layer keeps its space for pin escapes; the pair coupling caps and crystal caps stay on top. Rules from the CM5IO reference (0.13 / 0.125 mm,
-  0.45/0.2 vias) plus 0.3/0.15 vias for the QFN supply pins (D8).
-* **Bay card, 45 × 46 mm (C24, widened by C27), same 4-layer stack-up.** Receptacle on the top
-  edge, bridge QFN behind its data pads, passives in the middle, switch block
-  above the finger tab. The finger footprint carries the tab outline and key.
-  Both boards come from the same generators (`BD_PROJECT=brain|card`) and go
-  through the same fanout and routing pipeline.
-* **Stack (brain, six layers, C26):** F.Cu signal / In1 GND plane / In2 signal / In3 signal / In4 power islands (5V_SYS, 5V_HDD, +12V, +3V3) / B.Cu signal with a GND pour, 1.6 mm, ENIG. The two inner signal layers give the pairs and the fine-pitch escapes routing room; In2 sits on the GND plane, In3 on the power layer. The bay card stays four layers (Sig / GND / PWR / Sig). Target the fab's standard controlled-impedance stack-up (JLC06161H-series for six layers, JLC04161H-7628 for the card); the pair widths below were set for the four-layer stack-up and must be recalculated with the fab's impedance calculator before ordering: 90 Ω differential for
-  USB 3 SS and SATA pairs, 85 Ω for the PCIe Gen3 pair to the M.2 slot. Length-match
-  within a pair to ±0.15 mm; USB 2.0 pairs to 90 Ω as well. Design rules are
-  the CM5IO reference's: 0.13 mm tracks, 0.125 mm clearance, 0.45/0.2 mm vias,
-  because nothing coarser escapes the 0.4 mm-pitch CM5 connector. Gen3 needs short,
-  clean routing from the DF40 to the M.2 slot; keep them adjacent.
-* **Fab:** JLCPCB or PCBWay, 5 pcs. USB5744 and ASM1153E are 0.4–0.5 mm QFN, and
-  the DF40 connectors are 0.4 mm pitch, so use the fab's assembly service for the
-  SMD side and hand-fit the through-hole connectors.
-* **KiCad 9**, hierarchical sheets: `cm5`, `usb3-hub` (×2 instances), `bridge`
-  (×4 instances), `power-input`, `power-bucks`, `bay-switch` (×4 instances),
-  `ui`, `io`, `m2-nvme`.
+Both boards come from `hardware/tools/` (netlist in `design.py`, placement in `gen_pcb.py`, routing pipeline in `route.py`), one
+KiCad project each: `hardware/brain-drain.*` and `hardware/bay-card/bay-card.*`.
+
+* **Brain, 150 x 122 mm, six layers:** F.Cu signal, In1 GND plane, In2 and In3 signal, In4 power islands (5V_SYS, 5V_HDD, +12V, +3V3),
+  B.Cu signal with a GND pour; 1.6 mm, ENIG. Eight slots along the rear edge with their bay LEDs in front; the two hubs behind their
+  slots; the CM5 in landscape on the right edge with its antenna out; DIN, USB-C and microSD on the left wall; bucks and input block in
+  the middle; the M.2 socket front left; DIP and fan header front right; CR2032 holder and service headers on the bottom under the CM5.
+  Each hub's ten bypass capacitors sit on the **bottom** side around the chip so the top layer keeps its space for pin escapes;
+  the coupling caps of each differential pair are placed side by side.
+* **Bay card, 45 x 46 mm, four layers:** F.Cu / GND / power / B.Cu, 1.6 mm, ENIG, receptacle on the top edge, bridge below it, the
+  switch block above the finger tab.
+* **Rules:** the Raspberry Pi CM5IO reference's 0.13 mm tracks, 0.125 mm clearance, 0.45/0.2 mm vias, because nothing coarser escapes
+  the 0.4 mm-pitch CM5 connector; 0.3/0.15 mm vias only for the 0.4 mm QFN supply pins (D8, confirm with the fab); power nets 0.3 mm tracks
+  with 0.6/0.3 vias. 90 ohm differential pairs (0.147 mm track, 0.253 mm gap, set for the four-layer stack-up) for USB 3, SATA and USB 2;
+  85 ohm for the PCIe pair to the M.2. **The pair geometry must be recalculated for the fab's six-layer stack-up before ordering.**
+  Pairs are length-matched end to end (across the series capacitors) to 0.15 mm.
+* **Fab:** JLCPCB or PCBWay with assembly; see [FABRICATION.md](FABRICATION.md). USB5744, ASM1153E and the DF40 connectors need the
+  assembler's SMT line.
+
+![brain](img/renders/brain-iso-rear.png)
+![card](img/renders/card-iso.png)
 
 ## 4. Workstream 2 — Sanitizer service (Python)
 
@@ -333,7 +265,7 @@ The single most important property of this software: **it must never touch the
 boot medium or any drive that is not in a bay.** Defence in depth:
 
 1. A drive is a candidate only if its sysfs path passes through the USB port path
-   assigned to a bay in `hal/bays.py` (e.g. `usb2/2-1/2-1.3` → bay 3) **and** the
+   assigned to a bay in `config.py` (e.g. `usb2/2-1/2-1.3` → bay 7) **and** the
    USB bridge VID:PID is on the allow-list (ASM1153E `174c:55aa` / `174c:1153`).
 2. The device's `major:minor` must not be, or be a parent of, anything mounted or
    holding the root/boot filesystem (checked via `findmnt` and `/proc/swaps`).
@@ -387,7 +319,7 @@ Method implementations:
   (DoD 5220.22-M ECE-style) kept for customers who insist. The certificate labels
   these as *exceeding* Clear, not as Purge.
 
-### 4.5 DIP switch semantics (v0 proposal)
+### 4.5 DIP switch semantics
 
 | DIP | ON | OFF (default) |
 |---|---|---|
@@ -416,7 +348,7 @@ IDLE ─(drive add)─► DETECTED (identity, SMART pre-check, grace countdown)
      ─(drive remove, from any state)─► IDLE
 ```
 
-Bay 5 (the M.2 slot) adds a slot state in front of this: the slot is unpowered
+Bay 9 (the M.2 slot) adds a slot state in front of this: the slot is unpowered
 until its door switch reads closed and PEDET reads PCIe; the service then
 powers the slot, waits one second, rescans the PCIe bus, and the NVMe device
 that appears enters the same IDLE → DETECTED → RUNNING flow as a USB bay. If
@@ -450,27 +382,26 @@ how the engine gets developed and tested on a workstation before the board
 exists. `pytest` covers policy selection, safety fence, progress math, report
 schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
 
-## 5. Workstream 3 — Enclosure
+## 5. Workstream 3: enclosure
 
-* **Tool:** OpenSCAD, everything driven from `enclosure/params.scad`. Connector
-  positions are generated from the KiCad PCB by a small script
-  (`enclosure/tools/kicad_to_scad.py`) so the shell tracks the board.
-* **Form (C21–C24):** a box about 157 × 145 × 62 mm (the bay cards stand
-  46 mm tall), bottom tray + a lid hinged
-  along the rear top edge (filament pin) with a snap latch at the front, so it
-  pops open for the M.2 SSD; a lid microswitch is the bay-5 "door". Board on
-  M2.5 heat-set inserts. Rear wall: 4× SATA 22-pin windows (the drive cables).
-  Right wall: DC input, USB-C, microSD. Left wall (antenna side) and front:
-  vent slots, no metal. Lid: OLED window with a recess for the module (on a
-  4-wire lead, over the SSD), 8-way DIP slot, 8× LED holes, convection grille
-  over the passive CM5 cooler. Floor: feet pockets. No button: the DIP switch is
-  the only control. Nothing carries the drives; they lie on the bench.
-* **Print:** PETG or ASA, 0.2 mm layers, no supports required by design
-  (chamfered overhangs, lid printed upside down).
-* **Refinements (`enclosure/refinements.scad`):** an OLED bezel that clamps the
-  module under the lid window, rubber-feet pockets. Renders of the parts, of the
-  unit on the bench with four loose drives, and of the lid open in
-  `enclosure/renders/`.
+* **Tool:** OpenSCAD, everything driven from `enclosure/params.scad`. Connector positions are generated from the KiCad PCB by
+  `enclosure/tools/kicad_to_scad.py` so the shell tracks the board. **The generated `board.scad` is mirrored in x** (measured from the
+  board's right edge): KiCad's top view is left-handed, OpenSCAD is right-handed, so a board that is seen from the front with x to the
+  right sits in the tray with x measured from the tray's x = max wall. The renders and the lid-plan diagram undo the mirror.
+* **Form (C21-C27):** a box about 157 x 145 x 62 mm: a tray and a lid hinged along the rear top edge (filament pin) with a snap latch at
+  the front, so it pops open for the M.2 SSD; the lid microswitch is the M.2 "door". The brain sits on M2.5 heat-set standoffs. The tray is
+  16 mm deeper behind the board than the board itself because the 45 mm bay cards overhang its rear edge (C27).
+  Left wall (as seen from the front): DIN 12 V, USB-C, microSD. Right wall: the CM5 antenna side, vents only, no metal. Rear and right:
+  vent slots. Lid: eight 11.8 x 43 mm windows over the cards' SATA receptacles (the drive cables rise through them), OLED window with a
+  recess for the module (on a 4-wire lead, over the SSD), DIP slot, twelve LED holes, convection grille over the CM5 cooler.
+  Floor: feet pockets. Nothing carries the drives; they lie on the bench.
+* **Height:** the socket is 11.25 mm tall and the card body stands 37.6 mm above it, so the card top edge is 48.9 mm above the board;
+  `above_board` is 50 mm and the plugs pass through the lid windows.
+* **Print:** PETG or ASA, 0.2 mm layers, no supports by design (lid printed upside down).
+* **Refinements** (`refinements.scad`): an OLED bezel that clamps the module under the lid window, rubber-feet pockets.
+* **Images:** `docs/img/renders/` (see [RENDERS.md](RENDERS.md)), generated by `enclosure/tools/gallery.py`.
+
+![open](img/renders/unit-open-front.png)
 
 ## 6. Cross-cutting
 
@@ -500,12 +431,12 @@ schema, and each method against fake `hdparm`/`nvme` subprocess outputs.
 
 ## 7. Open decisions
 
-See `docs/DECISIONS.md`. Closed: CM5, USB topology, module size, hub, bridge,
-input connector, LEDs, M.2 bay. Still open: OLED size (D5).
+See `docs/DECISIONS.md`. Closed: CM5, USB topology, hub, bridge, input connector, LEDs, M.2 bay, brain plus bay cards (C24),
+six layers (C26), card width (C27). Still open: OLED size (D5), option B with bridges in the cables (D6, parked).
 
 ## 8. Throughput expectations and build order
 
-With four bays at native drive speed (§3.2), a 4 TB HDD single-pass overwrite
+With four bays at native drive speed (§3.2; cards in slots 1, 2, 5 and 6), a 4 TB HDD single-pass overwrite
 takes ~7.5 h and a full read-back verify another ~7.5 h, and **four such drives
 in parallel take the same ~15 h**, not longer. Firmware Sanitize runs inside the
 drive at a similar rate with no bus load. SATA SSDs overwrite at ~400 MB/s per

@@ -1,63 +1,70 @@
 # Status
 
-Last updated 2026-09-23 (v2 outline, wireless). One line per workstream, then the remaining and
-blocked lists with stable ids (never reused).
+Last updated 2026-09-25. One line per workstream, then the remaining and blocked lists with stable ids (never reused).
+For the engineer taking over the boards, start with [LAYOUT-REVIEW.md](LAYOUT-REVIEW.md).
 
 | Workstream | State | Evidence |
 |---|---|---|
-| Design docs | complete for C24 (brain + bay cards); decisions C1–C24 closed, D5 (OLED size) and D6 (option B, bridges in the cables) open; fabrication vendors and cost estimate written | `ARCHITECTURE.md`, `DECISIONS.md`, `FABRICATION.md`, `decisions/2026-09-23-bay-cards.md` |
-| Schematic | two projects generated from one netlist source (`BD_PROJECT=brain|card`): brain **0 ERC errors**, bay card **0 ERC errors** | `hardware/renders/schematic/`, `hardware/bay-card/` |
-| Board | **v4 brain 150 × 122 mm + bay card 45 × 46 mm (C24, C27)**. **Brain, six layers (C26), real PCIe slot footprint, hubs' bypass caps on the bottom, pair coupling caps side by side: 0 open connections, 0 DRC errors, all 44 pairs routed and length-matched end to end across the series caps.** The +12V strip across the slot row and its channel to the power island are in the power layer; slot 1's 5 V contacts are connected. The full unattended flow (`tools/route_full.sh`, about 1.5 hours) ends in `fix_pairs.sh`, which retries stubborn pairs and keeps a result only if it is better (`routing/open.md`, `routing/pairs.md`). **Bay card (45 × 46 mm, real Molex receptacle and fingers): 0 open, 0 DRC errors, all 8 pairs routed and matched end to end, bridge rotated 180 degrees at x 38 (best of ten placements tried) (`bay-card/routing/`). Q20 and the card FETs use the corrected 8-pin symbols. Previous monolithic v3: 83 % | `hardware/renders/`, `hardware/routing/`, `hardware/bay-card/routing/` |
-| Footprints | DIN, TPS56637 generated from drawings; CM5 and M.2 copied from the CM5IO design files; **SATA 22-pin (card) and PCIe x1 socket (brain) are placeholders** until the Molex SD-47018-001 and Amphenol / TE socket drawings are in `hardware/ref/` | `hardware/lib/brain-drain.pretty/README.md`, `hardware/ref/DOWNLOADS.md` |
-| Software | engine, policy, fence, overwrite/verify, firmware wrappers, certificates, bay 5, bench tool, Pi deployment; **Wi-Fi access point with an ephemeral key and QR code on the OLED, phone page (status, certificates, log, join a network, Wi-Fi / factory reset), DIP service mode**; **74 tests pass**; firmware, GPIO, OLED and nmcli paths untested on hardware | `docs/testing-tracker.md` |
-| Enclosure | v2 "brain box" about 143 × 107 × 32 mm: tray with cutouts on the rear (cables) and right (power, USB-C, microSD) walls, vents on the antenna side and the front, a lid hinged along the rear edge with a snap latch at the front that opens for the M.2 SSD; lid has the OLED window over the SSD, DIP slot, 8 LED holes and a convection grille over the passive cooler. STLs export clean; renders of the closed unit on the bench and of the lid open; not printed | `enclosure/renders/` |
+| Design docs | complete for the current design: brain board plus bay cards (C24), six layers (C26), 45 mm card (C27); decisions C1 to C27 closed, D5 (OLED size) and D6 (option B, bridges in the cables) open | [ARCHITECTURE.md](ARCHITECTURE.md), [DECISIONS.md](DECISIONS.md), [FABRICATION.md](FABRICATION.md), [LAYOUT-REVIEW.md](LAYOUT-REVIEW.md) |
+| Schematic | two projects generated from one netlist source (`BD_PROJECT=brain\|card`): brain 0 ERC findings, bay card 2 harmless library-copy warnings | `hardware/review/*-schematic.pdf`, `hardware/renders/schematic/` |
+| Boards | **Brain 150 x 122 mm, six layers; bay card 45 x 46 mm, four layers.** Both routed by the unattended flow: 0 open connections, 0 DRC errors, all 44 + 8 differential pairs length-matched end to end. Connector footprints (PCIe x1 slot, SATA receptacle) come from the vendor drawings. **Never reviewed by a board designer; nothing simulated; pair geometry still set for a four-layer stack-up.** Details and risks in the review guide | `hardware/review/`, `hardware/routing/`, `hardware/bay-card/routing/`, `hardware/renders/layers/` |
+| Footprints | DIN, TPS56637, PCIe x1 socket, SATA receptacle generated from drawings; CM5 and M.2 copied from the CM5IO project (the M.2 not yet compared with the TE drawing) | `hardware/review/footprints.md` |
+| BOM | generated from the designs, vendor part numbers where known, `verify` flags where the orderable number must be checked | [BOM.md](BOM.md), `hardware/bom/*.csv` |
+| Software | engine, policy, fence, overwrite/verify, firmware wrappers, certificates, eight bays plus the M.2 bay (bay 9), bench tool, Pi deployment, Wi-Fi access point with QR code and phone page, DIP service mode; **74 tests pass, ruff clean**; firmware, GPIO, OLED and nmcli paths untested on hardware | [testing-tracker.md](testing-tracker.md) |
+| Enclosure | box about 157 x 145 x 62 mm: tray 16 mm deeper behind the board for the card overhang, lid hinged at the rear with a snap latch at the front, eight receptacle windows, OLED window, DIP slot, LED holes, CM5 grille; STLs export clean; not printed | `enclosure/`, [RENDERS.md](RENDERS.md) |
+| Renders | boards one by one, the electronics assembled, the case, the unit open, exploded, cut-away and the complete system, plus per-layer PCB images | [RENDERS.md](RENDERS.md), `docs/img/renders/` |
 
 ## Remaining work (R)
 
 | id | Item | Depends on | Notes |
 |---|---|---|---|
-| R1 | SATA 22-pin footprint from Molex drawing SD-47018-001 (bay card) and the PCIe x1 socket footprint from the Amphenol / TE drawing (brain) | B1 | then regenerate both boards and rerun the chains |
-| R2 | Verify the M.2 socket footprint pegs against the TE 2199230-4 drawing | B2 | footprint currently from CM5IO (different vendor, same land pattern) |
+| R1 | (closed 2026-09-25) SATA receptacle and PCIe slot footprints from the Molex and Amphenol drawings | | assumptions left: A3, A4 in the review guide |
+| R2 | Compare the M.2 socket footprint (from CM5IO) with the TE 2199230-4 customer drawing | drawing received | `hardware/ref/datasheets/te-2199230-4-drawing.pdf` |
 | R3 | Wire the DIN jack pins to the chosen 12 V brick's pinout | B3 | `design.py` J21 note |
-| R4 | The last 17 %: the bridges' and hubs' supply pins (need 0.3/0.15 mm vias, D8), a few plane pins, and the 48 differential pairs with length matching (designer work in the KiCad GUI with the diff-pair and tuning tools). See D7 / D8 | R1 | net classes, zones and CM5 hole keep-outs are set by `route.py prepare`. Autorouting was tried on 2026-09-23 with freerouting 2.1.0: the full board stalled at 646 unrouted after 35 passes, a reduced net set at 443 (logs in `hardware/routing/*-attempt.log`, gitignored). Likely causes: ground/power pins routed as tracks instead of via zones, tight 0.15 mm pair rules, placeholder SATA pads, auto-placement overlaps. After the placement fix (pad rotation bug, packer capacity checks) freerouting routed all but one signal connection in 15 passes; its optimizer loops forever without `-oit`, so run it with `-oit 2` |
-| R5 | Bench: bridge Sanitize / Security Erase passthrough, hot-plug behaviour, hdparm status parser fixture | Saturday 2026-09-26 | closes C12 with evidence; may reorder `policy.py` chains |
-| R6 | Identify the ASM1153E LED GPIO (assumed GPIO0) | first board | |
-| R7 | Confirm USB5744 port-disable strap resistor value and crystal load caps | datasheet re-read | notes in `CONNECTIONS.md` |
-| R8 | (closed: magjack removed, C22) | — | |
-| R9 | Real HAL bring-up: GPIO (libgpiod v2), OLED, bay power, M.2 door/PEDET | first board | code written, untested |
-| R10 | Fabrication: gerbers, JLCPCB 4-layer + SMT quote, order 5 | R4 | |
-| R11 | First enclosure print and fit check (DIN round face, SATA latch clearance, lid fit) | R10 or board dimensions | |
-| R12 | Certificate export to USB stick / HTTP push | — | schema v1 written locally only |
+| R4 | (closed 2026-09-25) routing: 0 open connections, 0 DRC errors on both boards | | review caveats R25 to R29 |
+| R5 | Bench: bridge Sanitize / Security Erase passthrough, hot-plug behaviour, hdparm status parser fixture | bench day 2026-09-26 | closes C12 with evidence; may reorder `policy.py` chains |
+| R6 | (obsolete: the bay LED is sunk by the bridge's LED pin through the slot, no GPIO) | | |
+| R7 | Confirm USB5744 strap values and crystal load caps against the datasheet | layout engineer | notes in `CONNECTIONS.md` |
+| R8 | (closed: magjack removed, C22) | | |
+| R9 | Real HAL bring-up: GPIO (libgpiod v2), OLED, bay power, M.2 door / PEDET | first board | code written, untested |
+| R10 | Fabrication: gerbers, six-layer and four-layer quote with assembly, order | R25 to R29 | [FABRICATION.md](FABRICATION.md) |
+| R11 | First enclosure print and fit check (DIN round face, receptacle windows, card overhang, lid fit) | print | |
+| R12 | Certificate export to USB stick / HTTP push | | schema v1 written locally only |
 | R13 | OLED size decision D5 | owner | 0.96" assumed in the bezel |
-| R14 | GitHub Actions: pytest + ruff, ERC on push, STL export | after first push | |
+| R14 | GitHub Actions: pytest + ruff, ERC on push, STL export | | |
 | R15 | Software: real udev watcher tested with a dock (`sim/udev.py`) | R5 | |
-| R16 | (closed 2026-09-23) staged autorouting on the v2 outline: stage 1 signals (2.1.0, 12 min), stage 2 planes / rails / bays (2.1.0, 3.5 h to its own stop at pass 999), stage 3 pairs (2.4.1 on Java 25, 12-pass cap, 45 min), DRC cleanup, three fanout passes | — | 2.1.0 ignores every pass limit and writes its session only when its board history is exhausted (~999 passes); 2.4.1 honours `-mp` but is slower per pass and leaves violations that `route.py drc-clean` removes |
-| R21 | Bay 12 V tracks are routed at the 0.3 mm Power width: widen where space allows (or accept: short runs, planes carry the bulk) | R16 | |
-| R24 | Bay-card P-FET is the AOS AON7403 (owner, 2026-09-23): download its datasheet, confirm the pin table and DFN land pattern; confirm the AO4407A pin table for Q20 | B1 | the symbols assume the standard power pin-out |
-| R23 | C24 follow-ups: card guides / retention in the enclosure, lid window position against the real receptacle geometry, card-edge chamfer and key in the fab notes, brick 150–180 W and DIN pin paralleling when slots 5–8 are populated | R1 | |
-| R22 | Differential pairs (v3 numbers, to be refreshed after the C24 chains): 27 of 48 have an unrouted side, the 21 routed ones are unmatched (`routing/pairs.md`). Needs the KiCad GUI diff-pair router and length tuning, about a day of designer time | R4 | |
-| R17 | Enclosure fit review of the v2 box: DIN round face on the right wall, hinge knuckle clearance and pin, latch snap force, OLED lead length from J41 to the window over the SSD, lid switch travel | R11 | |
-| R18 | Option B study (D6): bridges in the cables, board shrinks to about 90 × 70 mm | owner | `decisions/2026-09-23-portable-brain.md` |
-| R19 | Wireless bring-up on the Pi: nmcli hotspot + shared IPv4, join, resets; confirm `dtparam=ant1` and the antenna strip on the first board | first board | `software/braindrain/wifi.py`, simulated only |
-| R20 | Fabrication order pack: gerbers, drill, placement and BOM exports with vendor part numbers (`FABRICATION.md` gates 5–6) | R4, R1–R3 | JLCPCB first, PCBWay fallback |
+| R16 | (closed 2026-09-23) staged autorouting flow | | superseded by `route_full.sh` |
+| R17 | Enclosure fit review: DIN round face, hinge knuckle clearance and pin, latch force, OLED lead length, lid switch travel | R11 | |
+| R18 | Option B study (D6): bridges in the cables | owner | `decisions/2026-09-23-portable-brain.md` |
+| R19 | Wireless bring-up on the Pi: nmcli hotspot, join, resets; `dtparam=ant1` and the antenna strip | first board | `wifi.py`, simulated only |
+| R20 | Fabrication order pack: gerbers, drill, placement, BOM with vendor part numbers | R10 | JLCPCB first, PCBWay fallback |
+| R21 | (closed) bay 12 V track width | | planes carry the current; review item 4.3 |
+| R22 | (closed 2026-09-25) differential pairs matched end to end | | segment-level mismatch is a review item (4.1) |
+| R23 | Eight-bay power: 150 to 180 W brick, larger input fuse, DIN pin paralleling, heavier bulk caps, 5V_HDD buck at its limit; card retention in the enclosure | before slots 5 to 8 are used | ARCHITECTURE 3.5 |
+| R24 | (closed 2026-09-25) FET pin tables: AON7403 and AO4407A read against the datasheets | | S 1-3, G 4, D 5-8 confirmed |
+| R25 | Layout review by a board engineer of both boards | hand-off | [LAYOUT-REVIEW.md](LAYOUT-REVIEW.md) |
+| R26 | Choose the fab's six-layer stack-up and recalculate the pair geometry (90 ohm, 85 ohm PCIe) | R25 | review item 4.1 |
+| R27 | Decide the In3 / In4 arrangement: pairs on In3 run over split power islands, In2 / In3 are adjacent signal layers | R25 | review item 4.1 |
+| R28 | Check the Molex mating-face position and the socket housing ends against the vendors' 3D models | STEP files received | review items A3, A4 |
+| R29 | Add test points, fiducials, ESD protection where wanted, the card panel; clean the silkscreen | R25 | review items 4.5, 4.6 |
+| R30 | Correct the CM5 value field (CM5002016 in the schematic, wireless SKU is CM5102016) at the next regeneration | | BOM note |
 
 ## Blocked on external input (B)
 
 | id | Item | Who | Where |
 |---|---|---|---|
-| B1 | Molex 47018-4001 sales drawing | owner downloads | `hardware/ref/DOWNLOADS.md` |
-| B2 | TE 2199230-4 customer drawing | owner downloads | same |
-| B3 | 12 V / 10 A brick selection and its DIN pinout | owner chooses | same |
+| B1 | (received 2026-09-24) Molex 47018-4001 sales drawing, datasheet and STEP | | `hardware/ref/datasheets/` |
+| B2 | (received 2026-09-24) TE 2199230-4 customer drawing | | same; comparison is R2 |
+| B3 | 12 V brick selection, datasheet and its DIN pinout | owner chooses | `hardware/ref/DOWNLOADS.md` |
 | B4 | Bench results 2026-09-26 (JSON under `hardware/ref/bench/`) | bench day | `docs/saturday-bench-plan.md` |
-| B5 | Repository visibility and GitHub auth | owner decides; licence chosen (Polyform Noncommercial, C20) | needed before the first push |
+| B5 | Repository visibility and GitHub auth | owner; licence chosen (Polyform Noncommercial, C20) | done for the public repository |
+| B6 | (received) Amphenol FCI 10018784 customer drawing (PCIe x1 socket), AON7403 and AO4407A datasheets | | `hardware/ref/datasheets/` |
 
 ## What is verified vs. assumed
 
-Verified from documents: every CM5, USB5744 and ASM1153E pin; Kycon, TI and
-Raspberry Pi footprint geometry; CM5 mechanical positions and the antenna edge
-(CM5IO reference board puts the MH1 edge flush with its board edge); part prices (Sept 2026).
+Verified from documents: every CM5, USB5744 and ASM1153E pin; the DIN, TPS56637, PCIe x1 socket and SATA receptacle footprint geometry
+(vendor drawings); the FET pin tables; CM5 mechanical positions and the antenna edge; the ERC and DRC results (kicad-cli 9.0.8).
 
-Assumed until the bench or the first board: bridge firmware behaviour under
-Sanitize, the hdparm status text format, the LED GPIO, crystal load capacitors,
-all enclosure clearances, the nmcli hotspot flow, and everything in `hal/gpio.py`
-and `hal/oled.py`.
+Assumed until the bench, the first board or a design review: bridge firmware behaviour under Sanitize, the hdparm status text format,
+crystal load capacitors, all enclosure clearances, the nmcli hotspot flow, everything in `hal/gpio.py` and `hal/oled.py`, the signal
+integrity of every high-speed link, the power planes' current capacity, and the eight-bay power budget.

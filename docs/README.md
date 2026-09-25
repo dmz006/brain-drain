@@ -2,10 +2,12 @@
 
 | Document | What it is for |
 |---|---|
+| [LAYOUT-REVIEW.md](LAYOUT-REVIEW.md) | **For the board layout engineer:** what was delivered, how it was made, what is verified, the risks in priority order, a sign-off checklist. |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | The design: hardware, software, enclosure, cross-cutting rules. Source of truth for intent. |
 | [STATUS.md](STATUS.md) | What is done, what is placeholder, what is blocked, what comes next. |
 | [USAGE.md](USAGE.md) | How to run the simulator, the bench tool, the Pi service, and how to regenerate hardware and enclosure files. |
-| [BOM.md](BOM.md) | Parts list with prices and sourcing notes; machine-readable copy in `hardware/bom/`. |
+| [BOM.md](BOM.md) | Generated parts list of both boards with vendor part numbers and prices; CSV copies in `hardware/bom/`. |
+| [RENDERS.md](RENDERS.md) | Every render: boards one by one, the assembled electronics, the case, the unit open, exploded, cut-away, the complete system. |
 | [FABRICATION.md](FABRICATION.md) | Who can fabricate and fully assemble a small run, what it costs, and the gates before ordering. |
 | [DECISIONS.md](DECISIONS.md) | Every decision, open (`D<n>`) or closed (`C<n>`), with reasons. |
 | [decisions/](decisions/) | The longer briefs behind the bigger decisions. |
@@ -23,5 +25,5 @@
 | ![lid plan](img/lid-plan.png) | ![left panel](img/left-panel.png) |
 | ![oled wifi](img/oled-wifi.png) | ![oled](img/oled-running.png) |
 
-Renders of the board live in `hardware/renders/`, of the enclosure in
-`enclosure/renders/`.
+Renders of the boards, the assembly, the case and the complete system are in [RENDERS.md](RENDERS.md) (files in `img/renders/`); KiCad views and
+per-layer images in `../hardware/renders/`; generated review data in `../hardware/review/`.

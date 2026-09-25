@@ -1,51 +1,65 @@
-ref,qty,mpn,description,block,unit_usd,status,note
-M1,1,CM5102016,Raspberry Pi CM5 wireless 2GB/16GB eMMC,compute,92.5,,2026 list; Lite CM5002000 67.5 also fits
-J1;J2,2,DF40C-100DS-0.4V(51),Hirose CM5 mating connector,compute,2,,
-J3,1,,microSD push-push socket (CM5 Lite),compute,1,verify,
-J5,1,USB4085-GF-A,USB-C 16-pin receptacle (USB 2.0),compute,1,,rpiboot
-J6,1,,2-pin header + jumper nRPIBOOT,compute,0.1,,
-J7,1,,3-pin header UART0,compute,0.1,,
-HS1,1,,Raspberry Pi CM5 Cooler,compute,6,,mandatory
-BT1,1,,CR2032 holder + cell on CM5 battery pin,compute,1,,
-U1;U2,2,USB5744/2G,Microchip USB3.2 Gen1 4-port hub one per CM5 USB3 port,usb-hub,2.44,,C11 public datasheet; LCSC C633619
-Y1;Y2,2,,25 MHz crystal 3225,usb-hub,0.3,,
-U3,1,AP2112K-1.2,1.2 V LDO 500 mA for both hubs VDD12,usb-hub,0.3,,
-C_ss,12,,100 nF 0402 USB3 SS AC coupling,usb-hub,0.02,,
-U10;U11;U12;U13,4,ASM1153E,ASMedia USB3 to SATA bridge QFN-48,bridge,3,,C12; LCSC C2762919
-Y10;Y11;Y12;Y13,4,,30 MHz crystal 3225 CL16pF,bridge,0.3,,
-L10;L11;L12;L13,4,,4.7 uH 1 A inductor for ASM1153E core switcher,bridge,0.3,,
-C_sata,16,,10 nF 0402 SATA AC coupling,bridge,0.02,,
-D10;D11;D12;D13,4,,3 mm LED blue bay activity,bridge,0.1,,
-J10;J11;J12;J13,4,47018-4001,Molex SATA 22-pin right-angle SMT receptacle,connectors,1.5,,C17
-CBL1;CBL2;CBL3;CBL4,4,,SATA 22-pin M-F extension 0.5 m,connectors,3,,off-the-shelf
-PSU1,1,,12 V 10 A desktop brick 120 W,power,25,,
-J21,1,KPJX-4S-S,4-pin DIN power jack 7.5 A/pin,power,2.5,,C13; choose brick before layout
-F1,1,0453010.MR,SMD fuse 10 A slow,power,1.5,,
-D20,1,SMBJ15A,Input TVS,power,0.3,,
-Q20,1,AO4407A,P-MOSFET reverse polarity,power,0.8,,plus 12 V zener
-C20;C21,2,,680 uF 25 V low-ESR,power,0.6,,
-U20,1,TPS56637RPAR,5V_SYS buck 6 A,power,2.5,,
-U21,1,TPS56637RPAR,5V_HDD buck 6 A,power,2.5,,
-L20;L21,2,,2.2 uH shielded inductor 8 A,power,1.5,,
-U22,1,AP63203WU-7,3V3 buck 2 A,power,0.6,,
-L22,1,,4.7 uH shielded inductor 3 A,power,0.4,,
-C_buck,12,,22 uF 25 V 1210 / 10 V 0805,power,0.1,,
-Q30-Q37,8,AON7403,P-MOSFET -30 V 6 A DFN3x3 bay switch,power,0.4,verify,RDS at Vgs -5 V
-Q51-Q64;Q1,9,2N7002,Gate drivers (2 per bay) + buzzer,power,0.05,,
-F10-F13,4,,PTC 1812 3 A hold bay 12 V,power,0.3,,
-F14-F17,4,,PTC 1812 2 A hold bay 5 V,power,0.3,,
-U30;U31,2,INA3221,Bay current monitor,power,1.5,DNP,
-SW1,1,,8-way DIP switch 2.54 mm TH,ui,1,,
-DS1,1,,0.96in SSD1306 128x64 I2C OLED module,ui,3,,alt 1.3in SH1106 / 2.42in SSD1309
-D1,1,,3 mm LED green power,ui,0.1,,
-D2,1,,3 mm bicolour LED status,ui,0.2,,
-J40,1,,4-pin fan header Pi pinout,misc,0.1,,fan required
-J50,1,2199230-4,TE M.2 M-key socket 4.2 mm,m2,1.2,,C15/C18 populated in v1
-MP50,3,,M.2 standoff + M2 screw,m2,0.3,,
-U50,1,TPS22965DSGR,Load switch 5.5 V 6 A switched 3V3_M2,m2,0.8,,
-U51,1,AP63203WU-7,3V3_M2 buck 2 A from 12 V,m2,0.6,,
-L51,1,,4.7 uH shielded inductor 3 A,m2,0.4,,
-D50,1,,3 mm LED blue M.2 activity,m2,0.1,,
-PCB,5,,4-layer 180x110 ENIG JLC04161H-7628,fab,14,,per board at qty 5 (C19)
-ASM,5,,SMD assembly,fab,30,,per board at qty 5
-ENC,1,,PETG/ASA print + inserts + feet,enclosure,8,,
+refs,qty,value,footprint,manufacturer,mpn,description,usd_each,usd_total,status
+BT1,1,CR2032,BatteryHolder_Keystone_1060_1x2032,Keystone,1060,"CR2032 SMD holder (cell bought separately, about 0.5)",0.9,0.9,verify
+"C1,C2,C501,C2003,C2004,C2005,C2103,C2104,C2105,C2202,C2203,C5102,C5103",13,22u 10V,C_0805_2012Metric,generic,,22 uF X5R 10 V 0805,0.08,1.04,
+"C3,C31,C500",3,10u 10V,C_0805_2012Metric,generic,,10 uF X5R 10 V 0805,0.05,0.15,
+"C4,C30",2,1u 10V,C_0402_1005Metric,generic,,1 uF X5R 10 V 0402,0.02,0.04,
+"C20,C21",2,680u 25V low-ESR,CP_Elec_10x10.5,generic,,"680 uF 25 V low-ESR aluminium polymer or electrolytic, 10 x 10.5 mm SMD (spin-up bulk)",0.9,1.8,verify
+"C22,C2000,C2001,C2100,C2101,C2200,C5100",7,10u 25V,C_1210_3225Metric,generic,,10 uF X5R 25 V 1210 (input and 5 V bulk),0.12,0.84,
+"C100,C101,C200,C201",4,33p,C_0402_1005Metric,generic,,33 pF C0G 50 V 0402 (crystal load),0.01,0.04,
+"C110,C111,C112,C113,C120,C121,C122,C123,C140,C141,C151,C152,C153,C154,C161,C162,C163,C164,C210,C211,C212,C213,C220,C221,C222,C223,C240,C241,C251,C252,C253,C254,C261,C262,C263,C264",36,100n,C_0402_1005Metric,generic,,"100 nF X7R 16 V or better, 0402",0.01,0.36,
+"C130,C131,C230,C231",4,4.7u 10V,C_0603_1608Metric,generic,,4.7 uF X5R 10 V 0603,0.04,0.16,
+C502,1,1n,C_0402_1005Metric,generic,,1 nF C0G 50 V 0402,0.01,0.01,
+"C2002,C2102",2,100n 25V,C_0402_1005Metric,generic,,"100 nF X7R 16 V or better, 0402",0.01,0.02,
+"C2201,C5101",2,100n 10V,C_0402_1005Metric,generic,,"100 nF X7R 16 V or better, 0402",0.01,0.02,
+D1,1,green PWR,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D2,1,green ACT,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D3,1,red STATUS,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D10,1,blue bay 1 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D11,1,blue bay 2 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D12,1,blue bay 3 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D13,1,blue bay 4 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D14,1,blue bay 5 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D15,1,blue bay 6 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D16,1,blue bay 7 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D17,1,blue bay 8 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+D20,1,SMBJ15A,D_SMB,Littelfuse,SMBJ15A,"TVS diode 15 V standoff, SMB",0.35,0.35,
+D21,1,12V 0.5W,D_SOD-123,generic,,"12 V 0.5 W zener, SOD-123 (BZT52C12 class)",0.05,0.05,
+D50,1,blue M.2 activity,LED_D3.0mm,generic,,"3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA",0.1,0.1,
+F1,1,10A slow 0453010.MR,Fuse_Littelfuse-NANO2-451_453,Littelfuse,0453010.MR,NANO2 10 A slow-blow fuse,0.8,0.8,
+J3,1,microSD,microSD_HC_Hirose_DM3AT-SF-PEJM5,Hirose,DM3AT-SF-PEJM5,microSD push-push socket,1.0,1.0,verify
+J5,1,USB-C rpiboot,USB_C_Receptacle_GCT_USB4085,GCT,USB4085-GF-A,"USB-C 16-pin receptacle, USB 2.0 only",1.0,1.0,
+J6,1,nRPIBOOT,PinHeader_1x02_P2.54mm_Vertical,generic,,"2.54 mm pin header, vertical, count as listed",0.1,0.1,
+J7,1,UART0 GND/TX/RX,PinHeader_1x03_P2.54mm_Vertical,generic,,"2.54 mm pin header, vertical, count as listed",0.1,0.1,
+J10,1,bay slot 1,PCIe_x1_Socket_THT,Amphenol FCI,10018783-10100TLF,"PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)",1.0,1.0,verify
+J11,1,bay slot 2,PCIe_x1_Socket_THT,Amphenol FCI,10018783-10100TLF,"PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)",1.0,1.0,verify
+J12,1,bay slot 3,PCIe_x1_Socket_THT,Amphenol FCI,10018783-10100TLF,"PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)",1.0,1.0,verify
+J13,1,bay slot 4,PCIe_x1_Socket_THT,Amphenol FCI,10018783-10100TLF,"PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)",1.0,1.0,verify
+J14,1,bay slot 5,PCIe_x1_Socket_THT,Amphenol FCI,10018783-10100TLF,"PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)",1.0,1.0,verify
+J15,1,bay slot 6,PCIe_x1_Socket_THT,Amphenol FCI,10018783-10100TLF,"PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)",1.0,1.0,verify
+J16,1,bay slot 7,PCIe_x1_Socket_THT,Amphenol FCI,10018783-10100TLF,"PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)",1.0,1.0,verify
+J17,1,bay slot 8,PCIe_x1_Socket_THT,Amphenol FCI,10018783-10100TLF,"PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)",1.0,1.0,verify
+J21,1,KPJX-4S-S,Kycon_KPJX-4S-S,Kycon,KPJX-4S-S,"4-pin mini-DIN power jack, shielded, 7.5 A per pin",1.5,1.5,
+J40,1,Fan GND/5V/TACH/PWM,FanPinHeader_1x04_P2.54mm_Vertical,generic,,"2.54 mm pin header, vertical, count as listed",0.1,0.1,
+J41,1,OLED GND/VCC/SCL/SDA,PinHeader_1x04_P2.54mm_Vertical,generic,,"2.54 mm pin header, vertical, count as listed",0.1,0.1,
+J50,1,M.2 M-key,M2_Socket3_MKey_CM5IO,TE Connectivity,2199230-4,"M.2 M-key socket, 4.2 mm, for a 2280 module",1.2,1.2,
+"L20,L21",2,2.2u 8A,L_Taiyo-Yuden_NR-60xx,generic,,"2.2 uH, 8 A saturation, shielded, 6 x 6 mm (TPS56637 reference design class)",0.6,1.2,verify
+"L22,L51",2,4.7u 3A,L_Taiyo-Yuden_NR-40xx,generic,,"4.7 uH, 3 A, shielded, 4 x 4 mm (AP63203 class)",0.35,0.7,verify
+M1,1,CM5002016,Raspberry-Pi-5-Compute-Module,Raspberry Pi,CM5102016,"Compute Module 5, wireless, 2 GB RAM, 16 GB eMMC (the schematic value field still reads CM5002016)",97.0,97.0,verify
+Q20,1,AO4407A,SOIC-8_3.9x4.9mm_P1.27mm,Alpha & Omega,AO4407A,"P-MOSFET -30 V, SO-8: S 1-3, G 4, D 5-8 (reverse-polarity protection)",0.8,0.8,
+"R1,R2,R3",3,1k,R_0603_1608Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.015,
+"R10,R11,R101,R102,R201,R202,R500,R501,R504,R2001,R2003,R2101,R2103",13,10k,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.065,
+R20,1,100k,R_0603_1608Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.005,
+"R60,R61,R62,R63,R64,R65,R66,R67,R505",9,470,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.045,
+"R100,R200",2,12.0k 1%,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.01,
+"R103,R203",2,200k,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.01,
+"R502,R503",2,0R (cap DNP alt),C_0402_1005Metric,generic,,"0 ohm 0402 (option link, cap DNP alternative)",0.005,0.01,
+"R2000,R2100",2,73.2k,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.01,
+"R2002,R2102",2,100k,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.01,
+SW1,1,DIP x8,SW_DIP_SPSTx08_Piano_10.8x21.88mm_W7.62mm_P2.54mm,generic,,"8-position piano DIP switch, 2.54 mm pitch, 7.62 mm row",1.0,1.0,verify
+SW3,1,lid microswitch,SW_PUSH_6mm,generic,,6 mm tactile switch used as the lid switch,0.2,0.2,
+"U1,U2",2,USB5744/2G,QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm,Microchip,USB5744/2G,"USB 3.2 Gen 1 four-port hub, VQFN-56 7 x 7",2.44,4.88,
+U3,1,AP2112K-1.2,SOT-23-5,Diodes Inc.,AP2112K-1.2TRG1,"600 mA LDO, 1.2 V, SOT-25 (hub core)",0.3,0.3,
+"U20,U21",2,TPS56637RPAR,Texas_RPA0010A_VQFN-HR-10_3x3mm,Texas Instruments,TPS56637RPAR,"6 A step-down converter, VQFN-HR 3 x 3",1.9,3.8,
+"U22,U51",2,AP63203WU-7,TSOT-23-6,Diodes Inc.,AP63203WU-7,"2 A step-down converter, TSOT-26, 3.3 V",0.5,1.0,
+"U50,U52",2,TPS22965DSGR,Texas_DSG0008A_WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm,Texas Instruments,TPS22965DSGR,"load switch, 4 A, WSON-8 2 x 2",0.5,1.0,
+"Y1,Y2",2,25MHz CL=20pF,Crystal_SMD_3225-4Pin_3.2x2.5mm,generic,,"25 MHz crystal, 3.2 x 2.5 mm, CL 20 pF (hub clock)",0.3,0.6,

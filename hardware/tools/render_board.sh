@@ -20,10 +20,24 @@ echo "renders written to $(pwd)/renders/"
 kicad-cli sch export pdf -o renders/schematic/$N-schematic.pdf $N.kicad_sch
 rm -f renders/schematic/sheet-*.png
 pdftoppm -r 60 -png renders/schematic/$N-schematic.pdf renders/schematic/sheet
+# one image per layer for the layout review (copper layers, top and bottom assembly, mask openings)
+mkdir -p renders/layers
+COPPER=F.Cu,In1.Cu,In2.Cu,B.Cu; [ "${BD_PROJECT:-brain}" = brain ] && COPPER=F.Cu,In1.Cu,In2.Cu,In3.Cu,In4.Cu,B.Cu
+for L in $(echo $COPPER | tr ',' ' '); do
+    kicad-cli pcb export pdf -l $L,Edge.Cuts -o renders/layers/$L.pdf $N.kicad_pcb
+    pdftoppm -r 220 -png -singlefile renders/layers/$L.pdf renders/layers/$L
+done
+kicad-cli pcb export pdf -l F.Fab,F.SilkS,F.CrtYd,Edge.Cuts -o renders/layers/assembly-top.pdf $N.kicad_pcb
+kicad-cli pcb export pdf -l B.Fab,B.SilkS,B.CrtYd,Edge.Cuts --mirror -o renders/layers/assembly-bottom.pdf $N.kicad_pcb
+kicad-cli pcb export pdf -l F.Mask,B.Mask,Edge.Cuts -o renders/layers/mask.pdf $N.kicad_pcb
+for L in assembly-top assembly-bottom mask; do pdftoppm -r 220 -png -singlefile renders/layers/$L.pdf renders/layers/$L; done
+rm -f renders/layers/*.pdf
 # crop the PDF-derived PNGs to the board (the export still draws the sheet frame)
 "$VENV_PY" - <<'PY'
 from PIL import Image, ImageChops
-for n in ("board-top", "board-inner"):
+import glob
+names = ["board-top", "board-inner"] + [g[len("renders/"):-4] for g in sorted(glob.glob("renders/layers/*.png"))]
+for n in names:
     im = Image.open(f"renders/{n}.png").convert("RGB")
     w, h = im.size
     diff = ImageChops.difference(im, Image.new("RGB", im.size, (255, 255, 255))).convert("L").point(lambda v: 255 if v > 40 else 0)

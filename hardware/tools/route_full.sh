@@ -9,7 +9,7 @@ RD=routing; [ "${BD_PROJECT:-brain}" = card ] && RD=bay-card/routing
 PCBF=brain-drain.kicad_pcb; [ "${BD_PROJECT:-brain}" = card ] && PCBF=bay-card/bay-card.kicad_pcb
 log=$RD/chain.log
 echo "full chain start $(date)" > $log
-run() { python3 tools/route.py "$@" 2>&1 | grep -E "^(fanout|tune|pairs|drc_clean|close_gaps|update_nets|rip_pairs|project net)" >> $log; }
+run() { python3 tools/route.py "$@" 2>&1 | grep -E "^(fanout|tune|pairs|drc_clean|via_clean|close_gaps|update_nets|rip_pairs|project net)" >> $log; }
 drc() { kicad-cli pcb drc --format json --severity-all -o $RD/drc.json $PCBF >/dev/null 2>&1; }
 python3 tools/gen_pcb.py > /dev/null 2>&1
 python3 tools/route.py prepare > $RD/prepare.log 2>&1
@@ -29,6 +29,7 @@ run drc-clean; drc
 run fanout; run fanout-big; run fanout-conn; run fanout-qfn
 run close-gaps; run close-gaps-pairs; run drc-clean; run tune
 sh tools/fix_pairs.sh
+run via-clean
 drc
 python3 tools/open_report.py 2>&1 | tail -1 >> $log
 run pairs

@@ -1,41 +1,39 @@
-# enclosure — parametric OpenSCAD "brain box"
+# enclosure: parametric OpenSCAD "brain box"
 
-The unit is a printed box (about 157 × 145 × 62 mm outside; the 45 × 46 mm bay cards stand 49 mm above the board and overhang its rear edge by 15 mm, so the box is 16 mm deeper behind the board) that goes in a
-backpack with its 12 V brick and four 22-pin cables; drives lie loose on the
-bench while they are wiped (decisions C21–C23). The lid is hinged along the rear
-edge and snaps shut at the front: open it to fit an M.2 SSD. Printed parts are
-sized from the real board:
+The unit is a printed box, about 157 x 145 x 62 mm outside, that goes in a backpack with its 12 V brick and the 22-pin cables; drives lie loose on
+the bench while they are wiped (decisions C21 to C27). The 45 x 46 mm bay cards stand 49 mm above the board and overhang its rear edge by 15 mm, so the
+tray is 16 mm deeper behind the board than the board itself. The lid is hinged along the rear edge and snaps shut at the front: open it to fit an M.2 SSD or
+a card. The printed parts are sized from the real board.
 
-![assembled](renders/assembled-iso.png)
-![lid open](renders/lid-open.png)
+| Lid open, from the front | Complete system |
+|---|---|
+| ![lid open](../docs/img/renders/unit-open-front.png) | ![system](../docs/img/renders/system-iso.png) |
+
+More views (tray, lid, closed unit, exploded, cut-away): [../docs/RENDERS.md](../docs/RENDERS.md). Plan drawing with dimensions: [../docs/img/lid-plan.png](../docs/img/lid-plan.png).
 
 | Face | What is on it |
 |---|---|
 | rear | vent slots; the lid hinge knuckles |
-| left | DIN 12 V jack, USB-C (rpiboot), microSD |
+| left (seen from the front) | DIN 12 V jack, USB-C (rpiboot), microSD |
 | right | the CM5 antenna edge: vent slots only, no metal |
 | front | the lid latch |
-| lid | eight windows at the rear for the bay cards' SATA receptacles (the drive cables rise through them), OLED window over the SSD, DIP switch slot, 12 LED holes, convection grille over the passive CM5 cooler |
+| lid | eight 11.8 x 43 mm windows over the bay cards' SATA receptacles (the drive cables rise through them), OLED window over the SSD, DIP switch slot, 12 LED holes, convection grille over the passive CM5 cooler |
 | floor | rubber-feet pockets |
 
-* `board.scad` is **generated** from `hardware/brain-drain.kicad_pcb` by
-  `tools/kicad_to_scad.py` (board outline, mounting holes, and the centre of
-  every connector, switch and LED the shell must cut). Re-run it whenever the
-  board changes.
-* `params.scad` holds the printed-part parameters: walls, clearances, heights,
-  insert sizes, OLED window position, hinge and latch sizes.
-* `refinements.scad`: OLED bezel, feet pockets.
-* `scene.scad`: the render scenes (closed unit, four loose drives, cables; lid open).
-* `shell.scad`: the tray (board on M2.5 heat-set standoffs, cutouts on the rear
-  and right walls, vents, hinge knuckles, latch groove) and the lid (front and
-  side skirt, hinge knuckles, latch bump).
+* `board.scad` is **generated** from `hardware/brain-drain.kicad_pcb` by `tools/kicad_to_scad.py`: the board outline, the mounting holes and the centre of every
+  connector, switch and LED the shell must cut. **Its x coordinates are mirrored** (measured from the board's right edge): KiCad's top view is left-handed and OpenSCAD is
+  right-handed, so a board seen from the front with x to the right sits in the tray with x measured from the tray's x = max wall. The bay windows are placed over the
+  cards' receptacles (5.4 mm toward the card's component face, 7.2 mm from the board's rear edge), not over the sockets. Re-run it whenever the board changes.
+* `params.scad` holds the printed-part parameters: walls, clearances, heights, `rear_ext` (the 16 mm extension), insert sizes, OLED window position, hinge and latch sizes.
+* `refinements.scad`: OLED bezel, feet pockets. `scene.scad`: the closed unit, four loose drives and cables (the renderers compose the rest in Python).
+* `shell.scad`: the tray (board on M2.5 heat-set standoffs, cutouts on the left and right walls, vents, hinge knuckles, latch groove) and the lid (front and side skirt,
+  hinge knuckles, latch bump, the windows and holes).
+* `tools/gallery.py` renders every image; `tools/render3d.py` is the headless renderer (numpy + Pillow); `hardware/tools/board_model.py` builds the 3D proxy of the boards.
 
 ```
 make            # board.scad + stl/tray.stl, lid.stl, bezel.stl  (needs openscad)
-make renders    # scene STLs and renders/*.png via tools/stl_preview.py (numpy + Pillow, no display needed)
+make renders    # scene STLs, then docs/img/renders/*.png via tools/gallery.py (needs pcbnew, numpy, Pillow; no display)
 ```
-
-Verified 2026-09-23 with OpenSCAD 2021.01: all parts export without warnings.
 
 Print PETG or ASA, 0.2 mm layers. The tray prints as modelled; the lid prints
 upside down. The hinge pin is a 140 mm length of 1.75 mm filament.

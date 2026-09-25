@@ -930,7 +930,6 @@ def open_pads_from_drc(board: pcbnew.BOARD) -> set | None:
 
 
 def fanout_conn(board: pcbnew.BOARD) -> None:
-    import math
     """Row-fitted fanout for every fine-pitch part with 20+ SMD pads (CM5 connector, M.2 socket, SATA
     receptacles, QFN hubs and bridges). Per row of pads, adjacent same-net pins are bridged pad-to-pad
     so they need one connection; plane-net groups get one via (in the gap between paired rows, else
@@ -1065,7 +1064,6 @@ def fanout_qfn(board: pcbnew.BOARD, ripup: bool = False) -> None:
     closer than 0.8 mm along the row and the signal pins between them can still escape. Plane pins land
     on their plane; rail pins (VCCO, VDD_CORE, +1V2...) get a B.Cu escape for the router. Only pins DRC
     lists as open are touched."""
-    import math
     open_pads = open_pads_from_drc(board)
     done_pads = connected_pads(board) if open_pads is None else None
 
@@ -1211,6 +1209,47 @@ def drc_clean(board: pcbnew.BOARD, rounds: int = 3) -> int:
     pcbnew.SaveBoard(str(PCB), board)
     print(f"drc_clean: {left} copper errors left")
     return left
+
+
+def via_clean(board: pcbnew.BOARD) -> None:
+    """Remove the vias DRC warns about (holes closer than the 0.25 mm hole-to-hole limit, vias connected on one layer only)
+    when taking one out leaves the board as connected as it was: each candidate is removed, the board saved and checked with
+    kicad-cli, and put back if the open-connection or error count got worse."""
+    import json
+    import shutil
+    import subprocess as sp
+    rep = PRJ.routing / "drc.json"
+
+    def drc():
+        sp.run(["kicad-cli", "pcb", "drc", "--format", "json", "--severity-all", "-o", str(rep), str(PCB)], capture_output=True)
+        j = json.loads(rep.read_text())
+        errors = sum(1 for v in j["violations"] if v["severity"] == "error")
+        return j, errors, len(j.get("unconnected_items", []))
+
+    pcbnew.SaveBoard(str(PCB), board)
+    j, e0, u0 = drc()
+    cands = []
+    for v in j["violations"]:
+        if v["type"] in ("hole_to_hole", "via_dangling"):
+            vias = [i for i in v["items"] if i["description"].startswith("Via") and "pos" in i]
+            if v["type"] == "hole_to_hole":
+                vias = vias[:1]                       # take out one of the two
+            for i in vias:
+                cands.append((round(i["pos"]["x"], 3), round(i["pos"]["y"], 3)))
+    removed = kept = 0
+    for pos in dict.fromkeys(cands):
+        shutil.copy(PCB, "/tmp/via_clean_backup.kicad_pcb")
+        env = dict(os.environ, BD_POS=f"{pos[0]},{pos[1]}")
+        cp = sp.run([sys.executable, str(Path(__file__).resolve()), "via-remove"], env=env, capture_output=True, text=True)   # fresh process: pcbnew proxies break after edits
+        if "via_remove: 1" not in cp.stdout:
+            continue
+        _, e1, u1 = drc()
+        if e1 > e0 or u1 > u0:
+            shutil.copy("/tmp/via_clean_backup.kicad_pcb", PCB); kept += 1
+        else:
+            removed += 1
+    j, e1, u1 = drc()
+    print(f"via_clean: {removed} vias removed, {kept} kept (needed); errors {e1}, open {u1}")
 
 
 def update_nets(board: pcbnew.BOARD, d: design.Design) -> int:
@@ -1384,6 +1423,17 @@ def main(cmd: str) -> int:
             gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=frozenset(), max_len=160.0,
                                 partner_of=None if os.environ.get("BD_NOHUG") == "1" else partner, ripup=rip, pair_names=frozenset(partner))
         pcbnew.SaveBoard(str(PCB), board)
+    if cmd == "via-clean":
+        via_clean(board)
+        return 0
+    if cmd == "via-remove":   # BD_POS="x,y" in board mm as DRC prints it: remove the through via at that spot
+        px, py = (float(v) for v in os.environ["BD_POS"].split(","))
+        hit = [t for t in board.GetTracks() if t.GetClass() == "PCB_VIA" and abs(t.GetPosition().x / 1e6 - px) < 0.01 and abs(t.GetPosition().y / 1e6 - py) < 0.01]
+        for t in hit:
+            board.Remove(t)
+        pcbnew.SaveBoard(str(PCB), board)
+        print(f"via_remove: {len(hit)}")
+        return 0
     if cmd == "tune":
         tune_pairs(board, d)
         pcbnew.SaveBoard(str(PCB), board)

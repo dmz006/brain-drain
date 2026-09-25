@@ -15,12 +15,11 @@ import json
 import math
 import subprocess
 import sys
-from pathlib import Path
 
 import design
 import kilib
 import sexp
-from sexp import Str, new_uuid, q
+from sexp import Str, new_uuid
 
 import project as _project
 
@@ -299,6 +298,9 @@ def main(run_erc=True) -> int:
         print("design has unassigned pins:", missing[:10])
         return 2
     SHEET_DIR.mkdir(exist_ok=True)
+    for stale in SHEET_DIR.glob("*.kicad_sch"):   # sheets of an earlier design (e.g. the four on-board bridges before the bay cards)
+        if stale.stem not in {n for n, _ in d.sheets}:
+            stale.unlink(); print("removed stale sheet", stale.name)
     root_uuid = "0b6a1e2a-0000-4000-8000-000000000001"
     sheet_uuids = {name: f"0b6a1e2a-0000-4000-8000-{i + 2:012d}" for i, (name, _) in enumerate(d.sheets)}
     pin_net = d.pin_net()

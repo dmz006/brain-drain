@@ -1,0 +1,19 @@
+refs,qty,value,footprint,manufacturer,mpn,description,usd_each,usd_total,status
+"C1,C2",2,22p,C_0402_1005Metric,generic,,22 pF C0G 50 V 0402 (crystal load),0.01,0.02,
+C3,1,2.2u,C_0603_1608Metric,generic,,2.2 uF X5R 10 V 0603,0.03,0.03,
+"C4,C5,C6",3,10u 10V,C_0805_2012Metric,generic,,10 uF X5R 10 V 0805,0.05,0.15,
+"C7,C8,C9,C10,C11,C12,C13,C14,C19,C20",10,100n,C_0402_1005Metric,generic,,"100 nF X7R 16 V or better, 0402",0.01,0.1,
+"C15,C16,C17,C18",4,10n,C_0402_1005Metric,generic,,10 nF X7R 25 V 0402 (SATA AC coupling),0.01,0.04,
+F1,1,3A hold 1812,Fuse_1812_4532Metric,generic,,"PTC resettable fuse 1812, 3 A hold (bay 12 V), 15 V or better",0.3,0.3,verify
+F2,1,2A hold 1812,Fuse_1812_4532Metric,generic,,"PTC resettable fuse 1812, 2 A hold (bay 5 V), 6 V or better",0.3,0.3,verify
+J1,1,bay card edge,BUS_PCIexpress_x1,(board),,"PCI Express x1 card-edge fingers on the card itself, ENIG, chamfered tab",0.0,0.0,
+J2,1,SATA 22-pin,SATA_22pin_Receptacle_RA,Molex,47018-4001,"SATA 22-pin (7+15) host receptacle, top mount, PCB-edge type, tape and reel with cap",1.5,1.5,verify
+L1,1,4.7u 1A,L_Taiyo-Yuden_NR-40xx,generic,,"4.7 uH, 1 A, 4 x 4 mm (ASM1153E internal core switcher)",0.3,0.3,verify
+"Q1,Q2",2,AON7403,DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm,Alpha & Omega,AON7403,"P-MOSFET -30 V, DFN 3x3-8: S 1-3, G 4, D 5-8 + EP (bay 12 V and 5 V switches)",0.8,1.6,
+"Q3,Q4",2,2N7002,SOT-23,generic,,"N-MOSFET 60 V 2N7002, SOT-23 (gate driver)",0.05,0.1,
+R1,1,12.1k 1%,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.005,
+"R2,R4,R6,R7",4,10k,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.02,
+"R3,R5",2,100k,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.01,
+R8,1,1k,R_0402_1005Metric,generic,,"resistor 1 %, thick film (value as listed)",0.005,0.005,
+U1,1,ASM1153E,QFN-48-1EP_6x6mm_P0.4mm_EP4.6x4.6mm,ASMedia,ASM1153E,"USB 3.0 to SATA 6G bridge, QFN-48 6 x 6, SAT passthrough",3.0,3.0,verify
+Y1,1,30MHz CL=16pF,Crystal_SMD_3225-4Pin_3.2x2.5mm,generic,,"30 MHz crystal, 3.2 x 2.5 mm, CL 16 pF (bridge default clock strap)",0.3,0.3,

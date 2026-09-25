@@ -100,7 +100,6 @@ def sata22_receptacle():
     two plated 1.00 x 2.15 mm slots for the fork locks (x = +-18.73) all at y = 2.08. Body 40.46 wide (fork-lock
     slot spacing 37.42 plus 1.5 each side); depth 14.9 is the drawing's overall REF, and the position of the
     mating face relative to the PCB edge is assumed to be the edge itself (check the 3D model)."""
-    xc = -16.61                                     # body centre in drawing coordinates (measured from datum B)
     def X(xd):
         return round(-(xd + 16.61), 3)
     n = "SATA_22pin_Receptacle_RA"

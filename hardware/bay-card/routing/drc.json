@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-09-25T12:26:12-0400",
+    "date": "2026-09-25T13:32:12-0400",
     "included_severities": [
         "error",
         "warning",
@@ -900,94 +900,49 @@
             "type": "silk_edge_clearance"
         },
         {
-            "description": "Via is not connected or connected on only one layer",
+            "description": "Track has unconnected end",
             "items": [
                 {
-                    "description": "Via [5V_BAY_SW] on F.Cu - B.Cu",
+                    "description": "Track [5V_BAY_SW] on F.Cu, length 0.7750 mm",
                     "pos": {
-                        "x": 44.075,
-                        "y": 52.025
-                    },
-                    "uuid": "5206df81-4ecf-4a15-b034-6bcf1354ce83"
-                }
-            ],
-            "severity": "warning",
-            "type": "via_dangling"
-        },
-        {
-            "description": "Via is not connected or connected on only one layer",
-            "items": [
-                {
-                    "description": "Via [5V_BAY_SW] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 43.475,
-                        "y": 53.325
-                    },
-                    "uuid": "a0e65f15-369c-4739-8524-b44659a08ea1"
-                }
-            ],
-            "severity": "warning",
-            "type": "via_dangling"
-        },
-        {
-            "description": "Via is not connected or connected on only one layer",
-            "items": [
-                {
-                    "description": "Via [5V_BAY_SW] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 43.475,
+                        "x": 42.7,
                         "y": 52.675
                     },
-                    "uuid": "eb5051b7-770c-4c46-aae2-5f7a9fbe4761"
+                    "uuid": "514bd6c6-fb2a-49d3-b155-d886e93a82a5"
                 }
             ],
             "severity": "warning",
-            "type": "via_dangling"
+            "type": "track_dangling"
         },
         {
-            "description": "Via is not connected or connected on only one layer",
+            "description": "Track has unconnected end",
             "items": [
                 {
-                    "description": "Via [U1_VCCO] on F.Cu - B.Cu",
+                    "description": "Track [5V_BAY_SW] on F.Cu, length 1.3750 mm",
                     "pos": {
-                        "x": 61.675,
-                        "y": 41.5
+                        "x": 42.7,
+                        "y": 52.025
                     },
-                    "uuid": "fd1643a6-3083-4eee-b521-136270cd810e"
+                    "uuid": "62dce9ba-0517-43b2-9304-1da05d6d4b58"
                 }
             ],
             "severity": "warning",
-            "type": "via_dangling"
+            "type": "track_dangling"
         },
         {
-            "description": "Via is not connected or connected on only one layer",
+            "description": "Track has unconnected end",
             "items": [
                 {
-                    "description": "Via [U1_XI] on F.Cu - B.Cu",
+                    "description": "Track [5V_BAY_SW] on F.Cu, length 0.7750 mm",
                     "pos": {
-                        "x": 54.325,
-                        "y": 38.3
+                        "x": 42.7,
+                        "y": 53.325
                     },
-                    "uuid": "c1f5f510-49f3-4325-aa48-04ee8ab0d5f1"
+                    "uuid": "76218be9-64bc-4871-96c3-e5372ec3c365"
                 }
             ],
             "severity": "warning",
-            "type": "via_dangling"
-        },
-        {
-            "description": "Via is not connected or connected on only one layer",
-            "items": [
-                {
-                    "description": "Via [USB2_DM] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 39.6965,
-                        "y": 57.7141
-                    },
-                    "uuid": "163c9edd-9877-4f6f-99c4-e7d2d6fbd95e"
-                }
-            ],
-            "severity": "warning",
-            "type": "via_dangling"
+            "type": "track_dangling"
         }
     ]
 }

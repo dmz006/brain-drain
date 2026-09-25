@@ -21,7 +21,7 @@ Totals: 163 components, 192 nets.
 | D21 | `Device:D_Zener` | 12V 0.5W | `Diode_SMD:D_SOD-123` | clamps Vgs of Q20 |
 | F1 | `Device:Fuse` | 10A slow 0453010.MR | `Fuse:Fuse_Littelfuse-NANO2-451_453` |  |
 | J21 | `brain-drain:DIN4_KPJX` | KPJX-4S-S | `brain-drain:Kycon_KPJX-4S-S` |  |
-| Q20 | `Transistor_FET:Q_PMOS_GSD` | AO4407A | `Package_SO:SOIC-8_3.9x4.9mm_P1.27mm` | reverse-polarity protection, body diode toward load |
+| Q20 | `brain-drain:PMOS_SSSGDDDD` | AO4407A | `Package_SO:SOIC-8_3.9x4.9mm_P1.27mm` | reverse-polarity protection, body diode toward load; SO-8 power pin-out S 1-3, G 4, D 5-8 |
 | R20 | `Device:R` | 100k | `Resistor_SMD:R_0603_1608Metric` |  |
 
 ### Nets
@@ -29,10 +29,10 @@ Totals: 163 components, 192 nets.
 | Net | Scope | Pins on this sheet | Also on |
 |---|---|---|---|
 | `GND` | **global** | J21.3, J21.4, J21.5 (SHIELD), D20.1 (A1), R20.2, C20.2, C21.2, C22.2 | bay-slots, cm5, m2-nvme, power-bucks, usb3-hub-A, usb3-hub-B |
-| `Q20_GATE` | local | Q20.1 (G), R20.1, D21.2 (A) |  |
-| `VIN_12V_FUSED` | local | F1.2, D20.2 (A2), Q20.3 (D) |  |
+| `Q20_GATE` | local | Q20.4 (G), R20.1, D21.2 (A) |  |
+| `VIN_12V_FUSED` | local | F1.2, D20.2 (A2), Q20.5 (D), Q20.6 (D), Q20.7 (D), Q20.8 (D) |  |
 | `VIN_12V_RAW` | **global** | J21.1, J21.2, F1.1 |  |
-| `+12V` | **global** | Q20.2 (S), C20.1, C21.1, C22.1, D21.1 (K) | bay-slots, m2-nvme, power-bucks |
+| `+12V` | **global** | Q20.1 (S), Q20.2 (S), Q20.3 (S), C20.1, C21.1, C22.1, D21.1 (K) | bay-slots, m2-nvme, power-bucks |
 
 ### Notes
 

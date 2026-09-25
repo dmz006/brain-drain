@@ -2,36 +2,37 @@
 board_w = 150.00;
 board_h = 122.00;
 // mounting holes [x, y]
-board_holes = [[140.00, 118.00], [140.00, 4.00], [4.00, 4.00], [4.00, 118.00]];
-// features: [ref, kind, x, y, rot, w, h, z]  (x, y = part centre; kinds: left slot top led cm5 m2 lid)
+board_holes = [[10.00, 118.00], [10.00, 4.00], [146.00, 4.00], [146.00, 118.00]];
+// x is MIRRORED (measured from the board's right edge as seen from the front): the tray is right-handed with the rear wall at y = 0
+// features: [ref, kind, x, y, rot, w, h, z]  (x, y = part centre; kinds: left slot top led cm5 m2 lid; left/right walls are as seen from the tray frame)
 board_features = [
-  ["D2", "led", 4.77, 105.00, 0, 3.20, 0.00, 0.00],  // activity LED
-  ["D3", "led", 4.77, 110.00, 0, 3.20, 0.00, 0.00],  // status LED
-  ["J41", "top", 63.81, 96.50, 90, 30.00, 30.00, 0.00],  // OLED header (module is lid-mounted on a 4-wire lead; window position in params.scad)
-  ["J40", "top", 135.80, 108.30, 0, 10.00, 5.00, 0.00],  // fan header (optional fan)
-  ["D13", "led", 55.50, 30.73, 90, 3.20, 0.00, 0.00],  // bay 4 LED
-  ["J5", "left", 5.17, 60.98, -90, 9.50, 3.60, 0.90],  // USB-C receptacle
-  ["D1", "led", 4.77, 100.00, 0, 3.20, 0.00, 0.00],  // power LED
-  ["J16", "slot", 104.40, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 7: lid window for the card's 22-pin receptacle and plug
-  ["J11", "slot", 31.90, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 2: lid window for the card's 22-pin receptacle and plug
-  ["SW1", "top", 110.91, 109.98, 0, 23.00, 11.00, 0.00],  // 8-way DIP switch slot
-  ["D50", "led", 4.77, 95.00, 0, 3.20, 0.00, 0.00],  // M.2 LED
-  ["J10", "slot", 17.40, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 1: lid window for the card's 22-pin receptacle and plug
-  ["D12", "led", 41.00, 30.73, 90, 3.20, 0.00, 0.00],  // bay 3 LED
-  ["D16", "led", 99.00, 30.73, 90, 3.20, 0.00, 0.00],  // bay 7 LED
-  ["J3", "left", 9.55, 44.53, -90, 15.00, 3.00, 0.00],  // microSD card slot
-  ["D17", "led", 113.50, 30.73, 90, 3.20, 0.00, 0.00],  // bay 8 LED
-  ["D15", "led", 84.50, 30.73, 90, 3.20, 0.00, 0.00],  // bay 6 LED
-  ["J13", "slot", 60.90, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 4: lid window for the card's 22-pin receptacle and plug
-  ["J50", "m2", 51.43, 108.00, 90, 22.00, 80.00, 0.00],  // M.2 socket; the SSD lies along the front under the lid, no wall slot
-  ["M1", "cm5", 122.50, 78.50, 90, 55.00, 40.00, 0.00],  // CM5 module centre (landscape, antenna edge at x = board_w)
-  ["J14", "slot", 75.40, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 5: lid window for the card's 22-pin receptacle and plug
-  ["J21", "left", 9.00, 75.00, 90, 17.00, 16.00, 0.00],  // DIN power jack face (Kycon: 16 wide, ~15 tall)
-  ["SW3", "lid", 146.15, 36.75, 90, 0.00, 0.00, 0.00],  // lid microswitch (pressed by the closed lid)
-  ["D10", "led", 12.00, 30.73, 90, 3.20, 0.00, 0.00],  // bay 1 LED
-  ["J15", "slot", 89.90, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 6: lid window for the card's 22-pin receptacle and plug
-  ["J12", "slot", 46.40, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 3: lid window for the card's 22-pin receptacle and plug
-  ["D11", "led", 26.50, 30.73, 90, 3.20, 0.00, 0.00],  // bay 2 LED
-  ["J17", "slot", 118.90, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 8: lid window for the card's 22-pin receptacle and plug
-  ["D14", "led", 70.00, 30.73, 90, 3.20, 0.00, 0.00],  // bay 5 LED
+  ["D2", "led", 145.23, 105.00, 0, 3.20, 0.00, 0.00],  // activity LED
+  ["D3", "led", 145.23, 110.00, 0, 3.20, 0.00, 0.00],  // status LED
+  ["J41", "top", 86.19, 96.50, 90, 30.00, 30.00, 0.00],  // OLED header (module is lid-mounted on a 4-wire lead; window position in params.scad)
+  ["J40", "top", 14.20, 108.30, 0, 10.00, 5.00, 0.00],  // fan header (optional fan)
+  ["D13", "led", 94.50, 30.73, 90, 3.20, 0.00, 0.00],  // bay 4 LED
+  ["J5", "right", 144.82, 60.98, -90, 9.50, 3.60, 0.90],  // USB-C receptacle
+  ["D1", "led", 145.23, 100.00, 0, 3.20, 0.00, 0.00],  // power LED
+  ["J16", "slot", 45.60, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 7: lid window for the card's 22-pin receptacle and plug
+  ["J11", "slot", 118.10, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 2: lid window for the card's 22-pin receptacle and plug
+  ["SW1", "top", 39.09, 109.98, 0, 23.00, 11.00, 0.00],  // 8-way DIP switch slot
+  ["D50", "led", 145.23, 95.00, 0, 3.20, 0.00, 0.00],  // M.2 LED
+  ["J10", "slot", 132.60, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 1: lid window for the card's 22-pin receptacle and plug
+  ["D12", "led", 109.00, 30.73, 90, 3.20, 0.00, 0.00],  // bay 3 LED
+  ["D16", "led", 51.00, 30.73, 90, 3.20, 0.00, 0.00],  // bay 7 LED
+  ["J3", "right", 140.45, 44.53, -90, 15.00, 3.00, 0.00],  // microSD card slot
+  ["D17", "led", 36.50, 30.73, 90, 3.20, 0.00, 0.00],  // bay 8 LED
+  ["D15", "led", 65.50, 30.73, 90, 3.20, 0.00, 0.00],  // bay 6 LED
+  ["J13", "slot", 89.10, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 4: lid window for the card's 22-pin receptacle and plug
+  ["J50", "m2", 98.57, 108.00, 90, 22.00, 80.00, 0.00],  // M.2 socket; the SSD lies along the front under the lid, no wall slot
+  ["M1", "cm5", 27.50, 78.50, 90, 55.00, 40.00, 0.00],  // CM5 module centre (landscape, antenna edge at x = board_w)
+  ["J14", "slot", 74.60, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 5: lid window for the card's 22-pin receptacle and plug
+  ["J21", "right", 141.00, 75.00, 90, 17.00, 16.00, 0.00],  // DIN power jack face (Kycon: 16 wide, ~15 tall)
+  ["SW3", "lid", 3.85, 36.75, 90, 0.00, 0.00, 0.00],  // lid microswitch (pressed by the closed lid)
+  ["D10", "led", 138.00, 30.73, 90, 3.20, 0.00, 0.00],  // bay 1 LED
+  ["J15", "slot", 60.10, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 6: lid window for the card's 22-pin receptacle and plug
+  ["J12", "slot", 103.60, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 3: lid window for the card's 22-pin receptacle and plug
+  ["D11", "led", 123.50, 30.73, 90, 3.20, 0.00, 0.00],  // bay 2 LED
+  ["J17", "slot", 31.10, 7.20, 90, 11.80, 43.00, 0.00],  // bay slot 8: lid window for the card's 22-pin receptacle and plug
+  ["D14", "led", 80.00, 30.73, 90, 3.20, 0.00, 0.00],  // bay 5 LED
 ];

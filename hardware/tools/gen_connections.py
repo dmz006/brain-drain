@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
 
 import design
 
@@ -15,7 +14,6 @@ HW = PRJ.dir
 
 def main():
     d = design.build(PRJ.key)
-    pin_net = d.pin_net()
     out = [f"# {d.title} — connection list\n",
            "Generated from `hardware/tools/design.py`; do not edit by hand. One table per sheet: every",
            "component with its symbol, value and footprint, then every net on that sheet with the pins",

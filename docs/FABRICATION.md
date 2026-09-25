@@ -45,43 +45,48 @@ for consigned parts if a JLCPCB part goes out of stock.
 
 ## Estimated cost for the first run
 
-Two assembled units plus three bare spares, at JLCPCB-class pricing.
+Two assembled units (each one brain and four bay cards) plus three bare brain boards and spare cards, at JLCPCB-class pricing. Part costs
+come from the generated [BOM.md](BOM.md); board and assembly prices are the vendors' public calculators, not quotes.
 
 | Item | Estimate (USD) | Basis |
 |---|---|---|
-| 5 × bare 6-layer 150 × 122 mm, ENIG, impedance stack-up | 150–230 | calculator: 6-layer, 122 × 150 mm, ENIG, 5 pcs (a four-layer board would be 70–100) |
-| Assembly setup + stencil, both sides | 50–80 | SMT setup fee, through-hole setup, extended-parts fees (a few dollars per unique part) |
-| Assembly labour, 2 boards, ~300 placements each | 30–60 | per-joint pricing, 0402 heavy |
-| Board-mounted parts, per board | 55–70 | BOM section B–F: hubs 2 × 2.44, bridges 4 × 3, bucks, switches, PTCs, crystals, connectors, passives |
-| Shipping and import (DHL to the US) | 35–60 | 2 assembled + 3 bare, 1–2 kg |
-| **Subtotal, 2 assembled + 3 bare** | **~360–580** | six layers add about 70–130 to the run |
-| CM5 wireless, 2 GB / 16 GB eMMC, per unit | 60–70 | Raspberry Pi list price; Lite (no eMMC) about 10 less, wireless adds 5 |
-| CM5 passive cooler, per unit | 6 | |
-| OLED module, CR2032, heat-set inserts, feet, per unit | 8 | |
-| 4 × SATA 22-pin extension cables 0.5 m | 12–20 | off-the-shelf |
-| 12 V / 10 A brick with matching 4-pin DIN | 25–35 | choose before the DIN pinout is fixed (B3) |
-| Enclosure print (PETG/ASA, ~200 g) | 5–8 | home printer; 25–40 from a print service |
-| **Per finished unit, on top of the board run** | **~120–150** | |
+| 5 x bare brain, 6-layer 150 x 122 mm, ENIG, impedance stack-up | 150-230 | calculator: 6-layer, 122 x 150 mm, ENIG, 5 pcs (four layers would be 70-100) |
+| Bay-card panel, 4-layer 45 x 46 mm, 16 cards (8 for the two units, 8 spare or expansion) | 40-70 | panel of 16, tab routed, ENIG |
+| Assembly setup and stencil, brain, both sides | 50-80 | SMT and through-hole setup, extended-parts fees |
+| Assembly setup and stencil, card (a second job) | 40-70 | |
+| Assembly labour: 2 brains (about 330 placements each) and 8 cards (about 40 each) | 60-110 | per-joint pricing, 0402 heavy |
+| Board-mounted parts: 2 brains without the CM5 (about $37 each) and 8 cards (about $8 each) | 140 | BOM.md |
+| Shipping and import (DHL to the US) | 40-70 | 2 assembled brains, 8 cards, 3 bare brains, 1-2 kg |
+| **Subtotal, boards, assembly and board parts** | **~520-770** | |
+| CM5 wireless, 2 GB / 16 GB eMMC, per unit | 97 | Raspberry Pi list price (also counted in the BOM roll-up) |
+| CM5 cooler, OLED module, heat-set inserts, feet, per unit | 13 | |
+| 4 x SATA 22-pin extension cables 0.5 m | 14 | off-the-shelf |
+| 12 V / 10 A brick with matching 4-pin DIN | 25-35 | choose before the DIN pinout is fixed (B3); 150-180 W for eight bays |
+| Enclosure print (PETG/ASA, about 350 g) | 9 | home printer; 35-60 from a print service |
+| **Per finished unit, on top of the board run** | **~160-170** | |
 
-So the first two working units land at roughly **$530–750 all in**, or about
-**$265–375 each**, with three spare bare boards. A second run of five assembled
-boards would be about $450–600 for the boards and $120–150 per unit on top.
+So the first two working units land at roughly **$850-1100 all in**, or about **$425-550 each**, with three spare bare brains and eight spare cards.
+A second run of five assembled units would be about $450-650 for the boards plus $160-170 per unit on top. Eight fitted bays add four cards
+(about $16 each with parts and board) and four cables, plus the 150-180 W brick and heavier input parts (STATUS R23).
 
 ## Before the order can go in
 
 | # | Gate | Status |
 |---|---|---|
-| 1 | Routing finished and DRC-clean (STATUS R4, R22, D7, D8) | 83 % autorouted, copper DRC-clean; the QFN supply pins (D8) and pair matching remain |
-| 2 | SATA receptacle footprint from the Molex drawing (R1, B1) | placeholder |
-| 3 | M.2 socket peg check (R2, B2) | pending |
-| 4 | DIN pinout matched to the chosen brick (R3, B3) | pending |
-| 5 | Vendor part numbers on every BOM line, checked against stock the day of ordering | BOM has families, not all orderable numbers |
-| 6 | Gerbers, drill, pick-and-place and BOM exports from `kicad-cli`, plus the assembly drawings | `hardware/tools/export_fab.sh` writes `hardware/fab/<date>/` (gitignored) |
-| 7 | Bench evidence that the ASM1153E passes Sanitize through (Saturday plan) | 2026-09-26 |
+| 1 | Routing finished and DRC-clean | done 2026-09-25: 0 open connections, 0 DRC errors on both boards, pairs matched; **not yet reviewed by a board engineer** (STATUS R25 to R29) |
+| 2 | Stack-up chosen with the fab and the pair geometry recalculated for it | open, R26: the pair class was set for a four-layer stack-up |
+| 3 | SATA receptacle and PCIe slot footprints from the vendor drawings | done 2026-09-25; the Molex mating face and the socket housing ends to check against the 3D models (R28) |
+| 4 | M.2 socket peg check against the TE drawing | open, R2 (drawing received) |
+| 5 | DIN pinout matched to the chosen brick | open, R3, B3 |
+| 6 | Vendor part numbers on every BOM line, checked against stock the day of ordering | BOM generated; lines marked `verify` remain |
+| 7 | Gerbers, drill, pick-and-place and BOM exports from `kicad-cli`, plus the assembly drawings | `BD_PROJECT=brain\|card sh hardware/tools/export_fab.sh` writes `hardware/fab/<date>/<board>/` (gitignored); run it after the engineer's changes |
+| 8 | Fab DFM check on the gerbers (0.3/0.15 mm vias, 0.4 mm QFN dog-bones, hole-to-hole, edge clearance) | open |
+| 9 | Test points, fiducials, panel drawing for the card, silkscreen cleaned | open, R29 |
+| 10 | Bench evidence that the ASM1153E passes Sanitize through | 2026-09-26 |
 
 ## Ordering checklist (JLCPCB flow)
 
-1. `sh hardware/tools/export_fab.sh`: gerber + drill zip, placement CSV, BOM CSV, assembly PDFs, an errors-only DRC report. Add LCSC numbers to the BOM lines first (gate 5).
+1. `BD_PROJECT=brain sh hardware/tools/export_fab.sh` and again with `BD_PROJECT=card`: gerber + drill zip, placement CSV, BOM CSV, assembly PDFs, an errors-only DRC report. Add LCSC numbers to the BOM lines first (gate 6).
 2. Upload the zip, pick 6 layers (brain) or 4 layers (card), 1.6 mm, ENIG, the impedance stack-up, 5 pcs.
 3. Tick "PCB assembly", 2 pcs, both sides, standard tier; upload BOM + placement.
 4. In the parts matcher, confirm every line; for anything out of stock choose an

@@ -33,18 +33,22 @@ Validated.
 | Item | Tested | Validated | Conditions | Notes |
 |---|---|---|---|---|
 | Netlist (`design.py`) pin coverage | yes, `design.py` check | no | every pin assigned or NC | |
-| Schematic ERC | yes, 0 errors | no | kicad-cli 9.0.8 | 9 lib-cache warnings on 2N7002, 4 placeholder footprints |
-| Board DRC (v3 outline, 83 % routed) | yes: 0 copper errors, 2 starved-thermal notes, silkscreen warnings | no | kicad-cli 9.0.8, `check_place.py` 0 problems | 151 connections open (`routing/open.md`); pairs unmatched (`routing/pairs.md`, R22) |
+| Schematic ERC | yes: brain 0 findings, card 2 harmless library-copy warnings | no | kicad-cli 9.0.8 | `hardware/review/erc-summary.md` |
+| Board DRC, brain (six layers) | yes: 0 errors, 0 unconnected, silkscreen and dangling-stub warnings | no | kicad-cli 9.0.8, `check_place.py` 0 problems | `hardware/review/drc-summary.md`; no independent review |
+| Board DRC, bay card | yes: 0 errors, 0 unconnected | no | same | |
+| Differential-pair matching | yes: 44 + 8 pairs under 0.15 mm end to end | no | `route.py pairs` | no impedance calculation, no simulation; segment-level mismatch up to 6 mm |
 | Symbols from datasheet tables | yes | no | CM5 datasheet, USB5744 DS00001855M, ASM1153E Rev 0.4 | |
-| Footprints: KPJX-4S-S, RPA0010A | generated | no | Kycon drawing, TI land pattern | first board proves them |
-| Footprints: CM5 module, M.2 socket | copied from CM5IO rev 2 | no | Raspberry Pi design files | M.2 pegs vs TE drawing pending |
-| Footprint: SATA 22-pin | **placeholder** | no | | needs Molex SD-47018-001 |
-| USB-SATA bridge Sanitize passthrough | — | **planned 2026-09-26** | ASM1153E dock | closes C12 with evidence |
+| FET pin tables (AON7403, AO4407A) | yes, read against the datasheets | no | AOS datasheets | S 1-3, G 4, D 5-8 (+ EP) |
+| Footprints: PCIe x1 socket, SATA receptacle, KPJX-4S-S, RPA0010A | generated from vendor drawings | no | Amphenol 10018784, Molex SD-47018-001, Kycon, TI | Molex face position and socket housing ends assumed |
+| Footprints: CM5 module, M.2 socket | copied from CM5IO rev 2 | no | Raspberry Pi design files | M.2 pegs vs TE drawing pending (R2) |
+| Generated BOM | yes, every part mapped | no | `gen_bom.py` | `verify` lines need a stock and rating check |
+| USB-SATA bridge Sanitize passthrough | | **planned 2026-09-26** | ASM1153E dock | closes C12 with evidence |
+| Signal integrity, power integrity, thermal | no | no | | nothing simulated |
 
 ## Enclosure (`enclosure/`)
 
 | Item | Tested | Validated | Conditions | Notes |
 |---|---|---|---|---|
 | Tray / hinged lid / bezel STL export (v2 box) | yes, OpenSCAD 2021.01 | no | no warnings | no print yet |
-| Hinge, latch, lid-open scene | yes | no | renders in `enclosure/renders/` | hinge pin fit and latch force need a print |
+| Hinge, latch, lid-open scene | yes | no | renders in `docs/img/renders/` | hinge pin fit and latch force need a print |
 | Cutout fit against real connectors | no | no | | first print |
