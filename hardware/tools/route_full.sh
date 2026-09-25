@@ -28,6 +28,7 @@ echo "stage2 done $(date): $(grep -v 'memory leak\|assert\|Debug' $RD/stage2.log
 run drc-clean; drc
 run fanout; run fanout-big; run fanout-conn; run fanout-qfn
 run close-gaps; run close-gaps-pairs; run drc-clean; run tune
+sh tools/fix_pairs.sh
 drc
 python3 tools/open_report.py 2>&1 | tail -1 >> $log
 run pairs

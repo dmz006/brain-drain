@@ -181,6 +181,7 @@ def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
         zone("5V_HDD", pcbnew.In4_Cu, (0, 0, 122, 30), 2)          # slot row: card 5 V through the slots
         zone("+12V", pcbnew.In4_Cu, (0, 20, 120, 35), 3)           # strip across the slot row: every slot's 12 V contacts (y 21.7-23.7) sit in it, its 5 V contacts (y 14.7-16.7) stay on 5V_HDD
         zone("+12V", pcbnew.In4_Cu, (56, 55, 95, 100), 3)          # bucks, input block, bulk caps
+        zone("+12V", pcbnew.In4_Cu, (64, 35, 74, 55), 3)           # channel joining that island to the slot-row strip
         zone("+3V3", pcbnew.In4_Cu, (30, 35, 122, 55), 2)          # hub band
     if gen_pcb.ANTENNA_STRIP:
         # CM5 antenna strip: no copper on any layer, nothing routed (CM5 datasheet 4.1.2)
@@ -722,21 +723,48 @@ def net_lengths(board: pcbnew.BOARD) -> tuple[dict, dict]:
     return lengths, vias
 
 
+def cap_links(d: design.Design) -> dict:
+    """Series (AC-coupling) capacitors join two differential-pair nets of the same polarity end to end: net -> net on the
+    other side of its cap. A pair's end-to-end skew is its own P-N mismatch plus that of the pair beyond the caps."""
+    pn = d.pin_net()
+    pair_nets = diff_pair_nets(d)
+    links = {}
+    for c in d.comps.values():
+        if c.lib_id != "Device:C":
+            continue
+        a, b = pn.get((c.ref, "1")), pn.get((c.ref, "2"))
+        if a in pair_nets and b in pair_nets and a != b:
+            links[a] = b; links[b] = a
+    return links
+
+
+def chain_offset(a: str, b: str, lengths: dict, links: dict) -> float:
+    """Length difference (P side minus N side) of the pair beyond the coupling caps, 0 when there is none."""
+    a2, b2 = links.get(a), links.get(b)
+    if a2 and b2:
+        return lengths.get(a2, 0.0) - lengths.get(b2, 0.0)
+    return 0.0
+
+
 def pair_report(board: pcbnew.BOARD, d: design.Design) -> None:
-    """Differential pairs: routed length per side (tracks + VIA_LEN per via) and the mismatch."""
+    """Differential pairs: routed length per side (tracks + VIA_LEN per via), the mismatch of the segment and the
+    end-to-end skew (the segment's mismatch plus that of the pair beyond the series caps)."""
     lengths, vias = net_lengths(board)
+    links = cap_links(d)
     pairs = pairs_of(d)
-    lines = ["# Differential pairs after autorouting", "", "| pair | P mm | N mm | mismatch mm | vias P/N | note |", "|---|---|---|---|---|---|"]
+    lines = ["# Differential pairs after autorouting", "",
+             "| pair | P mm | N mm | mismatch mm | end-to-end skew mm | vias P/N | note |", "|---|---|---|---|---|---|---|"]
     bad = 0
     for a, b in pairs:
         la, lb = lengths.get(a, 0.0), lengths.get(b, 0.0)
         mm = abs(la - lb)
+        e2e = abs((la - lb) + chain_offset(a, b, lengths, links))
         note = "" if (la and lb) else "UNROUTED"
-        if la and lb and mm > 0.15:
+        if la and lb and e2e > 0.15:
             note = "match > 0.15 mm"; bad += 1
-        lines.append(f"| {a} / {b} | {la:.2f} | {lb:.2f} | {mm:.2f} | {vias.get(a, 0)}/{vias.get(b, 0)} | {note} |")
+        lines.append(f"| {a} / {b} | {la:.2f} | {lb:.2f} | {mm:.2f} | {e2e:.2f} | {vias.get(a, 0)}/{vias.get(b, 0)} | {note} |")
     (PRJ.routing / "pairs.md").write_text("\n".join(lines) + "\n")
-    print(f"pairs: {len(pairs)}, {bad} beyond the 0.15 mm match, report routing/pairs.md")
+    print(f"pairs: {len(pairs)}, {bad} beyond the 0.15 mm end-to-end match, report routing/pairs.md")
 
 
 def rip_bad_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.15, min_gap: float = 0.0) -> list[str]:
@@ -767,6 +795,7 @@ def tune_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.1, max_extr
     pair report does: track length plus VIA_LEN per via."""
     import math
     lengths, _vias = net_lengths(board)
+    links = cap_links(d)
     occ = Occupancy(board)
     keepouts = [z for z in board.Zones() if z.GetIsRuleArea()]
     tracks = [t for t in board.GetTracks() if t.GetClass() != "PCB_VIA"]
@@ -820,10 +849,11 @@ def tune_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.1, max_extr
         la, lb = lengths.get(a, 0.0), lengths.get(b, 0.0)
         if not (la and lb):
             continue
-        need = abs(la - lb)
+        diff = (la - lb) + chain_offset(a, b, lengths, links)   # end-to-end: compensate the pair beyond the caps too
+        need = abs(diff)
         if need < tol:
             continue
-        short = a if la < lb else b
+        short = a if diff < 0 else b
         if need > max_extra:
             notes.append(f"{a}/{b}: {need:.1f} mm apart, more than {max_extra:.0f} mm; reroute the long side")
             failed += 1
@@ -845,6 +875,7 @@ def tune_pairs(board: pcbnew.BOARD, d: design.Design, tol: float = 0.1, max_extr
             notes.append(f"{a}/{b}: needs {need:.2f} mm, room for {got:.2f} mm; left as routed")
             failed += 1
             continue
+        lengths[short] = lengths.get(short, 0.0) + got   # later pairs of the same chain see the added length
         for seg, side, bumps in chosen:
             t, A, B, layer, width, nc, _len = seg
             L = math.hypot(B[0] - A[0], B[1] - A[1])
@@ -1331,6 +1362,13 @@ def main(cmd: str) -> int:
     if cmd == "fanout-conn":
         fanout_conn(board)
         pcbnew.SaveBoard(str(PCB), board)
+    if cmd == "rip-named":   # BD_ONLY=netP,netN,...: remove every track and via of those nets (fix_pairs.sh)
+        names = set(os.environ.get("BD_ONLY", "").split(","))
+        victims = [t for t in board.GetTracks() if t.GetNetname() in names]
+        for t in victims:
+            board.Remove(t)
+        print(f"rip_named: {len(victims)} tracks/vias of {sorted(names)} removed")
+        pcbnew.SaveBoard(str(PCB), board)
     if cmd == "rip-pairs":   # tools/reroute_pairs.sh: rip, then stage3 / drc-clean / tune in fresh processes
         rip_bad_pairs(board, d)
         pcbnew.SaveBoard(str(PCB), board)
@@ -1343,7 +1381,8 @@ def main(cmd: str) -> int:
         if cmd == "close-gaps":          # single-ended nets
             gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=diff_pair_nets(d), max_len=160.0, ripup=rip, pair_names=frozenset(partner))
         else:                            # pair sides, each hugging its partner's copper; tune afterwards
-            gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=frozenset(), max_len=160.0, partner_of=partner, ripup=rip, pair_names=frozenset(partner))
+            gapclose.close_gaps(board, d, PRJ.routing, PCB, skip_nets=frozenset(), max_len=160.0,
+                                partner_of=None if os.environ.get("BD_NOHUG") == "1" else partner, ripup=rip, pair_names=frozenset(partner))
         pcbnew.SaveBoard(str(PCB), board)
     if cmd == "tune":
         tune_pairs(board, d)
