@@ -181,7 +181,7 @@ def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
         zone("5V_HDD", pcbnew.In4_Cu, (0, 0, 122, 30), 2)          # slot row: card 5 V through the slots
         zone("+12V", pcbnew.In4_Cu, (0, 20, 120, 35), 3)           # strip across the slot row: every slot's 12 V contacts (y 21.7-23.7) sit in it, its 5 V contacts (y 14.7-16.7) stay on 5V_HDD
         zone("+12V", pcbnew.In4_Cu, (56, 55, 95, 100), 3)          # bucks, input block, bulk caps
-        zone("+12V", pcbnew.In4_Cu, (64, 35, 74, 55), 3)           # channel joining that island to the slot-row strip
+        zone("+12V", pcbnew.In4_Cu, (64, 35, 74, 55), 4)           # channel joining that island to the slot-row strip
         zone("+3V3", pcbnew.In4_Cu, (30, 35, 122, 55), 2)          # hub band
     if gen_pcb.ANTENNA_STRIP:
         # CM5 antenna strip: no copper on any layer, nothing routed (CM5 datasheet 4.1.2)

@@ -1,12 +1,10 @@
-# Open connections: 2
+# Open connections: 0
 
 | group | open |
 |---|---|
-| plane (needs a via to its plane) | 2 |
 
 | net | open |
 |---|---|
-| 5V_HDD | 2 |
 
 | part | open pins |
 |---|---|
