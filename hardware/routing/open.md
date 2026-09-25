@@ -1,15 +1,14 @@
-# Open connections: 5
+# Open connections: 3
 
 | group | open |
 |---|---|
-| plane (needs a via to its plane) | 5 |
+| plane (needs a via to its plane) | 2 |
+| differential pair | 1 |
 
 | net | open |
 |---|---|
 | 5V_HDD | 2 |
-| +12V | 1 |
-| +3V3 | 1 |
-| 5V_SYS | 1 |
+| PCIE_CLK_N | 1 |
 
 | part | open pins |
 |---|---|
