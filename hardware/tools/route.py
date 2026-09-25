@@ -179,7 +179,7 @@ def _zones(board: pcbnew.BOARD, d: design.Design) -> None:
         # +3V3 around the hubs, +12V under the bucks / input block. A higher priority island wins overlaps.
         zone("5V_SYS", pcbnew.In4_Cu, (0, 0, W, H), 1)
         zone("5V_HDD", pcbnew.In4_Cu, (0, 0, 122, 30), 2)          # slot row: card 5 V through the slots
-        zone("+12V", pcbnew.In4_Cu, [(0, 0), (12, 0), (12, 30), (58, 30), (58, 35), (0, 35)], 3)   # unused corner + strip feeding the slot row
+        zone("+12V", pcbnew.In4_Cu, (0, 20, 120, 35), 3)           # strip across the slot row: every slot's 12 V contacts (y 21.7-23.7) sit in it, its 5 V contacts (y 14.7-16.7) stay on 5V_HDD
         zone("+12V", pcbnew.In4_Cu, (56, 55, 95, 100), 3)          # bucks, input block, bulk caps
         zone("+3V3", pcbnew.In4_Cu, (30, 35, 122, 55), 2)          # hub band
     if gen_pcb.ANTENNA_STRIP:
