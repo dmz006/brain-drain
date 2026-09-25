@@ -64,19 +64,28 @@ def write(name, lines):
 
 
 def pcie_x1_socket():
-    """PLACEHOLDER for a through-hole PCI Express x1 socket (Amphenol 10018783-10100TLF / TE 1-1734774-1):
-    two rows of 18 pins on the finger pitch (1.0 mm, key gap between 11 and 12, matching
-    Connector_PCBEdge:BUS_PCIexpress_x1), rows 2.0 mm apart, housing 25 x 7.5 mm. Pad/drill from the
-    PCI Express CEM connector recommendation; check against the vendor drawing before ordering."""
-    xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19]
-    lines = header("PCIe_x1_Socket_THT", "PLACEHOLDER PCIe x1 socket, THT, brain-drain bay slot pinout", "pcie x1 socket bay slot", "through_hole")
-    lines += [text("Reference", "REF**", 9.5, -6.0, "F.SilkS"), text("Value", "PCIe_x1_Socket_THT", 9.5, 6.0, "F.Fab")]
+    """Amphenol FCI 10018783-10100TLF / 10018784 (PCI Express Gen3 x1, vertical, through hole, 36 contacts) from
+    the Amphenol customer drawing 10018784 sheets 1, 3 and 5 (recommended footprint, x1 column of the table).
+    Origin: pin A1 hole. x runs along the connector (A1 to A18), y across it. Four rows of 0.70 mm holes:
+    A side above the datum line (y negative in KiCad's y-down top view), B side below. Odd contacts on the
+    inner rows (y = -1.25 / +1.25), even contacts on the outer rows (y = -3.25 / +3.25) and 1.0 mm further
+    along, so every row has 2.0 mm pitch. A1..A11 at x = 0..10, the key gap, then A12..A18 at x = 13..19
+    (B the same). Two 2.35 mm peg holes on the datum line at x = 11.65 and 20.80 (DIM C = 9.15). Housing
+    25.00 x 8.80, from x = -2.10 to 22.90 (the ends sit 2.10 beyond A1 and the second peg; the drawing gives
+    the length, the two ends are assumed symmetrical about the contacts). Pin 1 is the square pad."""
+    xs = list(range(0, 11)) + list(range(13, 20))          # contact positions 1..18
+    lines = header("PCIe_x1_Socket_THT", "Amphenol FCI 10018783 PCI Express x1 vertical THT socket (drawing 10018784 sheets 1/3/5), brain-drain bay slot pinout",
+                   "pcie x1 socket bay slot amphenol fci 10018783", "through_hole")
+    lines += [text("Reference", "REF**", 10.4, -6.0, "F.SilkS"), text("Value", "PCIe_x1_Socket_THT", 10.4, 6.0, "F.Fab")]
     for i, x in enumerate(xs, start=1):
-        lines.append(tht(f"A{i}", x, 1.0, 0.55, None, 0.85, 0.85, "circle" if i > 1 else "rect").replace(" (uuid", " (zone_connect 2) (uuid"))
-        lines.append(tht(f"B{i}", x, -1.0, 0.55, None, 0.85, 0.85, "circle").replace(" (uuid", " (zone_connect 2) (uuid"))
-    lines += [npth(-2.2, 0.0, 1.6), npth(21.2, 0.0, 1.6)]          # housing pegs (placeholder positions)
-    lines += [rect(-3.0, -3.75, 22.5, 3.75, "F.Fab"), rect(-3.25, -4.0, 22.75, 4.0, "F.CrtYd"),
-              rect(-3.0, -3.75, 22.5, 3.75, "F.SilkS", 0.12)]
+        inner = i % 2 == 1
+        ya = -1.25 if inner else -3.25
+        yb = 1.25 if inner else 3.25
+        lines.append(tht(f"A{i}", x, ya, 0.70, None, 1.25, 1.25, "rect" if i == 1 else "circle").replace(" (uuid", " (zone_connect 2) (uuid"))
+        lines.append(tht(f"B{i}", x, yb, 0.70, None, 1.25, 1.25, "circle").replace(" (uuid", " (zone_connect 2) (uuid"))
+    lines += [npth(11.65, 0.0, 2.35), npth(20.80, 0.0, 2.35)]      # housing pegs
+    lines += [rect(-2.10, -4.40, 22.90, 4.40, "F.Fab"), rect(-2.35, -4.65, 23.15, 4.65, "F.CrtYd"),
+              rect(-2.10, -4.40, 22.90, 4.40, "F.SilkS", 0.12)]
     write("PCIe_x1_Socket_THT", lines)
 
 
