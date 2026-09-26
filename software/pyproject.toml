@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "braindrain"
 version = "0.0.1"
-description = "Four-bay NIST 800-88 disk sanitizer service"
+description = "Eight-bay NIST 800-88 disk sanitizer service"
 requires-python = ">=3.11"
 dependencies = [
     "pyudev>=0.24",

@@ -7707,13 +7707,13 @@
 		(layer "Edge.Cuts")
 		(uuid "fabd1048-4775-545c-898b-7209b380f66a")
 	)
-	(gr_text "bay card rev 1.0"
-		(at 53.95 60.674246 0)
+	(gr_text "card rev 1.0"
+		(at 53.95 60.36637 0)
 		(layer "F.SilkS")
-		(uuid "8a0da36d-5130-4e9d-b600-eb76e5f37466")
+		(uuid "ffa0bc46-6e79-43e9-8d24-0a3e05dddc2f")
 		(effects
 			(font
-				(size 0.954075 0.954075)
+				(size 1.2 1.2)
 				(thickness 0.18)
 			)
 		)
@@ -7721,10 +7721,10 @@
 	(gr_text "BRAIN-DRAIN"
 		(at 53.95 58.75 0)
 		(layer "F.SilkS")
-		(uuid "9311a253-9769-4960-8c1c-6356ccb31694")
+		(uuid "b63345a0-cbae-4ff2-9fdc-07bbd9892c13")
 		(effects
 			(font
-				(size 1.174246 1.174246)
+				(size 1.21637 1.21637)
 				(thickness 0.3)
 			)
 		)
@@ -17067,8 +17067,8 @@
 		)
 	)
 	(group "branding"
-		(uuid "86fa17c0-5e36-4103-80cb-045c855feec6")
-		(members "8a0da36d-5130-4e9d-b600-eb76e5f37466" "9311a253-9769-4960-8c1c-6356ccb31694")
+		(uuid "17c99d9c-97bd-4dc3-98d6-cc6aca040262")
+		(members "b63345a0-cbae-4ff2-9fdc-07bbd9892c13" "ffa0bc46-6e79-43e9-8d24-0a3e05dddc2f")
 	)
 	(embedded_fonts no)
 )

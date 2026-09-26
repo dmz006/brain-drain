@@ -26,7 +26,8 @@ HW = Path(__file__).resolve().parent.parent
 BOARDS = {"brain": HW / "brain-drain.kicad_pcb", "card": HW / "bay-card" / "bay-card.kicad_pcb"}
 URL = "github.com/dmz006/brain-drain"
 NAME = "BRAIN-DRAIN"
-LW = 0.15            # silk line width (fab minimum is 0.15)
+LW = 0.2             # silk line width (typical fab minimum is 0.15; stay above it)
+LW_BOLD = 0.3        # tentacles
 NM = 1e6
 CELL = 0.5
 GROUP = "branding"
@@ -69,7 +70,7 @@ class Sil:
         if closed:
             self.line(pts[-1], pts[0], w)
 
-    def dot(self, c, r):
+    def dot(self, c, r):   # filled circle
         s = pcbnew.PCB_SHAPE(self.b)
         s.SetShape(pcbnew.SHAPE_T_CIRCLE)
         s.SetStart(P(*c)); s.SetEnd(P(c[0] + r, c[1])); s.SetWidth(mm(LW)); s.SetFilled(True)
@@ -122,74 +123,51 @@ def occupancy(board, keepout_y_from=None):
     return g, (x0, y0, x1, y1)
 
 
-def find_free(g, org, w, h, prefer):
-    """Top-left of the free w x h rectangle (mm) nearest to `prefer`, or None."""
-    x0, y0, _, _ = org
-    ny, nx = g.shape
+def free_spots(g, w, h):
+    """All top-left grid indices (j, i) where a w x h mm rectangle is free."""
     cw, ch = int(math.ceil(w / CELL)), int(math.ceil(h / CELL))
     integral = np.pad(g.astype(np.int32).cumsum(0).cumsum(1), ((1, 0), (1, 0)))
-    best = None
-    for j in range(0, ny - ch):
-        for i in range(0, nx - cw):
-            s = integral[j + ch, i + cw] - integral[j, i + cw] - integral[j + ch, i] + integral[j, i]
-            if s == 0:
-                cx, cy = x0 + i * CELL + w / 2, y0 + j * CELL + h / 2
-                d = math.hypot(cx - prefer[0], cy - prefer[1])
-                if best is None or d < best[0]:
-                    best = (d, x0 + i * CELL, y0 + j * CELL)
-    return None if best is None else best[1:]
+    s = integral[ch:, cw:] - integral[:-ch, cw:] - integral[ch:, :-cw] + integral[:-ch, :-cw]
+    return np.argwhere(s == 0)
+
+
+def find_free(g, org, w, h, prefer):
+    """Top-left of the free w x h rectangle (mm) nearest to `prefer`, or None."""
+    spots = free_spots(g, w, h)
+    if not len(spots):
+        return None
+    xy = np.stack([org[0] + spots[:, 1] * CELL + w / 2, org[1] + spots[:, 0] * CELL + h / 2], 1)
+    k = int(np.argmin(np.hypot(xy[:, 0] - prefer[0], xy[:, 1] - prefer[1])))
+    return org[0] + spots[k, 1] * CELL, org[1] + spots[k, 0] * CELL
+
+
+def simple_bbox(lg):
+    xs = [p[0] for t in lg.tentacles for p in t]; ys = [p[1] for t in lg.tentacles for p in t]
+    bx, by, rx, ry = lg.brain
+    return (min(xs), by - ry, max(xs), max(ys + [by + ry]))
 
 
 def draw_logo(sil, lg, ox, oy, scale):
-    """Line-art of the octopus with its top-left at (ox, oy); scale is mm per logo unit."""
-    x0, y0, _, _ = lg.bbox
+    """Simplified line-art for silkscreen (no drive icons, few folds, single-line tentacles), top-left at (ox, oy);
+    scale is mm per logo unit. Every stroke is at least 0.2 mm and every gap at least 0.6 mm at the sizes used (35 mm and up)."""
+    x0, y0, _, _ = simple_bbox(lg)
 
     def T(p):
         return ((p[0] - x0) * scale + ox, (p[1] - y0) * scale + oy)
 
     bx, by, rx, ry = lg.brain
-
-    def inside_brain(p):
-        return ((p[0] - bx) / (rx + 6)) ** 2 + ((p[1] - by) / (ry + 6)) ** 2 < 1
-    # brain outline
-    sil.poly([T((bx + rx * math.cos(a), by + ry * math.sin(a))) for a in np.linspace(0, 2 * math.pi, 73)], closed=False)
-    for f in lg.gyri:
-        sil.poly([T(p) for p in f])
+    sil.poly([T((bx + rx * math.cos(a), by + ry * math.sin(a))) for a in np.linspace(0, 2 * math.pi, 73)], w=LW_BOLD)
+    sil.poly([T(p) for p in lg.gyri[0]], w=LW_BOLD)                       # the fissure
+    for f in lg.gyri[1:7]:                                                # the six long folds (skip the short top and side ones)
+        sil.poly([T(p) for p in f], w=LW)
     for (cx, cy, erx, ery, px, py, pr) in lg.eyes:
-        sil.poly([T((cx + erx * math.cos(a), cy + ery * math.sin(a))) for a in np.linspace(0, 2 * math.pi, 25)])
-        sil.dot(T((px, py)), pr * scale)
-    # tentacles: two edges, dropped where they run inside the brain, with a round tip
-    hw = lg.tentacle_w / 2
-    for t in lg.tentacles:
-        left, right = [], []
-        for i, p in enumerate(t):
-            a = t[max(i - 1, 0)]; b = t[min(i + 1, len(t) - 1)]
-            dx, dy = b[0] - a[0], b[1] - a[1]; n = math.hypot(dx, dy) or 1
-            nx_, ny_ = -dy / n * hw, dx / n * hw
-            left.append((p[0] + nx_, p[1] + ny_)); right.append((p[0] - nx_, p[1] - ny_))
-        for edge in (left, right):
-            run = []
-            for p in edge:
-                if inside_brain(p):
-                    if len(run) > 1:
-                        sil.poly([T(q) for q in run])
-                    run = []
-                else:
-                    run.append(p)
-            if len(run) > 1:
-                sil.poly([T(q) for q in run])
-        # round tip at the far end (the end away from the brain)
-        e = t[-1] if not inside_brain(t[-1]) else t[0]
-        k = t.index(e); o = t[k - 1] if k else t[1]
-        ang = math.atan2(e[1] - o[1], e[0] - o[0])
-        sil.poly([T((e[0] + hw * math.cos(ang + a), e[1] + hw * math.sin(ang + a))) for a in np.linspace(-math.pi / 2, math.pi / 2, 9)])
-    for (hx, hy) in lg.hdds:
-        sil.poly([T((hx, hy)), T((hx + 92, hy)), T((hx + 92, hy + 60)), T((hx, hy + 60))], closed=True)
-        c = (hx + 34, hy + 30)
-        sil.poly([T((c[0] + 20 * math.cos(a), c[1] + 20 * math.sin(a))) for a in np.linspace(0, 2 * math.pi, 17)])
-        sil.line(T(c), T((hx + 62, hy + 50)))
-        for k in (14, 26, 38):
-            sil.line(T((hx + 60, hy + k + 3)), T((hx + 82, hy + k + 3)))
+        sil.poly([T((cx + erx * math.cos(a), cy + ery * math.sin(a))) for a in np.linspace(0, 2 * math.pi, 25)], w=LW)
+        sil.dot(T((px, py)), pr * scale * 1.1)
+    for t in lg.tentacles:                                                # one bold line each, from under the brain to the tip
+        run = [p for p in t if ((p[0] - bx) / (rx + 6)) ** 2 + ((p[1] - by) / (ry + 6)) ** 2 >= 1]
+        if len(run) > 1:
+            sil.poly([T(q) for q in run], w=LW_BOLD)
+            sil.dot(T(run[-1]), 0.5)                                       # a round tip, like the suction end of the drawing
 
 
 def mark_rect(g, org, x, y, w, h):
@@ -199,80 +177,82 @@ def mark_rect(g, org, x, y, w, h):
     g[max(j0, 0):j1, max(i0, 0):i1] = True
 
 
+def text_blocks(kind):
+    """Independent text blocks, each a list of (text, height mm, stroke mm), so they can sit in different free spots."""
+    if kind == "brain":
+        return [[(NAME, 2.6, 0.4), ("eight-bay disk sanitizer", 1.2, 0.18)],
+                [(f"brain board  rev {REV}", 1.2, 0.22), (URL, 1.3, 0.2)]]
+    return [[(NAME, 1.6, 0.3), (f"card rev {REV}", 1.2, 0.18)]]
+
+
+def block_size(lines, width):
+    return width, sum(h for _, h, _ in lines) + 0.6 * (len(lines) - 1) + 1.0
+
+
 def brand(kind: str, dry: bool = False) -> str:
-    """Two blocks, each placed in the largest free spot nearest the board's middle: the logo, then the text lines beside it."""
+    """The logo as big as the free space allows (with every text block also placed), each text block in the free spot nearest the logo."""
     path = BOARDS[kind]
     board = pcbnew.LoadBoard(str(path))
     lg = logo_geom.load()
-    ar = (lg.bbox[3] - lg.bbox[1]) / (lg.bbox[2] - lg.bbox[0])
+    sb = simple_bbox(lg); ar = (sb[3] - sb[1]) / (sb[2] - sb[0])
     g, org = occupancy(board, keepout_y_from=(board.GetBoardEdgesBoundingBox().GetHeight() / NM - 26) if kind == "brain" else None)
     centre = ((org[0] + org[2]) / 2, (org[1] + org[3]) / 2)
     prefer = (centre[0] - 30, centre[1]) if kind == "brain" else centre
-    lines_w = 30.0 if kind == "brain" else 13.0
-    lines_h = 3.6 + 1.6 + 1.9 + 1.9 + 0.5 if kind == "brain" else 1.8 + 0.7 + 1.3 + 0.5     # the card is full: name and "bay card" only
+    widths = {"brain": 31.0, "card": 13.0}[kind]
+    blocks = [(lines, *block_size(lines, widths if kind == "card" or k == 1 else 27.0)) for k, lines in enumerate(text_blocks(kind))]
 
-    def place(order):
-        gg = g.copy(); logo = None; text = None
-        for what in order:
-            if what == "logo" and kind == "brain":
-                ref = (text[0] + lines_w / 2, text[1] + lines_h / 2) if text else prefer
-                for W in (44, 40, 36, 32, 28, 24, 20):
-                    spot = find_free(gg, org, W + 1, W * ar + 1, ref)
-                    if spot:
-                        logo = (W, spot); mark_rect(gg, org, spot[0] - 1, spot[1] - 1, W + 3, W * ar + 3); break
-            elif what == "text":
-                ref = (logo[1][0] + logo[0] / 2, logo[1][1] + logo[0] * ar / 2) if logo else prefer
-                text = find_free(gg, org, lines_w + 1, lines_h + 1, ref)
-                if text:
-                    mark_rect(gg, org, text[0] - 1, text[1] - 1, lines_w + 3, lines_h + 3)
-        return logo, text
+    def place_blocks(gg, ref):
+        spots, dist = [], 0.0
+        for lines, bw, bh in sorted(blocks, key=lambda b: -b[1] * b[2]):
+            t = find_free(gg, org, bw + 1, bh + 1, ref)
+            if t is None:
+                return None, 0
+            mark_rect(gg, org, t[0] - 1, t[1] - 1, bw + 3, bh + 3)
+            spots.append((lines, bw, bh, t)); dist += math.hypot(t[0] + bw / 2 - ref[0], t[1] + bh / 2 - ref[1])
+        return spots, dist
 
     best = None
-    for order in (("logo", "text"), ("text", "logo")):
-        logo, text = place(order)
-        if text is None or (kind == "brain" and logo is None):
-            continue
-        d = 0 if kind != "brain" else math.hypot(logo[1][0] + logo[0] / 2 - text[0] - lines_w / 2, logo[1][1] + logo[0] * ar / 2 - text[1] - lines_h / 2)
-        score = d - (logo[0] * 0.8 if logo else 0)          # prefer a big logo, close to the text
-        if best is None or score < best[0]:
-            best = (score, logo, text)
+    if kind == "brain":
+        for W in (64, 60, 56, 52, 48, 44, 40, 36, 32, 30, 28, 26, 24):
+            lw, lh = W + 1, W * ar + 1
+            for j, i in free_spots(g, lw, lh)[::3]:
+                lx, ly = org[0] + i * CELL, org[1] + j * CELL
+                gg = g.copy(); mark_rect(gg, org, lx - 1, ly - 1, lw + 2, lh + 2)
+                spots, d = place_blocks(gg, (lx + lw / 2, ly + lh / 2))
+                if spots is None:
+                    continue
+                d += 0.15 * math.hypot(lx - prefer[0], ly - prefer[1])
+                if best is None or d < best[0]:
+                    best = (d, (W, (lx, ly)), spots)
+            if best:
+                break
+    else:
+        spots, _ = place_blocks(g.copy(), prefer)
+        if spots:
+            best = (0, None, spots)
     if best is None:
         return f"{kind}: no free area found, nothing drawn"
-    _, logo, spot = best
+    _, logo, spots = best
+    where = "; ".join(f"text {bw:.0f} x {bh:.1f} mm at ({t[0] - org[0]:.1f}, {t[1] - org[1]:.1f})" for _, bw, bh, t in spots)
+    head = f"{kind}: logo {'%d mm wide at (%.1f, %.1f)' % (logo[0], logo[1][0] - org[0], logo[1][1] - org[1]) if logo else 'none'}; {where}"
     if dry:
-        return (f"{kind}: logo {'%d mm at (%.1f, %.1f)' % (logo[0], logo[1][0] - org[0], logo[1][1] - org[1]) if logo else 'none'}; "
-                f"text block {lines_w:.0f} x {lines_h:.1f} mm at ({spot[0] - org[0]:.1f}, {spot[1] - org[1]:.1f}) from the board corner")
+        return head
     sil = Sil(board)
     if logo:
         W, (lx, ly) = logo
-        draw_logo(sil, lg, lx + 0.5, ly + 0.5, W / (lg.bbox[2] - lg.bbox[0]))
-    x, y = spot; bw = lines_w
-    cx = x + 0.5 + bw / 2; yy = y + 0.5
-    ht = 3.0 if kind == "brain" else 1.6
-    t = sil.text(NAME, cx, yy + ht / 2, ht, 0.4 if kind == "brain" else 0.3)
-    while t.GetBoundingBox().GetWidth() / NM > bw:
-        ht *= 0.94; t.SetTextSize(pcbnew.VECTOR2I(mm(ht), mm(ht)))
-    yy += ht + 0.9
-    hs = 1.3
-    t2 = sil.text("four-bay disk sanitizer" if kind == "brain" else f"bay card rev {REV}", cx, yy + hs / 2, hs, 0.18)
-    while t2.GetBoundingBox().GetWidth() / NM > bw:
-        hs *= 0.94; t2.SetTextSize(pcbnew.VECTOR2I(mm(hs), mm(hs)))
-    yy += hs + 0.7
-    hu = 0.0
-    if kind == "brain":
-        hr = 1.5
-        t4 = sil.text(f"brain board  rev {REV}", cx, yy + hr / 2, hr, 0.22)
-        while t4.GetBoundingBox().GetWidth() / NM > bw:
-            hr *= 0.94; t4.SetTextSize(pcbnew.VECTOR2I(mm(hr), mm(hr)))
-        yy += hr + 0.7
-        hu = 1.5
-        t3 = sil.text(URL, cx, yy + hu / 2, hu, 0.2)
-        while t3.GetBoundingBox().GetWidth() / NM > bw:
-            hu *= 0.97; t3.SetTextSize(pcbnew.VECTOR2I(mm(hu), mm(hu)))
+        draw_logo(sil, lg, lx + 0.5, ly + 0.5, W / (sb[2] - sb[0]))
+    smallest = 9.0
+    for lines, bw, bh, (x, y) in spots:
+        cx = x + 0.5 + bw / 2; yy = y + 0.5
+        for text, h, thick in lines:
+            t = sil.text(text, cx, yy + h / 2, h, thick)
+            while t.GetBoundingBox().GetWidth() / NM > bw:
+                h *= 0.97; t.SetTextSize(pcbnew.VECTOR2I(mm(h), mm(h)))
+            smallest = min(smallest, h)
+            yy += h + 0.6
     board.GetTitleBlock().SetRevision(REV)
     board.Save(str(path))
-    return (f"{kind}: branding written, logo {'%d mm wide' % logo[0] if logo else 'not placed'}, text block at "
-            f"({spot[0] - org[0]:.1f}, {spot[1] - org[1]:.1f}) mm from the board corner, {sil.n} silk items, URL {hu:.2f} mm high")
+    return head + f"; {sil.n} silk items, smallest text {smallest:.2f} mm high"
 
 
 def strip(kind: str) -> None:

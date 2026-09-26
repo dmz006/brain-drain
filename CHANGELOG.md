@@ -12,6 +12,8 @@ revisions are noted in the entries.
 - Branding (C30): the octopus logo and name engraved 0.6 mm into the lid (`enclosure/tools/gen_logo.py`); logo, name, tagline and the
   repository URL as top silkscreen on the brain board and the name on the bay card (`hardware/tools/branding.py`, run by
   `route_full.sh`, adds no DRC warnings).
+### Changed
+- Silkscreen logo simplified for fab printing (no drive icons, bold single-line tentacles, 0.2-0.3 mm strokes, 32 mm wide instead of 24) and the tagline now says eight-bay; the product description in the logo, package metadata and docstring says eight-bay too.
 ### Fixed
 - Lid features (receptacle windows, OLED, DIP slot, LED holes, CM5 grille) were mirrored front to back in the lid model; they now sit
   over the parts. All renders regenerated.
