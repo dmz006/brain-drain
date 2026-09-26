@@ -140,7 +140,7 @@ assignments differ between vendors (STATUS R3).
 
 | Rail | Source | Loads | Notes |
 |---|---|---|---|
-| +12V | input after F1 (10 A slow), D20 (SMBJ15A), Q20 (AO4407A reverse-polarity FET), 2 x 680 uF bulk | the slots' 12 V pins | per-bay switch on the card |
+| +12V | input after F1 (15 A slow, C31), D20 (SMBJ15A), Q20 (AO4407A reverse-polarity FET), 2 x 680 uF bulk | the slots' 12 V pins | per-bay switch on the card |
 | 5V_SYS | U20 TPS56637 (6 A) | CM5 (up to 3 A), 2 hubs, OLED, DIP, U22 | keeps drive spin-up ripple off the CM5 rail |
 | 5V_HDD | U21 TPS56637 (6 A) | the slots' 5 V pins | per-bay switch on the card |
 | 3V3 | U22 AP63203 (2 A) | hubs, IO, U3 | |
@@ -149,8 +149,8 @@ assignments differ between vendors (STATUS R3).
 
 Budget, four drives: 12 V about 3.2 A typical, 4.4 A staggered peak; 5 V drives about 2.4 A typical, 2.8 A peak; the 12 V input
 is about 5.3 A typical and 7.4 A staggered peak (11.5 A if all four spun up together, which the software never does). The 120 W brick,
-the 10 A fuse and the DIN rating cover four bays. **Eight simultaneous drives need about 9.5 A typical and 11.7 A at a staggered peak:
-a 150-180 W brick, a larger input fuse, two parallel DIN pins for 12 V and heavier bulk capacitors, and 5V_HDD at 6 A is at its limit
+the DIN rating covers four bays (the input fuse is 15 A since C31, sized for eight). **Eight simultaneous drives need about 9.5 A typical and 11.7 A at a staggered peak:
+a 150-180 W brick, two parallel DIN pins for 12 V and heavier bulk capacitors, and 5V_HDD at 6 A is at its limit
 for eight drives.** Do not fit eight cards before those are revisited (STATUS R23).
 
 Staggered spin-up is mandatory: the software never enables two bays within 4 s of each other.

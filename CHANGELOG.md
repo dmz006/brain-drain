@@ -13,6 +13,7 @@ revisions are noted in the entries.
   repository URL as top silkscreen on the brain board and the name on the bay card (`hardware/tools/branding.py`, run by
   `route_full.sh`, adds no DRC warnings).
 ### Changed
+- Input fuse F1 15 A slow-blow (0453015.MR) instead of 10 A (C31); netlist, schematic, BOM and docs updated; the reverse-polarity FET rating is flagged for review.
 - `BRAIN-DRAIN-CONTEXT.md` (project context), `AGENT.md` (rules only, updated for the final design: generated-file list, both-board checks, `check_fit.py`, revision in `branding.py`, BOM and render regeneration) and `CLAUDE.md` (local Claude Code details: RTK, environments, commit style).
 - Silkscreen logo simplified for fab printing (no drive icons, bold single-line tentacles, 0.2-0.3 mm strokes, 32 mm wide instead of 24) and the tagline now says eight-bay; the product description in the logo, package metadata and docstring says eight-bay too.
 ### Fixed

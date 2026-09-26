@@ -72,6 +72,7 @@ Use the system `python3` for anything that imports `pcbnew` (KiCad 9.0.8) and `s
   The card: F.Cu, In1 GND, In2 power islands (5V_HDD, +12V), B.Cu.
 - **Card in the enclosure frame:** the card slab is centred 5.4 mm behind the window centre, the receptacle housing runs 9.5 mm toward the next slot.
 - **Footprints** are stock KiCad, generated from vendor drawings (`fpgen.py`), or copied from Raspberry Pi's CM5IO project. Sources are in `hardware/review/footprints.md`.
+- **gen_sch.py rewrites the `.kicad_pro` files** and drops the net classes and board rules; after regenerating a schematic on a routed board, `git checkout` both `.kicad_pro` files (or run `route.py prepare`) and recheck DRC.
 - **pcbnew scripting:** each edit in a fresh process; the Python proxies go stale after `Remove()` or a second `LoadBoard`.
 
 ## People and process

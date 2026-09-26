@@ -2714,7 +2714,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10A slow 0453010.MR"
+		(property "Value" "15A slow 0453015.MR"
 			(at 330.708 77.43 0)
 			(effects
 				(font

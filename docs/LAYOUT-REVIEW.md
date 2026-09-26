@@ -106,13 +106,14 @@ Ordered by how much they can cost. "Where" points to evidence in this repository
 
 ### 4.3 Power, planes and thermal
 
-* **Brain power:** 12 V input through a 10 A slow fuse, an SMBJ15A TVS and a reverse-polarity P-FET, two 680 uF bulk caps, then two TPS56637
+* **Brain power:** 12 V input through a 15 A slow fuse (C31), an SMBJ15A TVS and a reverse-polarity P-FET, two 680 uF bulk caps, then two TPS56637
   bucks (5V_SYS and 5V_HDD, 6 A each), an AP63203 for 3V3 and one for the M.2. The buck layouts are auto-placed: check the input-cap hot loops,
   inductor placement, feedback routing and thermal vias against the TPS56637 datasheet (the land pattern is ours, generated from the datasheet).
 * **Slot power:** each slot passes 12 V on five contacts and 5 V on five contacts (1.1 A per contact, 5.5 A per rail per bay) from planes on In4. Check the
   plane necks and the vias that connect the slot pins to In4, and voltage drop at eight bays. The 12 V strip on In4 is a rectangle across the slot row (`route.py _zones`).
-* **Eight bays exceed the input design.** The 10 A fuse, the DIN rating and the 6 A 5V_HDD buck are sized for four drives (about 7.4 A staggered peak).
-  Eight need 150 to 180 W and heavier parts (STATUS R23).
+* **Eight bays exceed the input design.** The DIN rating and the 6 A 5V_HDD buck are sized for four drives (about 7.4 A staggered peak); the fuse is now 15 A (C31).
+  Eight need 150 to 180 W and heavier parts (STATUS R23). **Check the reverse-polarity FET Q20 (AO4407A, 12 A continuous at 25 C):** a 15 A fuse
+  does not protect it, and the 11.7 A staggered peak is close to its rating; parallel two FETs or pick a larger one before eight cards are fitted.
 * **Thermal:** the CM5 is cooled passively; the bucks are small QFNs on a 1.6 mm board; the drive-side bay switches dissipate little. No thermal simulation exists.
 * Copper widths are the router's: 0.3 mm power tracks for short runs, the planes carry the current. Check any long power track (5V_SYS to the hubs).
 

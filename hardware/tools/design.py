@@ -182,7 +182,7 @@ def build_brain() -> Design:
     # ---------------------------------------------------------------- power input
     s = "power-input"
     d.part("J21", "brain-drain:DIN4_KPJX", "KPJX-4S-S", s)
-    d.part("F1", "Device:Fuse", "10A slow 0453010.MR", s, "Fuse:Fuse_Littelfuse-NANO2-451_453")
+    d.part("F1", "Device:Fuse", "15A slow 0453015.MR", s, "Fuse:Fuse_Littelfuse-NANO2-451_453")
     d.part("D20", "Device:D_TVS", "SMBJ15A", s, FP["SMB"])
     d.part("Q20", "brain-drain:PMOS_SSSGDDDD", "AO4407A", s, FP["SO8"], note="reverse-polarity protection, body diode toward load; SO-8 power pin-out S 1-3, G 4, D 5-8")
     d.part("R20", "Device:R", "100k", s, FP["R0603"])

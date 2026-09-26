@@ -41,7 +41,7 @@ For the engineer taking over the boards, start with [LAYOUT-REVIEW.md](LAYOUT-RE
 | R20 | Fabrication order pack: gerbers, drill, placement, BOM with vendor part numbers | R10 | JLCPCB first, PCBWay fallback |
 | R21 | (closed) bay 12 V track width | | planes carry the current; review item 4.3 |
 | R22 | (closed 2026-09-25) differential pairs matched end to end | | segment-level mismatch is a review item (4.1) |
-| R23 | Eight-bay power: 150 to 180 W brick, larger input fuse, DIN pin paralleling, heavier bulk caps, 5V_HDD buck at its limit; card retention in the enclosure | before slots 5 to 8 are used | ARCHITECTURE 3.5 |
+| R23 | Eight-bay power: 150 to 180 W brick, (input fuse done, C31: 15 A), reverse-polarity FET Q20 rating (AO4407A 12 A), DIN pin paralleling, heavier bulk caps, 5V_HDD buck at its limit; card retention in the enclosure | before slots 5 to 8 are used | ARCHITECTURE 3.5 |
 | R24 | (closed 2026-09-25) FET pin tables: AON7403 and AO4407A read against the datasheets | | S 1-3, G 4, D 5-8 confirmed |
 | R25 | Layout review by a board engineer of both boards | hand-off | [LAYOUT-REVIEW.md](LAYOUT-REVIEW.md) |
 | R26 | Choose the fab's six-layer stack-up and recalculate the pair geometry (90 ohm, 85 ohm PCIe) | R25 | review item 4.1 |

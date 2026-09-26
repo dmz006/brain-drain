@@ -43,7 +43,7 @@ PARTS = [
     (r"^LED$", r".*", "generic", "", "3 mm through-hole LED, colour as listed, 2 V forward, about 5 mA", 0.1, ""),
     (r"^D_TVS$", r".*", "Littelfuse", "SMBJ15A", "TVS diode 15 V standoff, SMB", 0.35, ""),
     (r"^D_Zener$", r".*", "generic", "", "12 V 0.5 W zener, SOD-123 (BZT52C12 class)", 0.05, ""),
-    (r"^Fuse$", r".*", "Littelfuse", "0453010.MR", "NANO2 10 A slow-blow fuse", 0.8, ""),
+    (r"^Fuse$", r".*", "Littelfuse", "0453015.MR", "NANO2 15 A slow-blow fuse (C31; check the 15 A rating in stock)", 0.8, "verify"),
     (r"^BAY_SLOT$", r".*", "Amphenol FCI", "10018783-10100TLF", "PCI Express x1 vertical through-hole socket, 36 contacts (custom bay pinout, no PCIe signalling)", 1.0, "verify"),
     (r"^DIN4_KPJX$", r".*", "Kycon", "KPJX-4S-S", "4-pin mini-DIN power jack, shielded, 7.5 A per pin", 1.5, ""),
     (r"^Micro_SD_Card$", r".*", "Hirose", "DM3AT-SF-PEJM5", "microSD push-push socket", 1.0, "verify"),

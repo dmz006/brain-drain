@@ -19,7 +19,7 @@ Totals: 163 components, 192 nets.
 | C22 | `Device:C` | 10u 25V | `Capacitor_SMD:C_1210_3225Metric` |  |
 | D20 | `Device:D_TVS` | SMBJ15A | `Diode_SMD:D_SMB` |  |
 | D21 | `Device:D_Zener` | 12V 0.5W | `Diode_SMD:D_SOD-123` | clamps Vgs of Q20 |
-| F1 | `Device:Fuse` | 10A slow 0453010.MR | `Fuse:Fuse_Littelfuse-NANO2-451_453` |  |
+| F1 | `Device:Fuse` | 15A slow 0453015.MR | `Fuse:Fuse_Littelfuse-NANO2-451_453` |  |
 | J21 | `brain-drain:DIN4_KPJX` | KPJX-4S-S | `brain-drain:Kycon_KPJX-4S-S` |  |
 | Q20 | `brain-drain:PMOS_SSSGDDDD` | AO4407A | `Package_SO:SOIC-8_3.9x4.9mm_P1.27mm` | reverse-polarity protection, body diode toward load; SO-8 power pin-out S 1-3, G 4, D 5-8 |
 | R20 | `Device:R` | 100k | `Resistor_SMD:R_0603_1608Metric` |  |

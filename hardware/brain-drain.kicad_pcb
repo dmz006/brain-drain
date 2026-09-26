@@ -6313,7 +6313,7 @@
 				)
 			)
 		)
-		(property "Value" "10A slow 0453010.MR"
+		(property "Value" "15A slow 0453015.MR"
 			(at 0 2.7 0)
 			(unlocked yes)
 			(layer "F.Fab")
