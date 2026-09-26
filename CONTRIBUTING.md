@@ -3,7 +3,7 @@
 brain-drain is a one-person hardware project at the moment; these notes are so a
 second person (or an agent) can work in it without breaking the conventions.
 
-1. Read `AGENT.md` first. It is short and it is the rule set.
+1. Read `BRAIN-DRAIN-CONTEXT.md` (what the project is and where things are), then `AGENT.md` (the rule set).
 2. The owner decides; propose, do not choose. Open a decision as `D<n>` in
    `docs/DECISIONS.md` rather than silently picking a part.
 3. Never hand-edit generated files (see `AGENT.md`). Change `design.py`,

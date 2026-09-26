@@ -84,7 +84,7 @@ More in [docs/USAGE.md](docs/USAGE.md).
 * [Bill of materials](docs/BOM.md) · [Fabrication and assembly vendors, cost estimate](docs/FABRICATION.md) · [Decisions](docs/DECISIONS.md)
 * [Status and remaining work](docs/STATUS.md) · [Testing tracker](docs/testing-tracker.md)
 * [Usage and regeneration](docs/USAGE.md) · [Bench plan for 2026-09-26](docs/saturday-bench-plan.md)
-* [AGENT.md](AGENT.md) rules for agents and contributors · [CONTRIBUTING](CONTRIBUTING.md) · [CHANGELOG](CHANGELOG.md)
+* [BRAIN-DRAIN-CONTEXT.md](BRAIN-DRAIN-CONTEXT.md) project context · [AGENT.md](AGENT.md) rules for agents and contributors · [CONTRIBUTING](CONTRIBUTING.md) · [CHANGELOG](CHANGELOG.md)
 
 ## Safety
 

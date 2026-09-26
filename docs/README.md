@@ -2,6 +2,7 @@
 
 | Document | What it is for |
 |---|---|
+| [../BRAIN-DRAIN-CONTEXT.md](../BRAIN-DRAIN-CONTEXT.md) | Project context: what it is, the design as built, repository map, generator commands, conventions. |
 | [LAYOUT-REVIEW.md](LAYOUT-REVIEW.md) | **For the board layout engineer:** what was delivered, how it was made, what is verified, the risks in priority order, a sign-off checklist. |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | The design: hardware, software, enclosure, cross-cutting rules. Source of truth for intent. |
 | [STATUS.md](STATUS.md) | What is done, what is placeholder, what is blocked, what comes next. |
