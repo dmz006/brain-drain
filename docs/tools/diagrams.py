@@ -179,6 +179,26 @@ def lid_plan():
     oxx = bx0 + (bw - env["oled_pos"][0]); oyy = by0 + env["oled_pos"][1]
     b += f"<rect x='{px(oxx - ow_ / 2)}' y='{py(oyy - oh_ / 2)}' width='{ow_ * S}' height='{oh_ * S}' fill='#34495e' opacity='0.85'/>"
     b += f"<text x='{px(oxx)}' y='{py(oyy) - 12}' text-anchor='middle' {FONT} font-size='11' fill='#1f2d3d'>OLED window</text>"
+    # bay-card retention (C30): comb ribs under the lid (orange), grooved support blocks under the overhang in the tray (blue outline)
+    slab_back = env["card_off"] + env["card_t"] / 2
+    rib_w = 14.5 - 4.9 - slab_back - 2 * env["comb_gap"]
+    slot_xs = sorted(bw - float(f[2]) for f in feats if f[1] == "slot")      # un-mirrored window centres
+    cy0, cy1 = env["comb_y"]
+    edges = [(x - slab_back - env["comb_gap"] - rib_w, x - slab_back - env["comb_gap"]) for x in slot_xs]   # un-mirrored: behind = toward smaller x
+    edges.append((slot_xs[-1] + 4.9 + env["comb_gap"], slot_xs[-1] + 4.9 + env["comb_gap"] + rib_w))
+    for a_, b_ in edges:
+        b += f"<rect x='{px(bx0 + a_)}' y='{py(by0 + cy0)}' width='{(b_ - a_) * S}' height='{(cy1 - cy0) * S}' fill='#e67e22' opacity='0.9'/>"
+    for x in slot_xs:
+        c = x - env["card_off"]
+        b += (f"<rect x='{px(bx0 + c - env['support_w'] / 2)}' y='{py(by0 - env['card_over'] + 0.9)}' width='{env['support_w'] * S}' height='{(env['card_over'] - 1.7) * S}' "
+              f"fill='none' stroke='#2980b9' stroke-width='2'/>")
+    b += f"<text x='{px(bx0 + 4)}' y='{py(by0 + 46)}' {FONT} font-size='11' fill='#e67e22'>orange: comb ribs under the lid, 2.6 mm wide, 8 mm deep</text>"
+    b += f"<text x='{px(bx0 + 4)}' y='{py(by0 + 51)}' {FONT} font-size='11' fill='#2980b9'>blue outline: grooved blocks in the tray under each card's rear overhang</text>"
+    lx = bx0 + (bw - env["logo_pos"][0]); ly = by0 + env["logo_pos"][1]
+    lw_ = env["logo_mm"]; lh_ = lw_ * 506 / 1054
+    b += f"<rect x='{px(lx - lw_ / 2)}' y='{py(ly - lh_ / 2)}' width='{lw_ * S}' height='{lh_ * S}' rx='6' fill='none' stroke='#c0392b' stroke-dasharray='6 4'/>"
+    b += f"<text x='{px(lx)}' y='{py(ly)}' text-anchor='middle' {FONT} font-size='12' fill='#c0392b'>engraved logo</text>"
+    b += f"<text x='{px(lx)}' y='{py(ly + env['name_dy'])}' text-anchor='middle' {FONT} font-size='14' font-weight='700' fill='#c0392b'>{env['name_text']}</text>"
     # hinge knuckles on the rear edge, latch on the front edge
     for x0 in (30, ow - 60):
         b += f"<rect x='{px(x0)}' y='{py(-6)}' width='{env['hinge_knuckle_l'] * S}' height='{env['hinge_knuckle_d'] * S}' rx='6' fill='#95a5a6'/>"

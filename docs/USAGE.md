@@ -85,6 +85,7 @@ The log ends with the open-connection and pair counts; the results are in `routi
 | `python3 tools/open_report.py`, `route.py pairs` | `routing/open.md`, `routing/pairs.md` |
 | `sh tools/render_board.sh` | KiCad 3D views, per-layer PNGs in `renders/layers/`, schematic PDF and PNGs |
 | `python3 tools/gen_bom.py` | BOM of both boards: `bom/*.csv` and `docs/BOM.md` |
+| `python3 tools/branding.py [brain\|card] [--dry]` | top-silkscreen logo, name and repository URL in the largest free area (idempotent, does not touch copper; `route_full.sh` runs it) |
 | `python3 tools/make_review_pack.py` | `hardware/review/`: rules, stack-up, planes, keep-outs, routing statistics, DRC / ERC, footprint provenance, netlists, placement CSV |
 | `sh tools/export_fab.sh` | `fab/<date>/`: gerbers and drill zip, placement CSV, BOM, assembly PDFs (order pack, gitignored) |
 | `kicad-cli pcb drc --format json --severity-all -o routing/drc.json brain-drain.kicad_pcb` | the DRC report used everywhere |

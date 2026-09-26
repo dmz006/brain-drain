@@ -146,6 +146,7 @@ def case_images():
     render(unit, OUT / "case-closed-iso.png", az=-38, el=30, caption="Closed unit from the rear left")
     render(unit, OUT / "case-closed-front.png", az=145, el=30, caption="Closed unit from the front right: latch and vents")
     render(unit, OUT / "case-closed-top.png", az=180, el=90, caption="Closed unit from above")
+    render(unit, OUT / "case-lid-artwork.png", az=180, el=52, caption="Lid artwork engraved 0.6 mm: octopus brain and name, read from the front (hinge at the back)", width=1900)
     o = electronics()
     opened = [(tray, CASE["tray"]), (lid_open(lid), CASE["lid"])] + at_board(o)
     render(opened, OUT / "unit-open.png", az=-32, el=26, caption="Lid open: brain and four bay cards inside the tray", width=1900)

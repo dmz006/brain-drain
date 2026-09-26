@@ -40,6 +40,32 @@ hinge_knuckle_d = 6.0;
 hinge_knuckle_l = 12.0;
 latch_bump_d = 1.6;
 
+// bay-card retention (C30): a comb of ribs under the lid between the cards' receptacles, and blocks with a groove under each
+// card's rear overhang in the tray. Card geometry from the placed 3D model: the card slab is centred 5.4 mm behind the window
+// centre (window x from board.scad), the receptacle housing runs 9.5 mm from the slab toward the next slot.
+card_off     = 5.4;    // window centre to card centre, along x (mirrored frame: toward +x)
+card_t       = 1.6;
+comb_depth   = 8.0;    // rib height below the lid plate (card top edge is 1.1 mm below the plate)
+comb_gap     = 0.4;    // clearance to the card back face and to the next receptacle housing
+comb_y       = [-14.0, 28.0];   // rib extent along the board y (window is -14.9 .. 29.3; LEDs start at y 29.1)
+card_over    = 15.3;   // how far the 45 mm cards overhang the board's rear edge
+card_shoulder_z = 11.25;   // card shoulder (bottom edge outside the 20.3 mm tab) above the board top surface
+support_w    = 4.4;    // overhang support block width along x
+support_groove = 2.0;  // groove for the card edge
+support_groove_d = 3.0;
+support_gap  = 0.5;    // card shoulder to groove floor
+
+// lid artwork, engraved into the outer face (impression, prints on the bed face)
+engrave_d    = 0.6;
+logo_pos     = [100, 60];   // board x (mirrored frame) and y of the artwork centre
+logo_mm      = 68;          // width of the octopus
+name_text    = "BRAIN-DRAIN";
+name_size    = 7;
+name_dy      = 24;          // name centre below the logo centre
+sub_text     = "NIST 800-88 DISK SANITIZER";
+sub_size     = 3;
+sub_dy       = 31;
+
 // derived
 inner_w = board_w + 2 * clear;
 inner_h = board_h + 2 * clear + rear_ext;

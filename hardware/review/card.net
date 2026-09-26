@@ -1,7 +1,7 @@
 (export (version "E")
   (design
     (source "/home/dmz/workspace/brain-drain/hardware/bay-card/bay-card.kicad_sch")
-    (date "2026-09-25T13:39:36-0400")
+    (date "2026-09-25T23:25:47-0400")
     (tool "Eeschema 9.0.8+dfsg-1")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block

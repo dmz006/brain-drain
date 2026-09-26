@@ -134,6 +134,7 @@ Ordered by how much they can cost. "Where" points to evidence in this repository
   0.2 mm hole clearance. Confirm with the fab that 0.3 / 0.15 mm vias and 0.4 mm-pitch QFN dog-bones are inside their six-layer capability and price tier.
 * Both sides are assembled (bottom: caps, holder, headers); ask for through-hole assembly for the slots, DIN jack, DIP switch, LEDs and headers.
 * **No fiducials, no test points, no panelisation** are drawn. Add fiducials and test points on every rail and each `BAY_EN`; panelise the card (8 to 16 per panel, tab routed, key notch).
+* The top silkscreen carries a group called `branding` (logo, name, tagline and the repository URL, about 990 line items) in the largest free area left of the middle of the brain board, and the name on the card. It sits in free space, adds no DRC warnings and can be moved or deleted freely in the GUI; `hardware/tools/branding.py` redraws it.
 * The silkscreen has about 300 overlap warnings (auto-placed reference text); clean before fabrication. Mask openings and paste stencil are the KiCad defaults.
 
 ### 4.6 Schematic review

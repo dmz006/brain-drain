@@ -32,6 +32,7 @@ sh tools/fix_pairs.sh
 run via-clean
 drc
 python3 tools/open_report.py 2>&1 | tail -1 >> $log
+python3 tools/branding.py "${BD_PROJECT:-brain}" >/dev/null 2>&1   # silkscreen logo, name and repository URL (does not touch copper)
 run pairs
 sh tools/render_board.sh >/dev/null 2>&1
 echo "chain done $(date)" >> $log

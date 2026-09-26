@@ -12,6 +12,7 @@ For the engineer taking over the boards, start with [LAYOUT-REVIEW.md](LAYOUT-RE
 | BOM | generated from the designs, vendor part numbers where known, `verify` flags where the orderable number must be checked | [BOM.md](BOM.md), `hardware/bom/*.csv` |
 | Software | engine, policy, fence, overwrite/verify, firmware wrappers, certificates, eight bays plus the M.2 bay (bay 9), bench tool, Pi deployment, Wi-Fi access point with QR code and phone page, DIP service mode; **74 tests pass, ruff clean**; firmware, GPIO, OLED and nmcli paths untested on hardware | [testing-tracker.md](testing-tracker.md) |
 | Enclosure | box about 157 x 145 x 62 mm: tray 16 mm deeper behind the board for the card overhang, lid hinged at the rear with a snap latch at the front, eight receptacle windows, OLED window, DIP slot, LED holes, CM5 grille; STLs export clean; not printed | `enclosure/`, [RENDERS.md](RENDERS.md) |
+| Retention and branding | comb under the lid and grooved blocks under the card overhang (C30), logo and name engraved in the lid, logo + name + URL on the brain board's top silkscreen, name on the card; clearances checked by `enclosure/tools/check_fit.py`; not printed | `enclosure/shell.scad`, `hardware/tools/branding.py` |
 | Renders | boards one by one, the electronics assembled, the case, the unit open, exploded, cut-away and the complete system, plus per-layer PCB images | [RENDERS.md](RENDERS.md), `docs/img/renders/` |
 
 ## Remaining work (R)

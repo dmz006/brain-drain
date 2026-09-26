@@ -55,6 +55,10 @@ schematic sheets: `hardware/renders/schematic/`; PDFs: `hardware/review/*-schema
 |---|---|
 | ![](img/renders/case-lid-inside.png) | ![](img/renders/case-tray-top.png) |
 
+Lid artwork (engraved logo and name) and the comb ribs seen through the windows:
+
+![](img/renders/case-lid-artwork.png)
+
 | Closed, from the rear left | Closed, from the front right |
 |---|---|
 | ![](img/renders/case-closed-iso.png) | ![](img/renders/case-closed-front.png) |

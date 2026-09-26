@@ -7,6 +7,14 @@ revisions are noted in the entries.
 ## [Unreleased]
 
 ### Added
+- Bay-card retention (C30): comb of ribs under the lid between the cards' receptacles and grooved blocks in the tray under each
+  card's rear overhang (`shell.scad`, `enclosure/tools/check_fit.py` checks the clearances).
+- Branding (C30): the octopus logo and name engraved 0.6 mm into the lid (`enclosure/tools/gen_logo.py`); logo, name, tagline and the
+  repository URL as top silkscreen on the brain board and the name on the bay card (`hardware/tools/branding.py`, run by
+  `route_full.sh`, adds no DRC warnings).
+### Fixed
+- Lid features (receptacle windows, OLED, DIP slot, LED holes, CM5 grille) were mirrored front to back in the lid model; they now sit
+  over the parts. All renders regenerated.
 - Architecture, BOM, decisions log (C1–C19) and decision briefs.
 - `braindrain` sanitizer service: engine, NIST 800-88 Rev. 2 policy, safety
   fence, host overwrite and firmware wrappers, verification, certificates,
