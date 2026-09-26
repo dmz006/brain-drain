@@ -111,9 +111,21 @@ Ordered by how much they can cost. "Where" points to evidence in this repository
   inductor placement, feedback routing and thermal vias against the TPS56637 datasheet (the land pattern is ours, generated from the datasheet).
 * **Slot power:** each slot passes 12 V on five contacts and 5 V on five contacts (1.1 A per contact, 5.5 A per rail per bay) from planes on In4. Check the
   plane necks and the vias that connect the slot pins to In4, and voltage drop at eight bays. The 12 V strip on In4 is a rectangle across the slot row (`route.py _zones`).
-* **Eight bays exceed the input design.** The DIN rating and the 6 A 5V_HDD buck are sized for four drives (about 7.4 A staggered peak); the fuse is now 15 A (C31).
-  Eight need 150 to 180 W and heavier parts (STATUS R23). **Check the reverse-polarity FET Q20 (AO4407A, 12 A continuous at 25 C):** a 15 A fuse
-  does not protect it, and the 11.7 A staggered peak is close to its rating; parallel two FETs or pick a larger one before eight cards are fitted.
+* **Eight bays and the 12 V input path (C31, 2026-09-26, needs a decision).** The input fuse F1 was raised from 10 A to 15 A slow-blow
+  (Littelfuse 0453015.MR, same footprint) because eight bays draw about 9.5 A typical and 11.7 A at a staggered peak. That makes the
+  rest of the series path the limit. Review it as one chain, from the DIN jack to the bay slots:
+
+  | Element | Rating / state | Question for the review |
+  |---|---|---|
+  | DIN jack J21 (Kycon KPJX-4S-S) | 7.5 A per pin, two pins per polarity = 15 A | no margin at the fuse rating; pin assignment still a placeholder until the brick is chosen (B3) |
+  | F1 | 15 A slow-blow | check the 15 A NANO2 part is orderable; inrush into 2 x 680 uF against its I2t |
+  | D20 SMBJ15A | 15 V standoff TVS | surge rating against the brick's transients |
+  | **Q20 AO4407A (reverse-polarity P-FET)** | -30 V, **12 A continuous at 25 C, 10 A at 70 C** (ambient, SO-8 on the datasheet's copper), RDS(on) below 13 mohm at -10 V gate drive (`hardware/ref/datasheets/AO4407A.pdf`); 11.7 A gives about 1.8 W in an SO-8 | **below the fuse rating, and carries the full load.** A 15 A fuse does not protect it; 11.7 A peak is at its limit and it derates with temperature. Check its dissipation at the real gate drive and copper area, then parallel two FETs or choose a larger one. Not changed yet: owner decision |
+  | 12 V planes and the strip on In4 | auto-drawn | copper width and via count from the input to the slot row at 12 to 15 A; voltage drop |
+  | U21 (5V_HDD buck) | 6 A | eight drives need about 5 A typical on 5 V and more at spin-up: at its limit |
+  | Bay card polyfuses | 3 A hold on 12 V, 2 A on 5 V per bay | eight bays could total 24 A of 12 V trips, so spin-up staggering (software, 4 s apart) is what keeps the input under 15 A |
+
+  Four bays stay well inside all of these; the concern is only when slots 5 to 8 are filled (STATUS R23).
 * **Thermal:** the CM5 is cooled passively; the bucks are small QFNs on a 1.6 mm board; the drive-side bay switches dissipate little. No thermal simulation exists.
 * Copper widths are the router's: 0.3 mm power tracks for short runs, the planes carry the current. Check any long power track (5V_SYS to the hubs).
 
@@ -169,8 +181,12 @@ connection lists against the datasheets in `hardware/ref/datasheets/`:
 | A12 | No fiducials, test points, ESD parts, panel | manufacturing and bring-up | 4.5, 4.6 |
 | A13 | Silkscreen and reference text | assembly drawings unreadable | clean up in the GUI |
 | A14 | Parts marked `verify` in the BOM | orderability and ratings | [BOM.md](BOM.md) column "Check" |
+| A15 | Q20 reverse-polarity FET rated 12 A, input fuse now 15 A | the FET carries the full load and is not protected by the fuse | 4.3, decision needed (parallel or larger FET) |
+| A16 | 12 V path and 5V_HDD buck sized for four bays, checked only on paper for eight | drop and heating at 11.7 A staggered peak | 4.3, STATUS R23 |
 
 ## 6. Tool inventory (all in `hardware/tools/`)
+
+Note: `gen_sch.py` rewrites the `.kicad_pro` files and drops the net classes and board rules; restore them from git (or run `route.py prepare`) after regenerating a schematic on a routed board, then recheck DRC.
 
 | Tool | Does |
 |---|---|
@@ -197,6 +213,7 @@ Reproduce everything from scratch: see [USAGE.md](USAGE.md). Freerouting jars ar
 - [ ] Pair layouts reviewed by hand; per-segment mismatch removed where it arises
 - [ ] Buck converter layouts reviewed against the datasheets (4.3)
 - [ ] Slot power planes and vias sized for the bay current (4.3)
+- [ ] 12 V input chain reviewed at 15 A: DIN pins, F1, TVS, Q20 rating and dissipation, planes (4.3, A15)
 - [ ] Connector footprints checked against the vendor 3D models (4.4), M.2 footprint against the TE drawing
 - [ ] DIN pinout matched to the brick
 - [ ] Test points, fiducials, ESD protection decided and added (4.5, 4.6)

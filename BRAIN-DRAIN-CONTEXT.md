@@ -34,7 +34,7 @@ not chosen yet (B3); its DIN pinout decides how the jack is wired.
   **No board designer has reviewed them, nothing is simulated, and the pair geometry is still set for a four-layer stack-up.**
 - Enclosure: STLs export clean, nothing printed yet. Renders of everything are in `docs/img/renders/`.
 - Nothing has run on real hardware. The first bench day is 2026-09-26 (`docs/saturday-bench-plan.md`).
-- Open: 12 V brick datasheet (B3), layout review items A1 to A14, OLED size (D5), option B with bridges in the cables (D6), M.2 footprint check (R2).
+- Open: 12 V brick datasheet (B3), layout review items A1 to A16, OLED size (D5), option B with bridges in the cables (D6), M.2 footprint check (R2).
 
 ## Repository map
 
