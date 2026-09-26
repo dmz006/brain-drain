@@ -154,7 +154,7 @@ def lid_plan():
     bx0, by0 = wall + clear, wall + clear + ext
     b += f"<rect x='{px(bx0)}' y='{py(by0)}' width='{bw * S}' height='{bh * S}' fill='#e4efe6' stroke='#27ae60' stroke-width='1.5'/>"
     b += f"<text x='{px(bx0) + 8}' y='{py(by0 + bh) - 8}' {FONT} font-size='12' fill='#27ae60'>brain board {bw:.0f} x {bh:.0f} mm</text>"
-    b += f"<text x='{px(bx0 + 116)}' y='{py(wall) + 22}' {FONT} font-size='11' fill='#7f8c8d'>rear extension {ext:.0f} mm</text><text x='{px(bx0 + 116)}' y='{py(wall) + 36}' {FONT} font-size='11' fill='#7f8c8d'>(cards overhang the</text><text x='{px(bx0 + 116)}' y='{py(wall) + 50}' {FONT} font-size='11' fill='#7f8c8d'>board by 15 mm)</text>"
+    b += f"<text x='{px(bx0 + 127)}' y='{py(wall) + 22}' {FONT} font-size='11' fill='#7f8c8d'>rear extension {ext:.0f} mm</text><text x='{px(bx0 + 127)}' y='{py(wall) + 36}' {FONT} font-size='11' fill='#7f8c8d'>(cards overhang the</text><text x='{px(bx0 + 127)}' y='{py(wall) + 50}' {FONT} font-size='11' fill='#7f8c8d'>board by 15 mm)</text>"
     for ref, kind, x, y, rot, w, h, z in feats:
         x, y, w, h = bw - float(x), float(y), float(w), float(h)
         X, Y = bx0 + x, by0 + y
@@ -192,8 +192,8 @@ def lid_plan():
         c = x - env["card_off"]
         b += (f"<rect x='{px(bx0 + c - env['support_w'] / 2)}' y='{py(by0 - env['card_over'] + 0.9)}' width='{env['support_w'] * S}' height='{(env['card_over'] - 1.7) * S}' "
               f"fill='none' stroke='#2980b9' stroke-width='2'/>")
-    b += f"<text x='{px(bx0 + 4)}' y='{py(by0 + 46)}' {FONT} font-size='11' fill='#e67e22'>orange: comb ribs under the lid, 2.6 mm wide, 8 mm deep</text>"
-    b += f"<text x='{px(bx0 + 4)}' y='{py(by0 + 51)}' {FONT} font-size='11' fill='#2980b9'>blue outline: grooved blocks in the tray under each card's rear overhang</text>"
+    b += f"<text x='{ox}' y='{H - 76}' {FONT} font-size='12' fill='#e67e22'>orange: comb ribs under the lid, 2.6 mm wide, 8 mm deep</text>"
+    b += f"<text x='{ox}' y='{H - 58}' {FONT} font-size='12' fill='#2980b9'>blue outline: grooved blocks in the tray under each card's rear overhang</text>"
     lx = bx0 + (bw - env["logo_pos"][0]); ly = by0 + env["logo_pos"][1]
     lw_ = env["logo_mm"]; lh_ = lw_ * 506 / 1054
     b += f"<rect x='{px(lx - lw_ / 2)}' y='{py(ly - lh_ / 2)}' width='{lw_ * S}' height='{lh_ * S}' rx='6' fill='none' stroke='#c0392b' stroke-dasharray='6 4'/>"

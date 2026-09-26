@@ -59,6 +59,14 @@ Lid artwork (engraved logo and name) and the comb ribs seen through the windows:
 
 ![](img/renders/case-lid-artwork.png)
 
+Brain board top silkscreen (logo, name, revision and repository URL are the `branding` group; the rest is reference text):
+
+![](img/renders/board-silk.png)
+
+Logo close-up:
+
+![](img/renders/board-silk-logo.png)
+
 | Closed, from the rear left | Closed, from the front right |
 |---|---|
 | ![](img/renders/case-closed-iso.png) | ![](img/renders/case-closed-front.png) |

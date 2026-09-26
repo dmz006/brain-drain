@@ -30,6 +30,7 @@ LW = 0.15            # silk line width (fab minimum is 0.15)
 NM = 1e6
 CELL = 0.5
 GROUP = "branding"
+REV = "1.0"          # board revision printed on the silkscreen and set in the KiCad title block; bump it when the fab files change
 
 TITLES = {"brain": "brain board", "card": "bay card"}
 
@@ -202,14 +203,13 @@ def brand(kind: str, dry: bool = False) -> str:
     """Two blocks, each placed in the largest free spot nearest the board's middle: the logo, then the text lines beside it."""
     path = BOARDS[kind]
     board = pcbnew.LoadBoard(str(path))
-    remove_old(board)
     lg = logo_geom.load()
     ar = (lg.bbox[3] - lg.bbox[1]) / (lg.bbox[2] - lg.bbox[0])
     g, org = occupancy(board, keepout_y_from=(board.GetBoardEdgesBoundingBox().GetHeight() / NM - 26) if kind == "brain" else None)
     centre = ((org[0] + org[2]) / 2, (org[1] + org[3]) / 2)
     prefer = (centre[0] - 30, centre[1]) if kind == "brain" else centre
     lines_w = 30.0 if kind == "brain" else 13.0
-    lines_h = 3.6 + 1.6 + 1.9 + 0.5 if kind == "brain" else 1.8 + 0.7 + 1.3 + 0.5     # the card is full: name and "bay card" only
+    lines_h = 3.6 + 1.6 + 1.9 + 1.9 + 0.5 if kind == "brain" else 1.8 + 0.7 + 1.3 + 0.5     # the card is full: name and "bay card" only
 
     def place(order):
         gg = g.copy(); logo = None; text = None
@@ -254,23 +254,44 @@ def brand(kind: str, dry: bool = False) -> str:
         ht *= 0.94; t.SetTextSize(pcbnew.VECTOR2I(mm(ht), mm(ht)))
     yy += ht + 0.9
     hs = 1.3
-    t2 = sil.text("four-bay disk sanitizer" if kind == "brain" else "bay card", cx, yy + hs / 2, hs, 0.18)
+    t2 = sil.text("four-bay disk sanitizer" if kind == "brain" else f"bay card rev {REV}", cx, yy + hs / 2, hs, 0.18)
     while t2.GetBoundingBox().GetWidth() / NM > bw:
         hs *= 0.94; t2.SetTextSize(pcbnew.VECTOR2I(mm(hs), mm(hs)))
     yy += hs + 0.7
     hu = 0.0
     if kind == "brain":
+        hr = 1.5
+        t4 = sil.text(f"brain board  rev {REV}", cx, yy + hr / 2, hr, 0.22)
+        while t4.GetBoundingBox().GetWidth() / NM > bw:
+            hr *= 0.94; t4.SetTextSize(pcbnew.VECTOR2I(mm(hr), mm(hr)))
+        yy += hr + 0.7
         hu = 1.5
         t3 = sil.text(URL, cx, yy + hu / 2, hu, 0.2)
         while t3.GetBoundingBox().GetWidth() / NM > bw:
             hu *= 0.97; t3.SetTextSize(pcbnew.VECTOR2I(mm(hu), mm(hu)))
+    board.GetTitleBlock().SetRevision(REV)
     board.Save(str(path))
     return (f"{kind}: branding written, logo {'%d mm wide' % logo[0] if logo else 'not placed'}, text block at "
             f"({spot[0] - org[0]:.1f}, {spot[1] - org[1]:.1f}) mm from the board corner, {sil.n} silk items, URL {hu:.2f} mm high")
 
 
+def strip(kind: str) -> None:
+    """Remove an earlier branding group and save. Runs in its own process: pcbnew's Python proxies go stale after Remove()."""
+    board = pcbnew.LoadBoard(str(BOARDS[kind]))
+    if any(g.GetName() == GROUP for g in board.Groups()):
+        remove_old(board)
+        board.Save(str(BOARDS[kind]))
+
+
 if __name__ == "__main__":
+    import subprocess
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if "--strip" in sys.argv:
+        for k in args:
+            strip(k)
+        sys.exit(0)
     kinds = args or ["brain", "card"]
     for k in kinds:
+        if "--dry" not in sys.argv:
+            subprocess.run([sys.executable, __file__, k, "--strip"], check=True, stderr=subprocess.DEVNULL)
         print(brand(k, dry="--dry" in sys.argv))

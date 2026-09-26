@@ -7,6 +7,9 @@
 		(legacy_teardrops no)
 	)
 	(paper "A3")
+	(title_block
+		(rev "1.0")
+	)
 	(layers
 		(0 "F.Cu" signal)
 		(4 "In1.Cu" power)
@@ -7704,25 +7707,25 @@
 		(layer "Edge.Cuts")
 		(uuid "fabd1048-4775-545c-898b-7209b380f66a")
 	)
+	(gr_text "bay card rev 1.0"
+		(at 53.95 60.674246 0)
+		(layer "F.SilkS")
+		(uuid "8a0da36d-5130-4e9d-b600-eb76e5f37466")
+		(effects
+			(font
+				(size 0.954075 0.954075)
+				(thickness 0.18)
+			)
+		)
+	)
 	(gr_text "BRAIN-DRAIN"
 		(at 53.95 58.75 0)
 		(layer "F.SilkS")
-		(uuid "a2e7402b-747e-4434-901d-4ddd77b3a5cc")
+		(uuid "9311a253-9769-4960-8c1c-6356ccb31694")
 		(effects
 			(font
 				(size 1.174246 1.174246)
 				(thickness 0.3)
-			)
-		)
-	)
-	(gr_text "bay card"
-		(at 53.95 60.674246 0)
-		(layer "F.SilkS")
-		(uuid "aba6498c-c39c-46a9-ad61-7b9e07ddc1f7")
-		(effects
-			(font
-				(size 1.3 1.3)
-				(thickness 0.18)
 			)
 		)
 	)
@@ -17064,8 +17067,8 @@
 		)
 	)
 	(group "branding"
-		(uuid "3f2adc2f-1f70-4fc0-a82a-8a82cd4cc03f")
-		(members "a2e7402b-747e-4434-901d-4ddd77b3a5cc" "aba6498c-c39c-46a9-ad61-7b9e07ddc1f7")
+		(uuid "86fa17c0-5e36-4103-80cb-045c855feec6")
+		(members "8a0da36d-5130-4e9d-b600-eb76e5f37466" "9311a253-9769-4960-8c1c-6356ccb31694")
 	)
 	(embedded_fonts no)
 )
